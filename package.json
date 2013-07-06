@@ -1,0 +1,37 @@
+{
+  "name": "americano",
+  "description": "an opiniated web framework",
+  "keywords": [
+    "framework",
+    "spa",
+    "json",
+    "coffeescript"
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": ""
+    }
+  ],
+  "version": "0.0.1",
+  "homepage": "",
+  "bugs": {
+    "url": ""
+  },
+  "author": "Gelnior <gelnior@free.fr>",
+  "contributors": [],
+  "engines": { "node": "*" },
+  "dependencies": {
+    "express": "3.0.x"
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+    "prepublish": "cake build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://"
+  },
+  "optionalDependencies": {}
+}
