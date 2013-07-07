@@ -10,7 +10,8 @@ class exports.Americano
 
     start: (options) ->
         @app.listen options.port
-        console.log "Americano server is listening on port 3000..."
+        options.name ?= "Americano"
+        console.log "#{options.name} server is listening on port 3000..."
         console.info "Configuration for #{process.env.NODE_ENV} loaded."
 
     _configure: ->
