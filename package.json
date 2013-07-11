@@ -22,7 +22,9 @@
   "contributors": [],
   "engines": { "node": "*" },
   "dependencies": {
-    "express": "3.0.x"
+    "express": "3.0.x",
+    "jugglingdb": "~0.2.0-25",
+    "jugglingdb-cozy-adapter": "~0.3.3"
   },
   "devDependencies": {
   },
@@ -34,4 +36,11 @@
     "url": "git://"
   },
   "optionalDependencies": {}
+  , "cozy-permissions":
+  { "Mail":
+    { "description": "Track the number of mails you receive." }
+  }
+  { "Task":
+    { "description": "Track the number of tasks you achieved." }
+  }
 }

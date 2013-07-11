@@ -1,5 +1,7 @@
 {Americano} = require './americano'
 
+init = require './init'
 server = new Americano()
 
-server.start port: 3000, name: "kyou"
+init ->
+    server.start port: 3000, name: "kyou"
