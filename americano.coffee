@@ -1,30 +1,35 @@
 express = require 'express'
 
-class exports.Americano
+module.exports = americano = express
 
-    constructor: ->
-        @app = express()
+_configure = (app) ->
+    config = require './config'
+    process.env.NODE_ENV = 'development' unless process.env.NODE_ENV?
+    _configureEnv app, env, middlewares for env, middlewares of config
 
-        @_configure()
-        @_setRoutes()
+_configureEnv = (app, env, middlewares) ->
+    if env is 'common'
+        app.use middleware for middleware in middlewares
+    else
+        app.configure env, =>
+            app.use middleware for middleware in middlewares
 
-    start: (options) ->
-        @app.listen options.port
-        options.name ?= "Americano"
-        console.log "#{options.name} server is listening on port 3000..."
-        console.info "Configuration for #{process.env.NODE_ENV} loaded."
+_setRoutes = (app) ->
+    app.get '/', (req, res) -> res.end "Hello coffee drinker!"
 
-    _configure: ->
-        config = require './config'
-        process.env.NODE_ENV = 'development' unless process.env.NODE_ENV?
-        @_configureEnv env, middlewares for env, middlewares of config
+_new = ->
+    app = americano()
+    _configure app
+    _setRoutes app
+    app
 
-    _setRoutes: ->
-        @app.get '/', (req, res) -> res.end "Hello coffee drinker"
+americano.start = (options) ->
+    app = _new()
+    port = options.port || 3000
+    app.listen port
+    options.name ?= "Americano"
+    console.log "#{options.name} server is listening on port #{port}..."
+    console.info "Configuration for #{process.env.NODE_ENV} loaded."
 
-    _configureEnv: (env, middlewares) ->
-        if env is 'common'
-            @app.use middleware for middleware in middlewares
-        else
-            @app.configure env, =>
-                @app.use middleware for middleware in middlewares
+    app
+
