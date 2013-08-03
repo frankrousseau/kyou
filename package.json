@@ -15,10 +15,8 @@
   ],
   "version": "0.0.1",
   "homepage": "",
-  "bugs": {
-    "url": ""
-  },
-  "author": "Gelnior <gelnior@free.fr>",
+  "bugs": { "url": "" },
+  "author": "Frank Rousseau <frank@cozycloud.cc>",
   "contributors": [],
   "engines": { "node": "*" },
   "dependencies": {
@@ -35,12 +33,16 @@
     "type": "git",
     "url": "git://"
   },
-  "optionalDependencies": {}
-  , "cozy-permissions":
-  { "Mail":
-    { "description": "Track the number of mails you receive." }
-  }
-  { "Task":
-    { "description": "Track the number of tasks you achieved." }
-  }
+  "optionalDependencies": {},
+  "cozy-permissions": [
+    { "Mail":
+      { "description": "Track the number of mails you receive." }
+    },
+    { "Task":
+      { "description": "Track the number of tasks you achieved." }
+    },
+    { "Mood":
+      { "description": "Track your mood on a daily basis." }
+    }
+  ]
 }
