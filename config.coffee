@@ -1,20 +1,20 @@
-express = require 'express'
+americano = require './americano'
 
 config =
     common: [
-        express.bodyParser()
-        express.methodOverride()
-        express.errorHandler
+        americano.bodyParser()
+        americano.methodOverride()
+        americano.errorHandler
             dumpExceptions: true
             showStack: true
-        express.static __dirname + '/client/public',
+        americano.static __dirname + '/client/public',
             maxAge: 86400000
     ]
     development: [
-        express.logger 'dev'
+        americano.logger 'dev'
     ]
     production: [
-        express.logger 'short'
+        americano.logger 'short'
     ]
 
 module.exports = config
