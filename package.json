@@ -20,7 +20,7 @@
   "contributors": [],
   "engines": { "node": "*" },
   "dependencies": {
-    "express": "3.0.x",
+    "americano": "*",
     "jugglingdb": "~0.2.0-25",
     "jugglingdb-cozy-adapter": "~0.3.3"
   },

@@ -1,4 +1,4 @@
-americano = require './americano'
+americano = require 'americano'
 
 config =
     common: [
