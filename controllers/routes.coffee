@@ -1,0 +1,2 @@
+'/':
+    get: index: 'index'

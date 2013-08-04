@@ -15,24 +15,30 @@ _configureEnv = (app, env, middlewares) ->
         app.configure env, =>
             app.use middleware for middleware in middlewares
 
-_setRoutes = (app) ->
-    app.get '/', (req, res) -> res.end "Hello coffee drinker!"
+_loadRoutes = (app) ->
+    routes = require './controllers/routes'
+    for path, controllers of routes
+        for verb, controller of controllers
+            for name, action of controller
+                app[verb] path, require("./controllers/#{name}")[action]
+
+_loadPlugin = (app, plugin, callback) ->
+    console.log "add plugin: #{plugin}"
+    require("./plugins/#{plugin}") app, callback
 
 _loadPlugins = (app, callback) ->
     pluginList = []
+
     for plugin in fs.readdirSync './plugins'
         # TODO add support or js files
         if plugin.substring(plugin.length - 7, plugin.length) is '.coffee'
             name = plugin.substring 0, plugin.length - 7
             pluginList.push name
 
-    _loadPlugin = (plugin, cb) ->
-        console.log "add plugin: #{plugin}"
-        require("./plugins/#{plugin}") app, cb
-
     _loadPluginList = (list) ->
         if list.length > 0
-            _loadPlugin list.pop(), (err) ->
+            plugin = list.pop()
+            _loadPlugin app, plugin, (err) ->
                 if err
                     console.log "#{plugin} failed to load."
                 else
@@ -46,7 +52,7 @@ _loadPlugins = (app, callback) ->
 _new = (callback) ->
     app = americano()
     _configure app
-    _setRoutes app
+    _loadRoutes app
     _loadPlugins app, ->
         callback app
 
