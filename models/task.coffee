@@ -1,4 +1,4 @@
-db = require '../db/cozy-adapter'
+db = require './cozy-adapter'
 
 module.exports = db.define 'Task',
     done: Boolean
