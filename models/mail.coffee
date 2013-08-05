@@ -1,5 +1,5 @@
-db = require './cozy-adapter'
+db = require('americano-cozy').db
 
 module.exports = db.define 'Mail',
-    createdAt: Number
     date: Date
+    createdAt: Number

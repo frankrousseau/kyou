@@ -21,10 +21,8 @@
   "engines": { "node": "*" },
   "dependencies": {
     "americano": "*",
-    "americano-cozy": "*",
-    "jugglingdb": "~0.2.0-25",
-    "jugglingdb-cozy-adapter": "~0.3.3"
-  },
+    "americano-cozy": "*"
+  }
   "devDependencies": {
   },
   "scripts": {
