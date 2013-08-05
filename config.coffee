@@ -16,5 +16,8 @@ config =
     production: [
         americano.logger 'short'
     ]
+    plugins: [
+        'americano-cozy'
+    ]
 
 module.exports = config
