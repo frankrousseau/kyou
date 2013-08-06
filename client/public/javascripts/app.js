@@ -93,6 +93,50 @@ window.require.register("application", function(exports, require, module) {
   };
   
 });
+window.require.register("collections/moods", function(exports, require, module) {
+  var Moods, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = Moods = (function(_super) {
+    __extends(Moods, _super);
+
+    function Moods() {
+      _ref = Moods.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    Moods.prototype.model = require('../models/mood');
+
+    Moods.prototype.url = 'moods/';
+
+    return Moods;
+
+  })(Backbone.Collection);
+  
+});
+window.require.register("collections/tasks", function(exports, require, module) {
+  var TaskCollection, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = TaskCollection = (function(_super) {
+    __extends(TaskCollection, _super);
+
+    function TaskCollection() {
+      _ref = TaskCollection.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TaskCollection.prototype.model = require('../models/task');
+
+    TaskCollection.prototype.url = 'tasks/';
+
+    return TaskCollection;
+
+  })(Backbone.Collection);
+  
+});
 window.require.register("initialize", function(exports, require, module) {
   var app;
 
@@ -422,6 +466,26 @@ window.require.register("models/moods", function(exports, require, module) {
   })(Backbone.Collection);
   
 });
+window.require.register("models/task", function(exports, require, module) {
+  var TaskModel, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = TaskModel = (function(_super) {
+    __extends(TaskModel, _super);
+
+    function TaskModel() {
+      _ref = TaskModel.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TaskModel.prototype.rootUrl = "tasks/";
+
+    return TaskModel;
+
+  })(Backbone.Model);
+  
+});
 window.require.register("router", function(exports, require, module) {
   var AppView, Router, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -453,13 +517,19 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, Mood, _ref,
+  var AppView, BaseView, Mood, Moods, Task, Tasks, _ref,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   BaseView = require('../lib/base_view');
 
   Mood = require('../models/mood');
+
+  Moods = require('../collections/moods');
+
+  Task = require('../models/task');
+
+  Tasks = require('../collections/tasks');
 
   module.exports = AppView = (function(_super) {
     __extends(AppView, _super);
@@ -480,7 +550,9 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.afterRender = function() {
-      return this.loadMood();
+      this.loadMood();
+      this.loadMoods();
+      return this.loadTasks();
     };
 
     AppView.prototype.loadMood = function() {
@@ -519,6 +591,48 @@ window.require.register("views/app_view", function(exports, require, module) {
       return this.updateMood('bad');
     };
 
+    AppView.prototype.loadMoods = function() {
+      var moods;
+      moods = new Moods;
+      return moods.fetch({
+        success: function(models) {
+          var html, model, _i, _len, _ref1, _results;
+          _ref1 = models.models;
+          _results = [];
+          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+            model = _ref1[_i];
+            html = require('./templates/mood')(model.attributes);
+            _results.push($('#moods').append(html));
+          }
+          return _results;
+        },
+        error: function() {
+          return alert("An error occured while retrieving data");
+        }
+      });
+    };
+
+    AppView.prototype.loadTasks = function() {
+      var tasks;
+      tasks = new Tasks;
+      return tasks.fetch({
+        success: function(models) {
+          var html, model, _i, _len, _ref1, _results;
+          _ref1 = models.models;
+          _results = [];
+          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+            model = _ref1[_i];
+            html = require('./templates/task')(model.attributes);
+            _results.push($('#tasks').append(html));
+          }
+          return _results;
+        },
+        error: function() {
+          return alert("An error occured while retrieving data");
+        }
+      });
+    };
+
     return AppView;
 
   })(BaseView);
@@ -530,7 +644,29 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content"><h1>Kantify YOU</h1><div id="mood"><h2>Mood</h2><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div id="todos"><h2>Todos</h2></div><div id="mails"><h2>Mails</h2></div></div>');
+  buf.push('<div id="content"><h1>Kantify YOU</h1><div id="mood"><h2>Mood</h2><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button><div id="moods"></div></div><div id="task"><h2>Tasks</h2><div id="tasks"></div></div><div id="mail"><h2>Mails</h2></div></div>');
+  }
+  return buf.join("");
+  };
+});
+window.require.register("views/templates/mood", function(exports, require, module) {
+  module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+  attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+  var buf = [];
+  with (locals || {}) {
+  var interp;
+  buf.push('<p><' + (date) + '>- ' + escape((interp = status) == null ? '' : interp) + '</' + (date) + '></p>');
+  }
+  return buf.join("");
+  };
+});
+window.require.register("views/templates/task", function(exports, require, module) {
+  module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+  attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+  var buf = [];
+  with (locals || {}) {
+  var interp;
+  buf.push('<p><' + (date) + '>- ' + escape((interp = nbTasks) == null ? '' : interp) + '</' + (date) + '></p>');
   }
   return buf.join("");
   };

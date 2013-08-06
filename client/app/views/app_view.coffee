@@ -1,5 +1,8 @@
 BaseView = require '../lib/base_view'
 Mood = require '../models/mood'
+Moods = require '../collections/moods'
+Task = require '../models/task'
+Tasks = require '../collections/tasks'
 
 module.exports = class AppView extends BaseView
 
@@ -13,6 +16,8 @@ module.exports = class AppView extends BaseView
 
     afterRender: ->
         @loadMood()
+        @loadMoods()
+        @loadTasks()
 
     loadMood: ->
         Mood.getLast (err, mood) =>
@@ -34,3 +39,22 @@ module.exports = class AppView extends BaseView
     onNeutralMoodClicked: -> @updateMood 'neutral'
     onBadMoodClicked: -> @updateMood 'bad'
 
+    loadMoods: ->
+        moods = new Moods
+        moods.fetch
+            success: (models) ->
+                for model in models.models
+                    html = require('./templates/mood') model.attributes
+                    $('#moods').append html
+            error: ->
+                alert "An error occured while retrieving data"
+
+    loadTasks: ->
+        tasks = new Tasks
+        tasks.fetch
+            success: (models) ->
+                for model in models.models
+                    html = require('./templates/task') model.attributes
+                    $('#tasks').append html
+            error: ->
+                alert "An error occured while retrieving data"
