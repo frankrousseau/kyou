@@ -170,6 +170,83 @@ window.require.register("lib/base_view", function(exports, require, module) {
   })(Backbone.View);
   
 });
+window.require.register("lib/model", function(exports, require, module) {
+  var Model, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = Model = (function(_super) {
+    __extends(Model, _super);
+
+    function Model() {
+      _ref = Model.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    Model.prototype.idAttribute = '_id';
+
+    Model.prototype.bindField = function(attribute, field) {
+      var _this = this;
+      if (field == null) {
+        return console.log("try to bind a non existing field with " + attribute);
+      } else {
+        field.keyup(function() {
+          _this.set(attribute, field.val(), {
+            silent: true
+          });
+          return true;
+        });
+        return this.on("change:" + attribute, function() {
+          return field.val(_this.get("attribute"));
+        });
+      }
+    };
+
+    return Model;
+
+  })(Backbone.Model);
+  
+});
+window.require.register("lib/request", function(exports, require, module) {
+  exports.request = function(type, url, data, callback) {
+    return $.ajax({
+      type: type,
+      url: url,
+      data: data != null ? JSON.stringify(data) : null,
+      contentType: "application/json",
+      dataType: "json",
+      success: function(data) {
+        if (callback != null) {
+          return callback(null, data);
+        }
+      },
+      error: function(data) {
+        if ((data != null) && (data.msg != null) && (callback != null)) {
+          return callback(new Error(data.msg));
+        } else if (callback != null) {
+          return callback(new Error("Server error occured"));
+        }
+      }
+    });
+  };
+
+  exports.get = function(url, callback) {
+    return exports.request("GET", url, null, callback);
+  };
+
+  exports.post = function(url, data, callback) {
+    return exports.request("POST", url, data, callback);
+  };
+
+  exports.put = function(url, data, callback) {
+    return exports.request("PUT", url, data, callback);
+  };
+
+  exports.del = function(url, callback) {
+    return exports.request("DELETE", url, null, callback);
+  };
+  
+});
 window.require.register("lib/view_collection", function(exports, require, module) {
   var BaseView, ViewCollection, _ref,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -279,6 +356,72 @@ window.require.register("lib/view_collection", function(exports, require, module
   })(BaseView);
   
 });
+window.require.register("models/mood", function(exports, require, module) {
+  var Model, Mood, request, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Model = require('lib/model');
+
+  request = require('lib/request');
+
+  module.exports = Mood = (function(_super) {
+    __extends(Mood, _super);
+
+    function Mood() {
+      _ref = Mood.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    Mood.prototype.urlRoot = 'moods/';
+
+    Mood.getLast = function(callback) {
+      return request.get('moods/today/', function(err, mood) {
+        if (err) {
+          return callback(err);
+        } else {
+          if (mood.status != null) {
+            return callback(null, new Mood(mood));
+          } else {
+            return callback(null, null);
+          }
+        }
+      });
+    };
+
+    Mood.updateLast = function(status, callback) {
+      return request.put('moods/today/', {
+        status: status
+      }, callback);
+    };
+
+    return Mood;
+
+  })(Model);
+  
+});
+window.require.register("models/moods", function(exports, require, module) {
+  var MoodsCollection, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = MoodsCollection = (function(_super) {
+    __extends(MoodsCollection, _super);
+
+    function MoodsCollection() {
+      _ref = MoodsCollection.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    MoodsCollection.prototype.model = require('../models/mood');
+
+    MoodsCollection.prototype.url = 'moods/';
+
+    return MoodsCollection;
+
+  })(Backbone.Collection);
+  
+});
 window.require.register("router", function(exports, require, module) {
   var AppView, Router, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -310,11 +453,13 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, _ref,
+  var AppView, BaseView, Mood, _ref,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   BaseView = require('../lib/base_view');
+
+  Mood = require('../models/mood');
 
   module.exports = AppView = (function(_super) {
     __extends(AppView, _super);
@@ -328,8 +473,50 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.template = require('./templates/home');
 
+    AppView.prototype.events = {
+      'click #good-mood-btn': 'onGoodMoodClicked',
+      'click #neutral-mood-btn': 'onNeutralMoodClicked',
+      'click #bad-mood-btn': 'onBadMoodClicked'
+    };
+
     AppView.prototype.afterRender = function() {
-      return console.log("write more code here !");
+      return this.loadMood();
+    };
+
+    AppView.prototype.loadMood = function() {
+      var _this = this;
+      return Mood.getLast(function(err, mood) {
+        if (err) {
+          return alert("An error occured while retrieving data");
+        } else if (mood == null) {
+          return _this.$('#current-mood').html('Set your mood for today');
+        } else {
+          return _this.$('#current-mood').html(mood.get('status'));
+        }
+      });
+    };
+
+    AppView.prototype.updateMood = function(status) {
+      var _this = this;
+      return Mood.updateLast(status, function(err, mood) {
+        if (err) {
+          return alert("An error occured while saving data");
+        } else {
+          return _this.$('#current-mood').html(status);
+        }
+      });
+    };
+
+    AppView.prototype.onGoodMoodClicked = function() {
+      return this.updateMood('good');
+    };
+
+    AppView.prototype.onNeutralMoodClicked = function() {
+      return this.updateMood('neutral');
+    };
+
+    AppView.prototype.onBadMoodClicked = function() {
+      return this.updateMood('bad');
     };
 
     return AppView;
@@ -343,7 +530,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content"><h1>Kantify YOU</h1><div id="mood"><h2>Mood</h2><button>good</button><button>neutral</button><button>bad</button></div><div id="todos"><h2>Todos</h2></div><div id="mails"><h2>Mails</h2></div></div>');
+  buf.push('<div id="content"><h1>Kantify YOU</h1><div id="mood"><h2>Mood</h2><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div id="todos"><h2>Todos</h2></div><div id="mails"><h2>Mails</h2></div></div>');
   }
   return buf.join("");
   };
