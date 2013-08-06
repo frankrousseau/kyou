@@ -12,12 +12,11 @@ module.exports =
             map: (doc) ->
                 if doc.completionDate? and doc.done
                     date = new Date doc.completionDate
-                    dateString = "#{date.getDate()}#{date.getMonth()}"
-                    dateString += "#{date.getFullYear()}"
+                    dateString = "#{date.getFullYear()}-"
+                    dateString += "#{date.getMonth() + 1}-#{date.getDate()}"
                     emit dateString, 1
             reduce: (key, values, rereduce) ->
-                if rereduce then sum values
-                else values.length
+                sum values
     mood:
         all: americano.defaultRequests.all
         moodByDay: (doc) ->
