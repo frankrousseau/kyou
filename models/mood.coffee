@@ -1,5 +1,5 @@
-db = require('americano-cozy').db
+americano = require('americano-cozy')
 
-module.exports = db.define 'Mood',
-    mood: Boolean
-    date: Date
+module.exports = americano.getModel 'Mood',
+    status: type: String
+    date: type: Date

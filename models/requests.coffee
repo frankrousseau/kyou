@@ -1,3 +1,5 @@
+americano = require 'americano-cozy'
+
 module.exports =
     mail:
         mailsByDay:
@@ -17,8 +19,9 @@ module.exports =
                 if rereduce then sum values
                 else values.length
     mood:
+        all: americano.defaultRequests.all
         moodByDay: (doc) ->
-            date = new Date doc.completionDate
-            dateString = "#{date.getDate()}#{date.getMonth()}"
-            dateString += "#{date.getFullYear()}"
-            emit dateString, doc.state
+            date = new Date doc.date
+            dateString = "#{date.getFullYear()}-"
+            dateString += "#{date.getMonth() + 1}-#{date.getDate()}"
+            emit dateString, doc

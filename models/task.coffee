@@ -1,5 +1,5 @@
-db = require('americano-cozy').db
+americano = require 'americano-cozy'
 
-module.exports = db.define 'Task',
+module.exports = americano.getModel 'Task',
     done: Boolean
     completionDate: Date

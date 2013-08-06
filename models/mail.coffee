@@ -1,5 +1,5 @@
-db = require('americano-cozy').db
+americano = require('americano-cozy')
 
-module.exports = db.define 'Mail',
+module.exports = americano.getModel 'Mail',
     date: Date
     createdAt: Number
