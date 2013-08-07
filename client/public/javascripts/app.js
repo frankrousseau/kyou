@@ -83,6 +83,58 @@ window.require.register("application", function(exports, require, module) {
   module.exports = {
     initialize: function() {
       var Router;
+      $.fn.spin = function(opts, color) {
+        var presets;
+        presets = {
+          tiny: {
+            lines: 8,
+            length: 2,
+            width: 2,
+            radius: 3
+          },
+          small: {
+            lines: 8,
+            length: 1,
+            width: 2,
+            radius: 5
+          },
+          large: {
+            lines: 10,
+            length: 8,
+            width: 4,
+            radius: 8
+          }
+        };
+        if (Spinner) {
+          return this.each(function() {
+            var $this, spinner;
+            $this = $(this);
+            spinner = $this.data("spinner");
+            if (spinner != null) {
+              spinner.stop();
+              return $this.data("spinner", null);
+            } else if (opts !== false) {
+              if (typeof opts === "string") {
+                if (opts in presets) {
+                  opts = presets[opts];
+                } else {
+                  opts = {};
+                }
+                if (color) {
+                  opts.color = color;
+                }
+              }
+              spinner = new Spinner($.extend({
+                color: $this.css("color")
+              }, opts));
+              spinner.spin(this);
+              return $this.data("spinner", spinner);
+            }
+          });
+        } else {
+          return console.log('Spinner class is not available');
+        }
+      };
       Router = require('router');
       this.router = new Router();
       Backbone.history.start();
@@ -553,11 +605,13 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.getAnalytics = function(dataType, color) {
       var _this = this;
+      $("#" + dataType).spin('tiny');
       return request.get(dataType, function(err, data) {
         var chartId, width, yAxisId;
         if (err) {
           return alert("An error occured while retrieving " + dataType + " data");
         } else {
+          $("#" + dataType).spin();
           width = $("#" + dataType).width() - 30;
           chartId = "" + dataType + "-charts";
           yAxisId = "" + dataType + "-y-axis";
@@ -623,7 +677,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with Kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div></div>');
+  buf.push('<div id="content" class="pa2"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with Kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div></div>');
   }
   return buf.join("");
   };

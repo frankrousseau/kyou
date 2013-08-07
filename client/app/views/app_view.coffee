@@ -45,10 +45,12 @@ module.exports = class AppView extends BaseView
                 @$('#current-mood').html mood.get 'status'
 
     getAnalytics: (dataType, color) ->
+        $("##{dataType}").spin 'tiny'
         request.get dataType, (err, data) =>
             if err
                 alert "An error occured while retrieving #{dataType} data"
             else
+                $("##{dataType}").spin()
                 width = $("##{dataType}").width() - 30
                 chartId = "#{dataType}-charts"
                 yAxisId = "#{dataType}-y-axis"
