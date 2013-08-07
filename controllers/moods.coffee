@@ -1,4 +1,5 @@
 Mood = require '../models/mood'
+normalizeResults = require '../lib/normalizer'
 
 
 loadTodayMood = (next, callback) ->

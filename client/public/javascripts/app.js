@@ -517,7 +517,7 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, Mood, Moods, Task, Tasks, _ref,
+  var AppView, BaseView, Mood, Moods, request, _ref,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -527,9 +527,7 @@ window.require.register("views/app_view", function(exports, require, module) {
 
   Moods = require('../collections/moods');
 
-  Task = require('../models/task');
-
-  Tasks = require('../collections/tasks');
+  request = require('../lib/request');
 
   module.exports = AppView = (function(_super) {
     __extends(AppView, _super);
@@ -613,33 +611,18 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.loadTasks = function() {
-      var tasks,
-        _this = this;
-      tasks = new Tasks;
-      return tasks.fetch({
-        success: function(models) {
-          var data, model, _i, _len, _ref1;
-          data = [];
-          _ref1 = models.models;
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            model = _ref1[_i];
-            console.log(model.get('date'));
-            data.push({
-              x: model.get('date'),
-              y: model.get('nbTasks')
-            });
-          }
-          return _this.drawCharts(data, 'tasks-charts', 'tasks-y-axis');
-        },
-        error: function() {
+      var _this = this;
+      return request.get('tasks', function(err, data) {
+        if (err) {
           return alert("An error occured while retrieving data");
+        } else {
+          return _this.drawCharts(data, 'tasks-charts', 'tasks-y-axis');
         }
       });
     };
 
     AppView.prototype.drawCharts = function(data, chartId, yAxisId) {
       var graph, x_axis, y_axis;
-      console.log(data);
       graph = new Rickshaw.Graph({
         element: document.querySelector("#" + chartId),
         width: 580,

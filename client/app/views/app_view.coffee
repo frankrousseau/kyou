@@ -1,8 +1,7 @@
 BaseView = require '../lib/base_view'
 Mood = require '../models/mood'
 Moods = require '../collections/moods'
-Task = require '../models/task'
-Tasks = require '../collections/tasks'
+request = require '../lib/request'
 
 module.exports = class AppView extends BaseView
 
@@ -50,21 +49,14 @@ module.exports = class AppView extends BaseView
                 alert "An error occured while retrieving data"
 
     loadTasks: ->
-        tasks = new Tasks
-        tasks.fetch
-            success: (models) =>
-                data = []
-                for model in models.models
-                    console.log model.get 'date'
-                    data.push
-                        x: model.get 'date'
-                        y: model.get 'nbTasks'
-                @drawCharts data, 'tasks-charts', 'tasks-y-axis'
-            error: ->
+        request.get 'tasks', (err, data) =>
+            if err
                 alert "An error occured while retrieving data"
+            else
+                @drawCharts data, 'tasks-charts', 'tasks-y-axis'
 
     drawCharts: (data, chartId, yAxisId) ->
-        console.log data
+
         graph = new Rickshaw.Graph(
             element: document.querySelector("##{chartId}")
             width: 580
