@@ -1,10 +1,16 @@
 // Base Styles
 yellow-grey = #f5f0d7
+red = #E58067
+
 
 
 @font-face
     font-family: title
     src: url('/fonts/chunkfive.otf')
+
+@font-face
+    font-family: main
+    src: url('/fonts/district-pro-thin.otf')
 
 *
     box-sizing: border-box
@@ -17,6 +23,11 @@ body
 body
     text-rendering optimizeLegibility
     background-color: yellow-grey
+    font-family: main
+
+h2
+    font-family: main
+    font-weight: bold
 
 body,
 input
@@ -35,3 +46,29 @@ a:visited
 h1
     font-family: title
     font-weight: normal
+    font-size: 28px
+
+button
+    border: 0
+    border-radius: 3px
+    background-color: black
+    color: white
+    padding: 10px
+    margin-right: 5px
+
+button:hover
+    background-color: red
+
+button:active
+    background-color: red - 20%
+    box-shadow: 2px 2px 2px red - 40% inset
+
+.pa2
+    padding: 20px
+
+.line
+    margin-bottom: 30px
+
+.explaination
+    font-family: main
+    font-size: 20px

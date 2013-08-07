@@ -1,14 +1,33 @@
-#content
-    h1 Kantify YOU
-    #mood
-        h2 Mood
-        p#current-mood 'loading...'
-        button#good-mood-btn good
-        button#neutral-mood-btn neutral
-        button#bad-mood-btn bad
-        #moods
-    #task
-        h2 Tasks
-        #tasks
-    #mail
-        h2 Mails
+#content.pa2
+    .line
+        h1.right Kantify YOU
+    .line#mood
+        .mod.w33.left
+            h2 Mood
+            p.explaination
+                | The mood is the main thing to track with kyou. Kyou helps you
+                | to understand what could influence your mood.
+                | Do not forget to record it everyday.
+            p#current-mood 'loading...'
+            button#good-mood-btn good
+            button#neutral-mood-btn neutral
+            button#bad-mood-btn bad
+        .mod.w66.left
+            #moods
+    .line#task
+        .mod.w33.left
+            h2 Tasks
+            p.explaination
+                | This tracker counts the tasks marked as done in
+                | your Cozy. The date used to build the graph is the completion
+                | date
+        .mod.w66.left
+            #tasks
+    .line#mail
+        .mod.w33
+            h2 Mails
+            p.explaination
+                | This tracker counts the amount of mails you received 
+                | in your mailbox everyday.
+        .mod.w66.left
+            #mails
