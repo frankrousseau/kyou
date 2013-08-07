@@ -529,10 +529,13 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.afterRender = function() {
+      this.data = {};
+      this.colors = {};
       this.loadMood();
-      this.getAnalytics('moods');
-      this.getAnalytics('tasks');
-      return this.getAnalytics('mails');
+      this.getAnalytics('moods', 'steelblue');
+      this.getAnalytics('tasks', 'maroon');
+      this.getAnalytics('mails', 'green');
+      return $(window).on("resize", this.redrawCharts());
     };
 
     AppView.prototype.loadMood = function() {
@@ -548,27 +551,50 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
-    AppView.prototype.getAnalytics = function(dataType) {
+    AppView.prototype.getAnalytics = function(dataType, color) {
       var _this = this;
       return request.get(dataType, function(err, data) {
+        var chartId, width, yAxisId;
         if (err) {
           return alert("An error occured while retrieving " + dataType + " data");
         } else {
-          return _this.drawCharts(data, "" + dataType + "-charts", "" + dataType + "-y-axis");
+          width = $("#" + dataType).width() - 20;
+          chartId = "" + dataType + "-charts";
+          yAxisId = "" + dataType + "-y-axis";
+          _this.data[dataType] = data;
+          _this.colors[dataType] = color;
+          return _this.drawCharts(data, chartId, yAxisId, color, width);
         }
       });
     };
 
-    AppView.prototype.drawCharts = function(data, chartId, yAxisId) {
+    AppView.prototype.redrawCharts = function() {
+      var chartId, color, data, dataType, width, yAxisId, _ref1, _results;
+      _ref1 = this.data;
+      _results = [];
+      for (dataType in _ref1) {
+        data = _ref1[dataType];
+        width = $("#" + dataType).width() - 20;
+        chartId = "" + dataType + "-charts";
+        yAxisId = "" + dataType + "-y-axis";
+        color = this.colors[dataType];
+        $("" + dataType).html('');
+        _results.push(this.drawCharts(data, chartId, yAxisId, color, width));
+      }
+      return _results;
+    };
+
+    AppView.prototype.drawCharts = function(data, chartId, yAxisId, color, width) {
       var graph, x_axis, y_axis;
+      console.log(width);
       graph = new Rickshaw.Graph({
         element: document.querySelector("#" + chartId),
-        width: 580,
-        height: 250,
+        width: width,
+        height: 300,
         renderer: 'bar',
         series: [
           {
-            color: 'steelblue',
+            color: color,
             data: data
           }
         ]
@@ -597,7 +623,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with Kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.\nDo not forget to record it everyday.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div></div>');
+  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with Kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div></div>');
   }
   return buf.join("");
   };

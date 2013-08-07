@@ -1612,7 +1612,7 @@ button:active {
   padding: 20px;
 }
 .line {
-  margin-bottom: 30px;
+  margin-bottom: 50px;
 }
 .ui-button,
 a.ui-button,
@@ -1753,31 +1753,21 @@ cursor not-allowed {
 }
 @media (max-width: 480px) {
   body {
-    padding: 0 20px;
     text-rendering: optimizeSpeed;
-  }
-  .layout-container {
-    width: auto;
   }
 }
 @media (max-width: 767px) {
-  body {
-    padding: 0 20px;
-    text-rendering: optimizeSpeed;
+  .w33,
+  .w66 {
+    width: 100%;
   }
-  .layout-container {
-    width: auto;
+  body {
+    text-rendering: optimizeSpeed;
   }
 }
 @media (min-width: 768px) and (max-width: 979px) {
-  .layout-container {
-    width: 724px;
-  }
 }
 @media (min-width: 1200px) {
-  .layout-container {
-    width: 1170px;
-  }
 }
 #current-mood {
   font-family: title;

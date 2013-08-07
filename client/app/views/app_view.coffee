@@ -25,10 +25,15 @@ module.exports = class AppView extends BaseView
                 @$('#current-mood').html status
 
     afterRender: ->
+        @data = {}
+        @colors = {}
+
         @loadMood()
-        @getAnalytics 'moods'
-        @getAnalytics 'tasks'
-        @getAnalytics 'mails'
+        @getAnalytics 'moods', 'steelblue'
+        @getAnalytics 'tasks', 'maroon'
+        @getAnalytics 'mails', 'green'
+
+        $(window).on "resize", @redrawCharts()
 
     loadMood: ->
         Mood.getLast (err, mood) =>
@@ -39,23 +44,39 @@ module.exports = class AppView extends BaseView
             else
                 @$('#current-mood').html mood.get 'status'
 
-    getAnalytics: (dataType) ->
+    getAnalytics: (dataType, color) ->
         request.get dataType, (err, data) =>
             if err
                 alert "An error occured while retrieving #{dataType} data"
             else
-                @drawCharts data, "#{dataType}-charts", "#{dataType}-y-axis"
+                width = $("##{dataType}").width() - 20
+                chartId = "#{dataType}-charts"
+                yAxisId = "#{dataType}-y-axis"
+                @data[dataType] = data
+                @colors[dataType] = color
+                @drawCharts data, chartId, yAxisId, color, width
 
-    drawCharts: (data, chartId, yAxisId) ->
+    redrawCharts: ->
+        for dataType, data of @data
+            width = $("##{dataType}").width() - 20
+            chartId = "#{dataType}-charts"
+            yAxisId = "#{dataType}-y-axis"
+            color = @colors[dataType]
+            $("#{dataType}").html ''
+            @drawCharts data, chartId, yAxisId, color, width
+
+
+    drawCharts: (data, chartId, yAxisId, color, width) ->
+        console.log width
         graph = new Rickshaw.Graph(
             element: document.querySelector("##{chartId}")
-            width: 580
-            height: 250
+            width: width
+            height: 300
             renderer: 'bar'
-            series: [ {
-                color: 'steelblue',
+            series: [
+                color: color
                 data: data
-            } ]
+            ]
         )
 
         x_axis = new Rickshaw.Graph.Axis.Time graph: graph
