@@ -2,11 +2,16 @@ americano = require 'americano-cozy'
 
 module.exports =
     mail:
-        byDay:
-            map: (doc) -> emit doc.date, doc
+        analytics:
+            map: (doc) ->
+                if doc.date?
+                    date = new Date doc.date
+                    dateString = "#{date.getFullYear()}-"
+                    dateString += "#{date.getMonth() + 1}-#{date.getDate()}"
+                    emit dateString, 1
             reduce: (key, values, rereduce) ->
-                if rereduce then sum values
-                else values.length
+                sum values
+
     task:
         analytics:
             map: (doc) ->
@@ -17,6 +22,7 @@ module.exports =
                     emit dateString, 1
             reduce: (key, values, rereduce) ->
                 sum values
+
     mood:
         all: americano.defaultRequests.all
         analytics: (doc) ->

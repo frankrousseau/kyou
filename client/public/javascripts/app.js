@@ -531,7 +531,8 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.afterRender = function() {
       this.loadMood();
       this.getAnalytics('moods');
-      return this.getAnalytics('tasks');
+      this.getAnalytics('tasks');
+      return this.getAnalytics('mails');
     };
 
     AppView.prototype.loadMood = function() {
@@ -596,7 +597,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with Kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.\nDo not forget to record it everyday.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mail-y-axis"></div><div id="mail-chart"></div></div></div></div></div>');
+  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with Kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.\nDo not forget to record it everyday.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div></div>');
   }
   return buf.join("");
   };

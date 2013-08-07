@@ -28,6 +28,7 @@ module.exports = class AppView extends BaseView
         @loadMood()
         @getAnalytics 'moods'
         @getAnalytics 'tasks'
+        @getAnalytics 'mails'
 
     loadMood: ->
         Mood.getLast (err, mood) =>
