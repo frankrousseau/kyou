@@ -1614,10 +1614,6 @@ button:active {
 .line {
   margin-bottom: 30px;
 }
-.explaination {
-  font-family: main;
-  font-size: 20px;
-}
 .ui-button,
 a.ui-button,
 button.ui-button {
@@ -1788,8 +1784,11 @@ cursor not-allowed {
   font-size: 20px;
   margin-left: 2px;
 }
-#mails,
-#tasks {
+.explaination {
+  font-family: main;
+  font-size: 20px;
+}
+.graph-container {
   position: relative;
 }
 .chart {

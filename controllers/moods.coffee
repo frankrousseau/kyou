@@ -3,7 +3,7 @@ normalizeResults = require '../lib/normalizer'
 
 
 loadTodayMood = (next, callback) ->
-    Mood.request 'moodByDay', (err, moods) ->
+    Mood.request 'byDay', (err, moods) ->
         if err
             next err
         else if moods.length isnt 0
@@ -19,9 +19,15 @@ loadTodayMood = (next, callback) ->
 
 # Return all moods sorted by date
 module.exports.all = (req, res, next) ->
-    Mood.request 'moodByDay', (err, moods) ->
+    Mood.rawRequest 'analytics', (err, rows) ->
         if err then next err
-        else res.send moods
+        else
+            results = []
+            data = normalizeResults rows
+            for date, value of data
+                dateEpoch = new Date(date).getTime() / 1000
+                results.push x: dateEpoch, y: value
+            res.send results
 
 
 # Return the mood of the day

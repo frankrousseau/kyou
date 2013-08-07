@@ -5,9 +5,9 @@ normalizeResults = require '../lib/normalizer'
 # Return number of tasks completed for every day
 module.exports.all = (req, res, next) ->
     options = group: true
-    Task.rawRequest 'tasksByDay', options, (err, rows) ->
+    Task.rawRequest 'analytics', options, (err, rows) ->
         if err then next err
-        else if rows.length isnt 0
+        else
             results = []
             data = normalizeResults rows
             for date, value of data

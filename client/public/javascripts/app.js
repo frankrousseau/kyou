@@ -115,28 +115,6 @@ window.require.register("collections/moods", function(exports, require, module) 
   })(Backbone.Collection);
   
 });
-window.require.register("collections/tasks", function(exports, require, module) {
-  var TaskCollection, _ref,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  module.exports = TaskCollection = (function(_super) {
-    __extends(TaskCollection, _super);
-
-    function TaskCollection() {
-      _ref = TaskCollection.__super__.constructor.apply(this, arguments);
-      return _ref;
-    }
-
-    TaskCollection.prototype.model = require('../models/task');
-
-    TaskCollection.prototype.url = 'tasks/';
-
-    return TaskCollection;
-
-  })(Backbone.Collection);
-  
-});
 window.require.register("initialize", function(exports, require, module) {
   var app;
 
@@ -466,26 +444,6 @@ window.require.register("models/moods", function(exports, require, module) {
   })(Backbone.Collection);
   
 });
-window.require.register("models/task", function(exports, require, module) {
-  var TaskModel, _ref,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  module.exports = TaskModel = (function(_super) {
-    __extends(TaskModel, _super);
-
-    function TaskModel() {
-      _ref = TaskModel.__super__.constructor.apply(this, arguments);
-      return _ref;
-    }
-
-    TaskModel.prototype.rootUrl = "tasks/";
-
-    return TaskModel;
-
-  })(Backbone.Model);
-  
-});
 window.require.register("router", function(exports, require, module) {
   var AppView, Router, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -547,10 +505,33 @@ window.require.register("views/app_view", function(exports, require, module) {
       'click #bad-mood-btn': 'onBadMoodClicked'
     };
 
+    AppView.prototype.onGoodMoodClicked = function() {
+      return this.updateMood('good');
+    };
+
+    AppView.prototype.onNeutralMoodClicked = function() {
+      return this.updateMood('neutral');
+    };
+
+    AppView.prototype.onBadMoodClicked = function() {
+      return this.updateMood('bad');
+    };
+
+    AppView.prototype.updateMood = function(status) {
+      var _this = this;
+      return Mood.updateLast(status, function(err, mood) {
+        if (err) {
+          return alert("An error occured while saving data");
+        } else {
+          return _this.$('#current-mood').html(status);
+        }
+      });
+    };
+
     AppView.prototype.afterRender = function() {
       this.loadMood();
-      this.loadMoods();
-      return this.loadTasks();
+      this.getAnalytics('moods');
+      return this.getAnalytics('tasks');
     };
 
     AppView.prototype.loadMood = function() {
@@ -566,57 +547,13 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
-    AppView.prototype.updateMood = function(status) {
+    AppView.prototype.getAnalytics = function(dataType) {
       var _this = this;
-      return Mood.updateLast(status, function(err, mood) {
+      return request.get(dataType, function(err, data) {
         if (err) {
-          return alert("An error occured while saving data");
+          return alert("An error occured while retrieving " + dataType + " data");
         } else {
-          return _this.$('#current-mood').html(status);
-        }
-      });
-    };
-
-    AppView.prototype.onGoodMoodClicked = function() {
-      return this.updateMood('good');
-    };
-
-    AppView.prototype.onNeutralMoodClicked = function() {
-      return this.updateMood('neutral');
-    };
-
-    AppView.prototype.onBadMoodClicked = function() {
-      return this.updateMood('bad');
-    };
-
-    AppView.prototype.loadMoods = function() {
-      var moods;
-      moods = new Moods;
-      return moods.fetch({
-        success: function(models) {
-          var html, model, _i, _len, _ref1, _results;
-          _ref1 = models.models;
-          _results = [];
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            model = _ref1[_i];
-            html = require('./templates/mood')(model.attributes);
-            _results.push($('#moods').append(html));
-          }
-          return _results;
-        },
-        error: function() {
-          return alert("An error occured while retrieving data");
-        }
-      });
-    };
-
-    AppView.prototype.loadTasks = function() {
-      var _this = this;
-      return request.get('tasks', function(err, data) {
-        if (err) {
-          return alert("An error occured while retrieving data");
-        } else {
-          return _this.drawCharts(data, 'tasks-charts', 'tasks-y-axis');
+          return _this.drawCharts(data, "" + dataType + "-charts", "" + dataType + "-y-axis");
         }
       });
     };
@@ -659,7 +596,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.\nDo not forget to record it everyday.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods"></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails"><div id="mail-y-axis"></div><div id="mail-chart"></div></div></div></div></div>');
+  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with Kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.\nDo not forget to record it everyday.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mail-y-axis"></div><div id="mail-chart"></div></div></div></div></div>');
   }
   return buf.join("");
   };

@@ -5,7 +5,7 @@
         .mod.w33.left
             h2 Mood
             p.explaination
-                | The mood is the main thing to track with kyou. The main goal
+                | The mood is the main thing to track with Kyou. The main goal
                 | of Kyou is tp help you
                 | to understand what could influence your mood.
                 | Do not forget to record it everyday.
@@ -14,7 +14,9 @@
             button#neutral-mood-btn neutral
             button#bad-mood-btn bad
         .mod.w66.left
-            #moods
+            #moods.graph-container
+                #moods-y-axis.y-axis
+                #moods-charts.chart
     .line#task
         .mod.w33.left
             h2 Tasks
@@ -23,7 +25,7 @@
                 | your Cozy. The date used to build the graph is the completion
                 | date
         .mod.w66.left
-            #tasks
+            #tasks.graph-container
                 #tasks-y-axis.y-axis
                 #tasks-charts.chart
     .line#mail
@@ -33,6 +35,6 @@
                 | This tracker counts the amount of mails you received 
                 | in your mailbox everyday.
         .mod.w66.left
-            #mails
+            #mails.graph-container
                 #mail-y-axis
                 #mail-chart

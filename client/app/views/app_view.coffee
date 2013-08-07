@@ -13,10 +13,21 @@ module.exports = class AppView extends BaseView
         'click #neutral-mood-btn': 'onNeutralMoodClicked'
         'click #bad-mood-btn': 'onBadMoodClicked'
 
+    onGoodMoodClicked: -> @updateMood 'good'
+    onNeutralMoodClicked: -> @updateMood 'neutral'
+    onBadMoodClicked: -> @updateMood 'bad'
+
+    updateMood: (status) ->
+        Mood.updateLast status, (err, mood) =>
+            if err
+                alert "An error occured while saving data"
+            else
+                @$('#current-mood').html status
+
     afterRender: ->
         @loadMood()
-        @loadMoods()
-        @loadTasks()
+        @getAnalytics 'moods'
+        @getAnalytics 'tasks'
 
     loadMood: ->
         Mood.getLast (err, mood) =>
@@ -27,36 +38,14 @@ module.exports = class AppView extends BaseView
             else
                 @$('#current-mood').html mood.get 'status'
 
-    updateMood: (status) ->
-        Mood.updateLast status, (err, mood) =>
+    getAnalytics: (dataType) ->
+        request.get dataType, (err, data) =>
             if err
-                alert "An error occured while saving data"
+                alert "An error occured while retrieving #{dataType} data"
             else
-                @$('#current-mood').html status
-
-    onGoodMoodClicked: -> @updateMood 'good'
-    onNeutralMoodClicked: -> @updateMood 'neutral'
-    onBadMoodClicked: -> @updateMood 'bad'
-
-    loadMoods: ->
-        moods = new Moods
-        moods.fetch
-            success: (models) ->
-                for model in models.models
-                    html = require('./templates/mood') model.attributes
-                    $('#moods').append html
-            error: ->
-                alert "An error occured while retrieving data"
-
-    loadTasks: ->
-        request.get 'tasks', (err, data) =>
-            if err
-                alert "An error occured while retrieving data"
-            else
-                @drawCharts data, 'tasks-charts', 'tasks-y-axis'
+                @drawCharts data, "#{dataType}-charts", "#{dataType}-y-axis"
 
     drawCharts: (data, chartId, yAxisId) ->
-
         graph = new Rickshaw.Graph(
             element: document.querySelector("##{chartId}")
             width: 580
