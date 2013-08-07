@@ -613,24 +613,56 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.loadTasks = function() {
-      var tasks;
+      var tasks,
+        _this = this;
       tasks = new Tasks;
       return tasks.fetch({
         success: function(models) {
-          var html, model, _i, _len, _ref1, _results;
+          var data, model, _i, _len, _ref1;
+          data = [];
           _ref1 = models.models;
-          _results = [];
           for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
             model = _ref1[_i];
-            html = require('./templates/task')(model.attributes);
-            _results.push($('#tasks').append(html));
+            console.log(model.get('date'));
+            data.push({
+              x: model.get('date'),
+              y: model.get('nbTasks')
+            });
           }
-          return _results;
+          return _this.drawCharts(data, 'tasks-charts', 'tasks-y-axis');
         },
         error: function() {
           return alert("An error occured while retrieving data");
         }
       });
+    };
+
+    AppView.prototype.drawCharts = function(data, chartId, yAxisId) {
+      var graph, x_axis, y_axis;
+      console.log(data);
+      graph = new Rickshaw.Graph({
+        element: document.querySelector("#" + chartId),
+        width: 580,
+        height: 250,
+        renderer: 'bar',
+        series: [
+          {
+            color: 'steelblue',
+            data: data
+          }
+        ]
+      });
+      x_axis = new Rickshaw.Graph.Axis.Time({
+        graph: graph
+      });
+      y_axis = new Rickshaw.Graph.Axis.Y({
+        graph: graph,
+        orientation: 'left',
+        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+        element: document.getElementById(yAxisId)
+      });
+      graph.render();
+      return graph;
     };
 
     return AppView;
@@ -644,7 +676,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with kyou. Kyou helps you\nto understand what could influence your mood.\nDo not forget to record it everyday.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods"></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks"></div></div></div><div id="mail" class="line"><div class="mod w33"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails"></div></div></div></div>');
+  buf.push('<div id="content" class="pa2"><div class="line"><h1 class="right">Kantify YOU</h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The mood is the main thing to track with kyou. The main goal\nof Kyou is tp help you\nto understand what could influence your mood.\nDo not forget to record it everyday.</p><p id="current-mood">\'loading...\'</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods"></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails"><div id="mail-y-axis"></div><div id="mail-chart"></div></div></div></div></div>');
   }
   return buf.join("");
   };

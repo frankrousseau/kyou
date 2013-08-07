@@ -5,7 +5,8 @@
         .mod.w33.left
             h2 Mood
             p.explaination
-                | The mood is the main thing to track with kyou. Kyou helps you
+                | The mood is the main thing to track with kyou. The main goal
+                | of Kyou is tp help you
                 | to understand what could influence your mood.
                 | Do not forget to record it everyday.
             p#current-mood 'loading...'
@@ -23,11 +24,15 @@
                 | date
         .mod.w66.left
             #tasks
+                #tasks-y-axis.y-axis
+                #tasks-charts.chart
     .line#mail
-        .mod.w33
+        .mod.w33.left
             h2 Mails
             p.explaination
                 | This tracker counts the amount of mails you received 
                 | in your mailbox everyday.
         .mod.w66.left
             #mails
+                #mail-y-axis
+                #mail-chart

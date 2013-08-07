@@ -52,9 +52,36 @@ module.exports = class AppView extends BaseView
     loadTasks: ->
         tasks = new Tasks
         tasks.fetch
-            success: (models) ->
+            success: (models) =>
+                data = []
                 for model in models.models
-                    html = require('./templates/task') model.attributes
-                    $('#tasks').append html
+                    console.log model.get 'date'
+                    data.push
+                        x: model.get 'date'
+                        y: model.get 'nbTasks'
+                @drawCharts data, 'tasks-charts', 'tasks-y-axis'
             error: ->
                 alert "An error occured while retrieving data"
+
+    drawCharts: (data, chartId, yAxisId) ->
+        console.log data
+        graph = new Rickshaw.Graph(
+            element: document.querySelector("##{chartId}")
+            width: 580
+            height: 250
+            renderer: 'bar'
+            series: [ {
+                color: 'steelblue',
+                data: data
+            } ]
+        )
+
+        x_axis = new Rickshaw.Graph.Axis.Time graph: graph
+        y_axis = new Rickshaw.Graph.Axis.Y
+             graph: graph
+             orientation: 'left'
+             tickFormat: Rickshaw.Fixtures.Number.formatKMBT
+             element: document.getElementById(yAxisId)
+
+        graph.render()
+        graph
