@@ -1,6 +1,10 @@
 Mood = require '../models/mood'
 normalizeResults = require '../lib/normalizer'
 
+getDateString = (date) ->
+    dateString = "#{date.getFullYear()}-"
+    dateString += "#{date.getMonth() + 1}-#{date.getDate()}"
+    dateString
 
 loadTodayMood = (next, callback) ->
     Mood.request 'byDay', (err, moods) ->
@@ -8,11 +12,14 @@ loadTodayMood = (next, callback) ->
             next err
         else if moods.length isnt 0
             mood = moods[0]
-            # TODO big bug
-            # ensure that mood is the last of the day
+            now = getDateString new Date
+            date = getDateString mood.date
 
-            mood.id = mood._id
-            callback mood
+            if now is date
+                mood.id = mood._id
+                callback mood
+            else
+                callback null
         else
             callback null
 

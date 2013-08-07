@@ -558,7 +558,7 @@ window.require.register("views/app_view", function(exports, require, module) {
         if (err) {
           return alert("An error occured while retrieving " + dataType + " data");
         } else {
-          width = $("#" + dataType).width() - 20;
+          width = $("#" + dataType).width() - 30;
           chartId = "" + dataType + "-charts";
           yAxisId = "" + dataType + "-y-axis";
           _this.data[dataType] = data;
@@ -574,7 +574,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       _results = [];
       for (dataType in _ref1) {
         data = _ref1[dataType];
-        width = $("#" + dataType).width() - 20;
+        width = $("#" + dataType).width() - 30;
         chartId = "" + dataType + "-charts";
         yAxisId = "" + dataType + "-y-axis";
         color = this.colors[dataType];

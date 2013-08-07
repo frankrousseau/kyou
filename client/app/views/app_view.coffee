@@ -49,7 +49,7 @@ module.exports = class AppView extends BaseView
             if err
                 alert "An error occured while retrieving #{dataType} data"
             else
-                width = $("##{dataType}").width() - 20
+                width = $("##{dataType}").width() - 30
                 chartId = "#{dataType}-charts"
                 yAxisId = "#{dataType}-y-axis"
                 @data[dataType] = data
@@ -58,7 +58,7 @@ module.exports = class AppView extends BaseView
 
     redrawCharts: ->
         for dataType, data of @data
-            width = $("##{dataType}").width() - 20
+            width = $("##{dataType}").width() - 30
             chartId = "#{dataType}-charts"
             yAxisId = "#{dataType}-y-axis"
             color = @colors[dataType]
