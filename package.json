@@ -36,21 +36,19 @@
     "url": "git://github.com/frankrousseau/kyou"
   },
   "optionalDependencies": {},
-  "cozy-permissions": [
+  "cozy-permissions":
     {
       "Mail": {
         "description": "Track the number of mails you receive."
       }
-    },
-    {
+    ,
       "Task": {
         "description": "Track the number of tasks you achieved."
       }
-    },
-    {
+    ,
       "Mood": {
         "description": "Track your mood on a daily basis."
       }
     }
-  ]
+
 }
