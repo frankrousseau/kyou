@@ -571,11 +571,18 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.updateMood = function(status) {
       var _this = this;
+      this.$('#current-mood').html(null);
+      this.$('#current-mood').spin('tiny');
       return Mood.updateLast(status, function(err, mood) {
         if (err) {
+          _this.$('#current-mood').spin();
           return alert("An error occured while saving data");
         } else {
-          return _this.$('#current-mood').html(status);
+          _this.$('#current-mood').spin();
+          _this.$('#current-mood').html(status);
+          _this.$('#moods-charts').html('');
+          _this.$('#moods-y-axis').html('');
+          return _this.getAnalytics('moods', 'steelblue');
         }
       });
     };
@@ -587,7 +594,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.getAnalytics('moods', 'steelblue');
       this.getAnalytics('tasks', 'maroon');
       this.getAnalytics('mails', 'green');
-      return $(window).on("resize", this.redrawCharts());
+      return $(window).on('resize', this.redrawCharts);
     };
 
     AppView.prototype.loadMood = function() {
@@ -624,6 +631,7 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.redrawCharts = function() {
       var chartId, color, data, dataType, width, yAxisId, _ref1, _results;
+      alert("redraw");
       _ref1 = this.data;
       _results = [];
       for (dataType in _ref1) {
@@ -631,8 +639,9 @@ window.require.register("views/app_view", function(exports, require, module) {
         width = $("#" + dataType).width() - 30;
         chartId = "" + dataType + "-charts";
         yAxisId = "" + dataType + "-y-axis";
+        $(chartId).html(null);
+        $(yAxisId).html(null);
         color = this.colors[dataType];
-        $("" + dataType).html('');
         _results.push(this.drawCharts(data, chartId, yAxisId, color, width));
       }
       return _results;

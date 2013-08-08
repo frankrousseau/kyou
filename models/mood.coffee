@@ -1,7 +1,7 @@
 americano = require('americano-cozy')
 date_helpers = require '../lib/date'
 
-Mood = americano.getModel 'Mood',
+module.exports = Mood = americano.getModel 'Mood',
     status: type: String
     date: type: Date
 
@@ -21,5 +21,3 @@ Mood.loadTodayMood = (callback) ->
                 callback()
         else
             callback()
-
-module.exports = Mood

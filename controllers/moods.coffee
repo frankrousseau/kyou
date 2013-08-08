@@ -1,6 +1,7 @@
 Mood = require '../models/mood'
 normalizeResults = require '../lib/normalizer'
 
+
 # Return all moods sorted by date
 module.exports.all = (req, res, next) ->
     Mood.rawRequest 'analytics', (err, rows) ->
@@ -24,7 +25,7 @@ module.exports.today = (req, res, next) ->
 
 # Update mood of the day if it exists or create it either.
 module.exports.updateToday = (req, res, next) ->
-    loadTodayMood next, (err, mood) ->
+    Mood.loadTodayMood (err, mood) ->
         if err then next err
         else if mood?
             mood.status = req.body.status
