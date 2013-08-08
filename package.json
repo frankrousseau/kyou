@@ -13,18 +13,21 @@
       "url": ""
     }
   ],
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "",
-  "bugs": { "url": "" },
+  "bugs": {
+    "url": ""
+  },
   "author": "Frank R <frank@cozycloud.cc>",
   "contributors": [],
-  "engines": { "node": "*" },
+  "engines": {
+    "node": "*"
+  },
   "dependencies": {
     "americano": "*",
     "americano-cozy": "*"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "scripts": {
     "prepublish": "cake build"
   },
@@ -34,14 +37,20 @@
   },
   "optionalDependencies": {},
   "cozy-permissions": [
-    { "Mail":
-      { "description": "Track the number of mails you receive." }
+    {
+      "Mail": {
+        "description": "Track the number of mails you receive."
+      }
     },
-    { "Task":
-      { "description": "Track the number of tasks you achieved." }
+    {
+      "Task": {
+        "description": "Track the number of tasks you achieved."
+      }
     },
-    { "Mood":
-      { "description": "Track your mood on a daily basis." }
+    {
+      "Mood": {
+        "description": "Track your mood on a daily basis."
+      }
     }
   ]
 }
