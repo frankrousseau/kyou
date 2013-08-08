@@ -1,3 +1,4 @@
 americano = require 'americano'
 
-americano.start name: 'kyou'
+port = process.env.PORT || 3000
+americano.start name: 'kyou', port: port
