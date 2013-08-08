@@ -630,26 +630,11 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.redrawCharts = function() {
-      var chartId, color, data, dataType, width, yAxisId, _ref1, _results;
-      alert("redraw");
-      _ref1 = this.data;
-      _results = [];
-      for (dataType in _ref1) {
-        data = _ref1[dataType];
-        width = $("#" + dataType).width() - 30;
-        chartId = "" + dataType + "-charts";
-        yAxisId = "" + dataType + "-y-axis";
-        $(chartId).html(null);
-        $(yAxisId).html(null);
-        color = this.colors[dataType];
-        _results.push(this.drawCharts(data, chartId, yAxisId, color, width));
-      }
-      return _results;
+      return console.log('do nothing');
     };
 
     AppView.prototype.drawCharts = function(data, chartId, yAxisId, color, width) {
       var graph, x_axis, y_axis;
-      console.log(width);
       graph = new Rickshaw.Graph({
         element: document.querySelector("#" + chartId),
         width: width,
