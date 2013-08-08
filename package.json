@@ -1,6 +1,6 @@
 {
-  "name": "americano",
-  "description": "an opiniated web framework",
+  "name": "Kyou",
+  "description": "A web application that will learn more about you.",
   "keywords": [
     "framework",
     "spa",
@@ -13,16 +13,16 @@
       "url": ""
     }
   ],
-  "version": "0.0.1",
+  "version": "0.1.0",
   "homepage": "",
   "bugs": { "url": "" },
-  "author": "Frank Rousseau <frank@cozycloud.cc>",
+  "author": "Frank R <frank@cozycloud.cc>",
   "contributors": [],
   "engines": { "node": "*" },
   "dependencies": {
     "americano": "*",
     "americano-cozy": "*"
-  }
+  },
   "devDependencies": {
   },
   "scripts": {
@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://"
+    "url": "git://github.com/frankrousseau/kyou"
   },
   "optionalDependencies": {},
   "cozy-permissions": [
