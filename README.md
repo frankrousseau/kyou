@@ -18,19 +18,19 @@ more about you and via that new entries, improve yourself.
 Analytics are built from trackers. There are three kinds of trackers
 (only the two first ones have been implemented yet):
 
-* a tracker that aggregates data from your Cozy
-* a tracker that requires a daily recording from you
-* a tracker that aggregates data from outside your Cozy
+* trackers that aggregate data from your Cozy
+* trackers that require a daily recording from you
+* trackers that aggregate data from outside your Cozy
 
-They all track a quantity on a daily basis. Kyou displays only what happens the
-last six months. Why this constraint? Because analytics could become quickly
-complex and hard to interpret. By keeping these informations simple, KYou
-provides easy to read informations. 
+They all track a quantity on a any kind on a daily basis. Kyou displays only
+what happens the last six months. Why these constraints? Because analytics
+could become quickly complex and hard to interpret. By keeping these
+informations simple, KYou provides easy to read informations. 
 
 ## Available trackers
 
-**Mood** Store your mood every day and look if there is correlation with other
-analytics.
+**Mood** Store your mood every day and look if there are correlations with
+other analytics.
 
 **Task** Count how many tasks were marked done every day. Data comes from 
 [Cozy Todos](https://github.com/mycozycloud/cozy-todos)
