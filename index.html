@@ -564,9 +564,11 @@ body {
   background-color: #f5f0d7;
   font-family: main;
 }
-h2 {
+h2,
+h3,
+h4 {
   font-family: main;
-  font-weight: bold;
+  font-weight: normal;
 }
 body,
 input {
@@ -586,7 +588,8 @@ a:visited:hover {
 h1 {
   font-family: title;
   font-weight: normal;
-  font-size: 28px;
+  font-size: 48px;
+  padding-left: 95px;
 }
 button {
   border: 0;
@@ -603,11 +606,67 @@ button:active {
   background-color: #db512e;
   box-shadow: 2px 2px 2px #aa391d inset;
 }
+a,
+button {
+  cursor: pointer;
+}
+.text {
+  font-family: main;
+  font-size: 20px;
+}
 .pa2 {
   padding: 20px;
 }
 .line {
   margin-bottom: 50px;
 }
-</style><link rel="shortcut icon" href="favicon.png"><title>With KYou, know more about yourself</title><meta name="description" content=""><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="content-type" content="text/html; charset=utf-8"><script src="/jquery-2.0.0.min.js"></script><script type="text/javascript">$(document).ready(function() {
-});</script></head><body><div class="container w33 center"><h1>ok</h1></div></body></html>
+.container {
+  max-width: 480px;
+  margin-top: 10%;
+}
+.other {
+  max-width: 480px;
+}
+.center-text {
+  text-align: center;
+}
+.other {
+  display: none;
+}
+@media (max-width: 600px) {
+  .container {
+    margin-top: 20px;
+  }
+  .container,
+  .other {
+    padding: 20px;
+  }
+}
+</style><link rel="shortcut icon" href="favicon.png"><title>With KYou, know more about yourself</title><meta name="description" content=""><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="content-type" content="text/html; charset=utf-8"><script src="/jquery-2.0.0.min.js"></script><script src="/fade-text.js"></script><script type="text/javascript">$(document).ready(function() {
+  fadeSlide($('.container h1'), 'Kantify You', function() {
+    $('.other').fadeIn(2000);
+  });
+});</script></head><body><div class="container center mt2"><p class="center-text"><img src="./icon.png" class="title-icon"><br><h1 class="mt3">&nbsp;</h1></p></div><div class="other center"><p class="text">Through our webtools, our objects and our collaborations we
+create an huge amount of personal data. Unfortunately we can't
+take advantage of it at its full potential. That's a pity
+because it could teach a lot of about ourselves. To picture it,
+I would say that the world of personal data is like an
+unexplored land: we don't really know where to go but we are
+sure that there are a lot of new suprises awaiting for us.
+</p><p class="text">KYou is the first steps through this new country. By building
+analytics from your <a href="http://cozy.io">Cozy</a>&nbsp;data, it provides
+you the first shape of a 
+better knowledge of yourself. With these new insights I
+expect you will learn more about you and by this 
+way improve yourself.</p><p><a href="https://demo.cozycloud.cc/apps/kyou"><button>Demo</button></a><a href="https://github.com/frankrousseau/kyou"><button>Github</button></a></p><h2>Trackers</h2><p class="text">Kyou displays several metric analytics. For that, it provides
+different kind of trackers: trackers that requires a daily
+recordinng, data aggregators from your Cozy apps and
+trackers that aggregate data from other web applications.  Here
+are the first trackers available.  And because KYou is libre
+and open source you can contribute by adding your own tracker
+to this list.</p><h4>Mood</h4><p class="text">Track your Mood and understand why you feel good sometimes
+and what make you feel bad.</p><h4>Tasks</h4><p class="text">Count every day the number of achievements you recorded
+ with Cozy Todos.</p><h4>Mails</h4><p class="text">Count the number of mails you receive every day (it 
+requires Cozy Mails).
+</p><h2>Next to come</h2><p class="text">Weather, caffeine consumption, alcohol consumption,
+activity reports...</p></div></body></html>

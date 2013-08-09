@@ -16,9 +16,11 @@ body {
   background-color: #f5f0d7;
   font-family: main;
 }
-h2 {
+h2,
+h3,
+h4 {
   font-family: main;
-  font-weight: bold;
+  font-weight: normal;
 }
 body,
 input {
@@ -38,7 +40,8 @@ a:visited:hover {
 h1 {
   font-family: title;
   font-weight: normal;
-  font-size: 28px;
+  font-size: 48px;
+  padding-left: 95px;
 }
 button {
   border: 0;
@@ -55,9 +58,39 @@ button:active {
   background-color: #db512e;
   box-shadow: 2px 2px 2px #aa391d inset;
 }
+a,
+button {
+  cursor: pointer;
+}
+.text {
+  font-family: main;
+  font-size: 20px;
+}
 .pa2 {
   padding: 20px;
 }
 .line {
   margin-bottom: 50px;
+}
+.container {
+  max-width: 480px;
+  margin-top: 10%;
+}
+.other {
+  max-width: 480px;
+}
+.center-text {
+  text-align: center;
+}
+.other {
+  display: none;
+}
+@media (max-width: 600px) {
+  .container {
+    margin-top: 20px;
+  }
+  .container,
+  .other {
+    padding: 20px;
+  }
 }
