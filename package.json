@@ -28,9 +28,6 @@
     "americano-cozy": "*"
   },
   "devDependencies": {},
-  "scripts": {
-    "prepublish": "cake build"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/frankrousseau/kyou"
