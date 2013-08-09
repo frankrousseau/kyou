@@ -1,22 +1,22 @@
 # KYou
 
 Through our webtools, our objects and our collaborations we create an huge
-amount of various personal data. Unfortunately we can't take advantage of it
+amount of personal data. Unfortunately we can't take advantage of it
 at its full potential. That's a pity because it could teach a lot of about
-ourselves. The world of personal data is like an unexplored land: we don't
-really know where to go but we are sure that there are a lot of new suprises
-awaiting for us.
+ourselves. To picture it, I would say that the world of personal data is like
+an unexplored land: we don't really know where to go but we are sure that there
+are a lot of new suprises awaiting for us.
 
 KYou is the first steps through this new country. By building analytics
 from your [Cozy](http://cozy.io) data, it provides you the first shapes of a 
-better knowledge of yourself. With this new insights I expect you will learn 
+better knowledge of yourself. With these new insights I expect you will learn 
 more about you and via that new entries, improve yourself.
 
 
 ## Trackers
 
 Analytics are built from trackers. There are three kinds of trackers
-(only the two first ones have benn implemented yet):
+(only the two first ones have been implemented yet):
 
 * a tracker that aggregates data from your Cozy
 * a tracker that requires a daily recording from you
@@ -48,4 +48,4 @@ them would be highly appreciated.
   drinked.
 * alcohol consumption tracker: every day stores the amount of glass  of alcohol
   you drinked.
-* make tracker more modular and easier to code.
+* make trackers more modular and easier to code.
