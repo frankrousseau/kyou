@@ -12,7 +12,7 @@ module.exports.all = (req, res, next) ->
             for date, value of data
                 dateEpoch = new Date(date).getTime() / 1000
                 results.push x: dateEpoch, y: value
-            res.send results
+            res.send results, 200
 
 
 # Return the mood of the day

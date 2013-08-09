@@ -528,6 +528,7 @@ window.require.register("router", function(exports, require, module) {
 });
 window.require.register("views/app_view", function(exports, require, module) {
   var AppView, BaseView, Mood, Moods, request, _ref,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -543,6 +544,7 @@ window.require.register("views/app_view", function(exports, require, module) {
     __extends(AppView, _super);
 
     function AppView() {
+      this.redrawCharts = __bind(this.redrawCharts, this);
       _ref = AppView.__super__.constructor.apply(this, arguments);
       return _ref;
     }
@@ -630,7 +632,22 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.redrawCharts = function() {
-      return console.log('do nothing');
+      var chartId, color, data, dataType, width, yAxisId, _ref1, _results;
+      console.log('do nothing');
+      $('.chart').html(null);
+      $('.y-axis').html(null);
+      _ref1 = this.data;
+      _results = [];
+      for (dataType in _ref1) {
+        data = _ref1[dataType];
+        width = $("#" + dataType).width() - 30;
+        chartId = "" + dataType + "-charts";
+        yAxisId = "" + dataType + "-y-axis";
+        color = this.colors[dataType];
+        console.log(color);
+        _results.push(this.drawCharts(data, chartId, yAxisId, color, width));
+      }
+      return _results;
     };
 
     AppView.prototype.drawCharts = function(data, chartId, yAxisId, color, width) {

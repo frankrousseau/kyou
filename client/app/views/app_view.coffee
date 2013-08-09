@@ -65,16 +65,17 @@ module.exports = class AppView extends BaseView
                 @colors[dataType] = color
                 @drawCharts data, chartId, yAxisId, color, width
 
-    redrawCharts: ->
+    redrawCharts: =>
         console.log 'do nothing'
-        #for dataType, data of @data
-        #    width = $("##{dataType}").width() - 30
-        #    chartId = "#{dataType}-charts"
-        #    yAxisId = "#{dataType}-y-axis"
-        #    $(chartId).html null
-        #    $(yAxisId).html null
-        #    color = @colors[dataType]
-        #    @drawCharts data, chartId, yAxisId, color, width
+        $('.chart').html null
+        $('.y-axis').html null
+        for dataType, data of @data
+            width = $("##{dataType}").width() - 30
+            chartId = "#{dataType}-charts"
+            yAxisId = "#{dataType}-y-axis"
+            color = @colors[dataType]
+            console.log color
+            @drawCharts data, chartId, yAxisId, color, width
 
 
     drawCharts: (data, chartId, yAxisId, color, width) ->
