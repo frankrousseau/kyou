@@ -35,7 +35,4 @@ module.exports =
             status = 3 if doc.status is "good"
             emit dateString, status
         byDay: (doc) ->
-            date = new Date doc.date
-            dateString = "#{date.getFullYear()}-"
-            dateString += "#{date.getMonth() + 1}-#{date.getDate()}"
-            emit dateString, doc
+            emit doc.date, doc

@@ -13,6 +13,8 @@ Mood.loadTodayMood = (callback) ->
             mood = moods[0]
             now = date_helpers.getDateString new Date
             date = date_helpers.getDateString mood.date
+            console.log now
+            console.log date
 
             if now is date
                 mood.id = mood._id

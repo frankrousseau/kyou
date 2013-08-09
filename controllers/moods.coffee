@@ -26,6 +26,7 @@ module.exports.today = (req, res, next) ->
 # Update mood of the day if it exists or create it either.
 module.exports.updateToday = (req, res, next) ->
     Mood.loadTodayMood (err, mood) ->
+        console.log mood
         if err then next err
         else if mood?
             mood.status = req.body.status

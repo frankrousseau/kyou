@@ -18,7 +18,7 @@ module.exports = class AppView extends BaseView
     onBadMoodClicked: -> @updateMood 'bad'
 
     updateMood: (status) ->
-        @$('#current-mood').html null
+        @$('#current-mood').html '&nbsp;'
         @$('#current-mood').spin 'tiny'
         Mood.updateLast status, (err, mood) =>
             if err

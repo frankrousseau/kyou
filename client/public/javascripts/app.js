@@ -571,7 +571,7 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.updateMood = function(status) {
       var _this = this;
-      this.$('#current-mood').html(null);
+      this.$('#current-mood').html('&nbsp;');
       this.$('#current-mood').spin('tiny');
       return Mood.updateLast(status, function(err, mood) {
         if (err) {
