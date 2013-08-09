@@ -71,10 +71,7 @@ module.exports = class AppView extends BaseView
         $('.y-axis').html null
         for dataType, data of @data
             width = $("##{dataType}").width() - 30
-            chartId = "#{dataType}-charts"
-            yAxisId = "#{dataType}-y-axis"
             color = @colors[dataType]
-            console.log color
             @drawCharts data, chartId, yAxisId, color, width
 
 
