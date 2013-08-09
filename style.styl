@@ -1,0 +1,70 @@
+rounded-border()
+    -webkit-border-radius: arguments
+    -moz-border-radius: arguments
+    border-radius: arguments
+            
+dark-grey = #444
+yellow-grey = #f5f0d7
+red = #E58067
+
+@font-face
+    font-family: title
+    src: url('/fonts/chunkfive.otf')
+
+@font-face
+    font-family: main
+    src: url('/fonts/district-pro-thin.otf')
+
+html,
+body
+    height 100%
+    width 100%
+
+body
+    text-rendering optimizeLegibility
+    background-color: yellow-grey
+    font-family: main
+
+h2
+    font-family: main
+    font-weight: bold
+
+body,
+input
+    color #444
+    font 300 16px Geneva, Verdana, "Lucida Sans", "Lucida Grande", sans-serif
+    line-height 1.2
+
+a,
+a:visited
+    color #0086cc
+    text-decoration none
+
+    &:hover
+        text-decoration underline
+
+h1
+    font-family: title
+    font-weight: normal
+    font-size: 28px
+
+button
+    border: 0
+    border-radius: 3px
+    background-color: dark-grey
+    color: white
+    padding: 10px
+    margin-right: 5px
+
+button:hover
+    background-color: red
+
+button:active
+    background-color: red - 20%
+    box-shadow: 2px 2px 2px red - 40% inset
+
+.pa2
+    padding: 20px
+
+.line
+    margin-bottom: 50px
