@@ -49,3 +49,8 @@ them would be highly appreciated.
 * alcohol consumption tracker: every day stores the amount of glass  of alcohol
   you drinked.
 * make trackers more modular and easier to code.
+
+## Credits
+
+KYou logo comes from Iconmonstr.com
+License is AGPL v3
