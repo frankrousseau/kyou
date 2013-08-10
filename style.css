@@ -1,10 +1,10 @@
 @font-face {
   font-family: title;
-  src: url("/fonts/chunkfive.otf");
+  src: url("fonts/chunkfive.otf");
 }
 @font-face {
   font-family: main;
-  src: url("/fonts/district-pro-thin.otf");
+  src: url("fonts/district-pro-thin.otf");
 }
 html,
 body {
@@ -50,6 +50,10 @@ button {
   color: #fff;
   padding: 10px;
   margin-right: 5px;
+  font-family: main;
+  font-size: 22px;
+  width: 400px;
+  margin-bottom: 10px;
 }
 button:hover {
   background-color: #e58067;
@@ -102,5 +106,9 @@ button {
   .container,
   .other {
     padding: 20px;
+  }
+  button {
+    width: 300px;
+    font-size: 18px;
   }
 }

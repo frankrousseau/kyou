@@ -19,19 +19,22 @@ html(lang="en")
     body
         .container.center.mt2
             p.center-text
-                img.title-icon(src="./icon.png")
+                img.title-icon(src="./icon.png", alt="Kyou Logo")
                 br
                 h1.mt3 &nbsp;
 
         .other.center
             p.text.
-                Through our webtools, our objects and our collaborations we
-                create an huge amount of personal data. Unfortunately we can't
+                Through your webtools, your objects and your collaborations you
+                create an huge amount of personal data. Unfortunately you can't
                 take advantage of it at its full potential. That's a pity
-                because it could teach a lot of about ourselves. To picture it,
-                I would say that the world of personal data is like an
-                unexplored land: we don't really know where to go but we are
-                sure that there are a lot of new suprises awaiting for us.
+                because it could teach a lot of about yourself. To picture it,
+                let's say that the world of personal data is like an
+                unexplored land where the entrance is right behind your house.
+                You know you could enter into it but you don't really know
+                where to go once there. That make you sad because you are
+                pretty sure that there are a lot of new suprises awaiting for
+                you.
 
             p.text
                 | KYou is the first steps through this new country. By building
@@ -39,22 +42,26 @@ html(lang="en")
                 a(href="http://cozy.io") Cozy
                 | &nbsp;data, it provides
                 | you the first shape of a 
-                | better knowledge of yourself. With these new insights I
-                | expect you will learn more about you and by this 
+                | better knowledge of yourself. Kyou aggregates data from your
+                | web applications and displays them as
+                | simple charts.
+                | With the help of these new insights,
+                | you will learn more about you and by this 
                 | way improve yourself.
-            p
-                a(href="https://demo.cozycloud.cc/apps/kyou")
-                    button Demo
-                a(href="https://github.com/frankrousseau/kyou")
-                    button Github
-
+                
             h2 Trackers
             p.text.
-                Kyou displays several metric analytics. For that, it provides
+                Kyou displays several analytics. For that, it provides
                 different kind of trackers: trackers that requires a daily
-                recordinng, data aggregators from your Cozy apps and
-                trackers that aggregate data from other web applications.  Here
-                are the first trackers available.  And because KYou is libre
+                recording, data aggregators from your Cozy apps and
+                trackers that aggregate data from other web applications. 
+
+            p.mt2
+                img(src="analytics.png", alt="analytics picture").mt2
+
+            p.text.
+                You will find in the following
+                the first trackers available.  And because KYou is libre
                 and open source you can contribute by adding your own tracker
                 to this list.
             h4 Mood
@@ -70,8 +77,23 @@ html(lang="en")
                 Count the number of mails you receive every day (it 
                 requires Cozy Mails).
 
-            h2 Next to come
-
+            h4 Next to come
             p.text.
                 Weather, caffeine consumption, alcohol consumption,
                 activity reports...
+
+            h2 Setup
+            p.text
+                | Go to your Cozy market page and copy paste the following url
+                | in the "install your app" field:
+                br
+                a(href='https://github.com/frankrousseau/kyou') https://github.com/frankrousseau/kyou
+
+            h2 Preview
+            p.center-text
+                a(href="https://demo.cozycloud.cc/apps/kyou")
+                    button Have a look at the Demonstration
+                br
+                a(href="https://github.com/frankrousseau/kyou")
+                    button Check the code on Github
+
