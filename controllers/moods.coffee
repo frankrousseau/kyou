@@ -4,7 +4,7 @@ normalizeResults = require '../lib/normalizer'
 
 # Return all moods sorted by date
 module.exports.all = (req, res, next) ->
-    Mood.rawRequest 'analytics', (err, rows) ->
+    Mood.rawRequest 'statusByDay', (err, rows) ->
         if err then next err
         else
             results = []

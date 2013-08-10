@@ -2,7 +2,7 @@ americano = require 'americano-cozy'
 
 module.exports =
     mail:
-        analytics:
+        nbByDay:
             map: (doc) ->
                 if doc.date?
                     emit doc.date.substring(0, 10), 1
@@ -10,7 +10,7 @@ module.exports =
                 sum values
 
     task:
-        analytics:
+        nbByDay:
             map: (doc) ->
                 if doc.completionDate? and doc.done
                     date = new Date doc.completionDate
@@ -27,7 +27,7 @@ module.exports =
 
     mood:
         all: americano.defaultRequests.all
-        analytics: (doc) ->
+        statusByDay: (doc) ->
             status = 0
             status = 1 if doc.status is "bad"
             status = 2 if doc.status is "neutral"
