@@ -13,7 +13,7 @@
       "url": "http://www.gnu.org/licenses/agpl-3.0.html"
     }
   ],
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "",
   "bugs": {
     "url": ""
@@ -33,19 +33,15 @@
     "url": "git://github.com/frankrousseau/kyou"
   },
   "optionalDependencies": {},
-  "cozy-permissions":
-    {
-      "Mail": {
-        "description": "Track the number of mails you receive."
-      }
-    ,
-      "Task": {
-        "description": "Track the number of tasks you achieved."
-      }
-    ,
-      "Mood": {
-        "description": "Track your mood on a daily basis."
-      }
+  "cozy-permissions": {
+    "Mail": {
+      "description": "Track the number of mails you receive."
+    },
+    "Task": {
+      "description": "Track the number of tasks you achieved."
+    },
+    "Mood": {
+      "description": "Track your mood on a daily basis."
     }
-
+  }
 }
