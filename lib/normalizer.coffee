@@ -1,3 +1,4 @@
+date_helpers = require './date'
 
 module.exports = (rows) ->
     normalizedRows = {}
@@ -10,8 +11,7 @@ module.exports = (rows) ->
 
     while date < now
         date.setDate(date.getDate() + 1)
-        dateString = "#{date.getFullYear()}-"
-        dateString += "#{date.getMonth() + 1}-#{date.getDate()}"
+        dateString = date_helpers.getDateString date
 
         if data[dateString]?
             normalizedRows[dateString] = data[dateString]
