@@ -1,5 +1,6 @@
 BaseView = require '../lib/base_view'
 Mood = require '../models/mood'
+CoffeeCup = require '../models/coffeecup'
 Moods = require '../collections/moods'
 request = require '../lib/request'
 
@@ -36,20 +37,33 @@ module.exports = class AppView extends BaseView
         @colors = {}
 
         @loadMood()
+        @loadCoffeeCup()
         @getAnalytics 'moods', 'steelblue'
         @getAnalytics 'tasks', 'maroon'
         @getAnalytics 'mails', 'green'
+        @getAnalytics 'coffeecups', 'yellow'
 
         $(window).on 'resize',  @redrawCharts
 
     loadMood: ->
         Mood.getLast (err, mood) =>
             if err
-                alert "An error occured while retrieving data"
+                alert "An error occured while retrieving mood data"
             else if not mood?
                 @$('#current-mood').html 'Set your mood for today'
             else
                 @$('#current-mood').html mood.get 'status'
+
+    loadCoffeeCup: ->
+        CoffeeCup.getLast (err, mood) =>
+            if err
+                alert "An error occured while retrieving coffee cup data"
+            else if not mood?
+                @$('#current-coffeecup').html(
+                    'Set your coffee consumption for today')
+            else
+                @$('#current-coffeecup').html mood.get 'status'
+
 
     getAnalytics: (dataType, color) ->
         $("##{dataType}").spin 'tiny'
@@ -66,7 +80,6 @@ module.exports = class AppView extends BaseView
                 @drawCharts data, chartId, yAxisId, color, width
 
     redrawCharts: =>
-        console.log 'do nothing'
         $('.chart').html null
         $('.y-axis').html null
         for dataType, data of @data
