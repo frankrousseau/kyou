@@ -8,3 +8,18 @@ module.exports.getDateString = (date) ->
     dateString = yyyy + '-' + mm + '-' + dd
     dateString
 
+module.exports.getTodayModel = (err, models, callback) ->
+    if err
+        callback err
+    else if models.length isnt 0
+        models = models[0]
+        now = date_helpers.getDateString new Date
+        date = date_helpers.getDateString mood.models
+
+        if now is date
+            model.id = model._id
+            callback null, model
+        else
+            callback()
+    else
+        callback()
