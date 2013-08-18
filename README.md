@@ -34,17 +34,18 @@ other analytics.
 **Mails** Count how many mails you received every day. Data comes from 
 [Cozy Mails](https://github.com/mycozycloud/cozy-mails)
 
+**Coffee Cups** Store the amount of coffee cup you drink everyday. 
+
 ## What about contributions?
 
 Here are the next things I have mind and not started yet. Your participation to
 them would be highly appreciated. Of course any idea is welcome!
 
 * weather tracker: store your location and track temperature and pluviometry.
-* coffee consumption tracker: every day stores the amount of cup of coffee you
-  drinked.
-* alcohol consumption tracker: every day stores the amount of glass  of alcohol
-  you drinked.
-* make trackers more modular and easier to code.
+* github commit tracker: store your daily amount of commits.
+* twitter post tracker: store your daily amount of twitter posts.
+* learn from previous trackers code to make trackers more modular and easier to
+  code.
 
 ## Credits
 
