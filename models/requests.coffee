@@ -35,3 +35,8 @@ module.exports =
             emit doc.date.substring(0,10), status
         byDay: (doc) ->
             emit doc.date, doc
+    coffeecup:
+        nbByDay: (doc) ->
+            emit doc.date.substring(0,10), doc.amount
+        byDay: (doc) ->
+            emit doc.date, doc

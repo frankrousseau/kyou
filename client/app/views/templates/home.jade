@@ -11,7 +11,7 @@
                 | The goal of this tracker is to help you
                 | understand what could influence your mood by comparing it
                 | to other trackers.
-            p#current-mood 'loading...'
+            p#current-mood loading...
             button#good-mood-btn good
             button#neutral-mood-btn neutral
             button#bad-mood-btn bad
@@ -40,3 +40,24 @@
             #mails.graph-container
                 #mails-y-axis.y-axis
                 #mails-charts.chart
+    .line#coffeecup
+        .mod.w33.left
+            h2 Coffee Cups
+            p.explaination
+                | This tracker allows you to track the amount of coffee cup
+                | you drink every day
+            p#current-coffeecup loading...
+            button 0
+            button 1
+            button 2
+            button 3
+            button 4
+            button 5
+            button 6
+            button 7
+            button 8
+            button 9
+        .mod.w66.left
+            #coffeecups.graph-container
+                #coffeecups-y-axis.y-axis
+                #coffeecups-charts.chart
