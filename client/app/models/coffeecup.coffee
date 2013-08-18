@@ -5,13 +5,13 @@ module.exports = class CoffeeCup extends Model
     urlRoot: 'coffeecups/'
 
     @getLast: (callback) ->
-        request.get 'coffecup/today/', (err, coffeecup) ->
+        request.get 'coffeecups/today/', (err, coffeecup) ->
             if err then callback err
             else
-                if coffeecup.coffeecup?
+                if coffeecup.amount?
                     callback null, new CoffeeCup coffeecup
                 else
                     callback null, null
 
-    @updateLast: (status, callback) ->
-        request.put 'coffeecups/today/', status: status, callback
+    @updateLast: (amount, callback) ->
+        request.put 'coffeecups/today/', amount: amount, callback

@@ -450,11 +450,11 @@ window.require.register("models/coffeecup", function(exports, require, module) {
     CoffeeCup.prototype.urlRoot = 'coffeecups/';
 
     CoffeeCup.getLast = function(callback) {
-      return request.get('coffecup/today/', function(err, coffeecup) {
+      return request.get('coffeecups/today/', function(err, coffeecup) {
         if (err) {
           return callback(err);
         } else {
-          if (coffeecup.coffeecup != null) {
+          if (coffeecup.amount != null) {
             return callback(null, new CoffeeCup(coffeecup));
           } else {
             return callback(null, null);
@@ -463,9 +463,9 @@ window.require.register("models/coffeecup", function(exports, require, module) {
       });
     };
 
-    CoffeeCup.updateLast = function(status, callback) {
+    CoffeeCup.updateLast = function(amount, callback) {
       return request.put('coffeecups/today/', {
-        status: status
+        amount: amount
       }, callback);
     };
 
@@ -602,7 +602,8 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.events = {
       'click #good-mood-btn': 'onGoodMoodClicked',
       'click #neutral-mood-btn': 'onNeutralMoodClicked',
-      'click #bad-mood-btn': 'onBadMoodClicked'
+      'click #bad-mood-btn': 'onBadMoodClicked',
+      'click #coffeecup button': 'onCoffeeButtonClicked'
     };
 
     AppView.prototype.onGoodMoodClicked = function() {
@@ -635,6 +636,30 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
+    AppView.prototype.onCoffeeButtonClicked = function(event) {
+      var button, label, val,
+        _this = this;
+      label = this.$('#current-coffeecup');
+      button = $(event.target);
+      val = parseInt(button.html());
+      label.css('color', 'transparent');
+      label.spin('tiny', {
+        color: '#444'
+      });
+      return CoffeeCup.updateLast(val, function(err, coffeecup) {
+        label.spin();
+        label.css('color', '#444');
+        if (err) {
+          return alert('An error occured while saving data');
+        } else {
+          label.html(val);
+          _this.$('#coffeecups-charts').html('');
+          _this.$('#coffeecups-y-axis').html('');
+          return _this.getAnalytics('coffeecups', 'yellow');
+        }
+      });
+    };
+
     AppView.prototype.afterRender = function() {
       this.data = {};
       this.colors = {};
@@ -662,13 +687,13 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.loadCoffeeCup = function() {
       var _this = this;
-      return CoffeeCup.getLast(function(err, mood) {
+      return CoffeeCup.getLast(function(err, coffeecup) {
         if (err) {
           return alert("An error occured while retrieving coffee cup data");
-        } else if (mood == null) {
+        } else if (coffeecup == null) {
           return _this.$('#current-coffeecup').html('Set your coffee consumption for today');
         } else {
-          return _this.$('#current-coffeecup').html(mood.get('status'));
+          return _this.$('#current-coffeecup').html(coffeecup.get('amount'));
         }
       });
     };
@@ -693,18 +718,19 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.redrawCharts = function() {
-      var color, data, dataType, width, _ref1, _results;
+      var chartId, color, data, dataType, width, yAxisId, _ref1;
       $('.chart').html(null);
       $('.y-axis').html(null);
       _ref1 = this.data;
-      _results = [];
       for (dataType in _ref1) {
         data = _ref1[dataType];
         width = $("#" + dataType).width() - 30;
+        chartId = "" + dataType + "-charts";
+        yAxisId = "" + dataType + "-y-axis";
         color = this.colors[dataType];
-        _results.push(this.drawCharts(data, chartId, yAxisId, color, width));
+        this.drawCharts(data, chartId, yAxisId, color, width);
       }
-      return _results;
+      return true;
     };
 
     AppView.prototype.drawCharts = function(data, chartId, yAxisId, color, width) {
@@ -745,7 +771,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div><div id="coffeecup" class="line"><div class="mod w33 left"><h2>Coffee Cups</h2><p class="explaination">This tracker allows you to track the amount of coffee cup\nyou drink every day</p><p id="current-coffeecup">loading...</p><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button></div><div class="mod w66 left"><div id="coffeecups" class="graph-container"><div id="coffeecups-y-axis" class="y-axis"></div><div id="coffeecups-charts" class="chart"></div></div></div></div></div>');
+  buf.push('<div id="content" class="pa2"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div><div id="coffeecup" class="line"><div class="mod w33 left"><h2>Coffee Cups</h2><p class="explaination">This tracker allows you to track the amount of coffee cup\nyou drink every day</p><p id="current-coffeecup">loading...</p><button>0</button><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button></div><div class="mod w66 left"><div id="coffeecups" class="graph-container"><div id="coffeecups-y-axis" class="y-axis"></div><div id="coffeecups-charts" class="chart"></div></div></div></div></div>');
   }
   return buf.join("");
   };

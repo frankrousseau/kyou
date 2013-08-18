@@ -13,6 +13,7 @@ module.exports = class AppView extends BaseView
         'click #good-mood-btn': 'onGoodMoodClicked'
         'click #neutral-mood-btn': 'onNeutralMoodClicked'
         'click #bad-mood-btn': 'onBadMoodClicked'
+        'click #coffeecup button': 'onCoffeeButtonClicked'
 
     onGoodMoodClicked: -> @updateMood 'good'
     onNeutralMoodClicked: -> @updateMood 'neutral'
@@ -31,6 +32,24 @@ module.exports = class AppView extends BaseView
                 @$('#moods-charts').html ''
                 @$('#moods-y-axis').html ''
                 @getAnalytics 'moods', 'steelblue'
+
+    onCoffeeButtonClicked: (event) ->
+        label = @$('#current-coffeecup')
+        button = $(event.target)
+        val = parseInt button.html()
+
+        label.css 'color', 'transparent'
+        label.spin 'tiny', color: '#444'
+        CoffeeCup.updateLast val, (err, coffeecup) =>
+            label.spin()
+            label.css 'color', '#444'
+            if err
+                alert 'An error occured while saving data'
+            else
+                label.html val
+                @$('#coffeecups-charts').html ''
+                @$('#coffeecups-y-axis').html ''
+                @getAnalytics 'coffeecups', 'yellow'
 
     afterRender: ->
         @data = {}
@@ -55,15 +74,14 @@ module.exports = class AppView extends BaseView
                 @$('#current-mood').html mood.get 'status'
 
     loadCoffeeCup: ->
-        CoffeeCup.getLast (err, mood) =>
+        CoffeeCup.getLast (err, coffeecup) =>
             if err
                 alert "An error occured while retrieving coffee cup data"
-            else if not mood?
+            else if not coffeecup?
                 @$('#current-coffeecup').html(
                     'Set your coffee consumption for today')
             else
-                @$('#current-coffeecup').html mood.get 'status'
-
+                @$('#current-coffeecup').html coffeecup.get 'amount'
 
     getAnalytics: (dataType, color) ->
         $("##{dataType}").spin 'tiny'
@@ -84,8 +102,11 @@ module.exports = class AppView extends BaseView
         $('.y-axis').html null
         for dataType, data of @data
             width = $("##{dataType}").width() - 30
+            chartId = "#{dataType}-charts"
+            yAxisId = "#{dataType}-y-axis"
             color = @colors[dataType]
             @drawCharts data, chartId, yAxisId, color, width
+        true
 
 
     drawCharts: (data, chartId, yAxisId, color, width) ->
