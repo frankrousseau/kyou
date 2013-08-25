@@ -24,8 +24,8 @@
     "node": "*"
   },
   "dependencies": {
-    "americano": "*",
-    "americano-cozy": "*"
+    "americano": "0.1.4",
+    "americano-cozy": "0.1.2"
   },
   "devDependencies": {},
   "repository": {
