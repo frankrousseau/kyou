@@ -7,6 +7,9 @@
     "personal",
     "analytics"
   ],
+  "scripts": {
+    "start": "coffee server.coffee"
+  },
   "licenses": [
     {
       "type": "AGPL v3.0",
