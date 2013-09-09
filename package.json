@@ -1,8 +1,8 @@
 {
-  "name": "Kyou",
-  "description": "A web application that will learn more about you.",
+  "name": "KYou",
+  "description": "With KYou, have a better knowledge of yourself.",
   "keywords": [
-    "quantifyself",
+    "quantifiedself",
     "qs",
     "personal",
     "analytics"
@@ -24,7 +24,7 @@
     "node": "*"
   },
   "dependencies": {
-    "americano": "~0.2.5",
+    "americano": "0.2.5",
     "americano-cozy": "0.1.2"
   },
   "devDependencies": {},
