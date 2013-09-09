@@ -24,7 +24,7 @@
     "node": "*"
   },
   "dependencies": {
-    "americano": "0.1.4",
+    "americano": "~0.2.5",
     "americano-cozy": "0.1.2"
   },
   "devDependencies": {},
