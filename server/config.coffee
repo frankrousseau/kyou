@@ -7,7 +7,7 @@ config =
         americano.errorHandler
             dumpExceptions: true
             showStack: true
-        americano.static __dirname + '/client/public',
+        americano.static __dirname + '/../client/public',
             maxAge: 86400000
     ]
     development: [
