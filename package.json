@@ -23,6 +23,7 @@
   "engines": {
     "node": "*"
   },
+  "main": "server.js",
   "scripts":
   { 
     "start": "node server.js"
