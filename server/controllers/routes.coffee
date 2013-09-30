@@ -18,3 +18,8 @@ module.exports =
     'coffeecups/today':
         get: coffeecups.today
         put: coffeecups.updateToday
+    'trackers':
+        get: trackers.all
+    'coffeecups/:id':
+        put: trackers.update
+        del: trackers.destroy

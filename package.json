@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "americano": "0.2.5",
-    "americano-cozy": "0.1.2"
+    "americano-cozy": "0.1.3"
   },
   "devDependencies": {},
   "repository": {
