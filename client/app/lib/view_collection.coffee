@@ -16,13 +16,9 @@ BaseView = require 'lib/base_view'
 module.exports = class ViewCollection extends BaseView
 
     itemview: null
-
     views: {}
-
     template: -> ''
-
     itemViewOptions: ->
-
     collectionEl: null
 
     # add 'empty' class to view when there is no subview
@@ -40,9 +36,6 @@ module.exports = class ViewCollection extends BaseView
         @listenTo @collection, "reset",   @onReset
         @listenTo @collection, "add",     @addItem
         @listenTo @collection, "remove",  @removeItem
-
-        if not @collectionEl?
-            collectionEl = el
 
     # if we have views before a render call, we detach them
     render: ->
