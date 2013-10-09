@@ -2,8 +2,10 @@ moods = require './moods'
 tasks = require './tasks'
 mails = require './mails'
 coffeecups = require './coffeecups'
+trackers = require './trackers'
 
 module.exports =
+    'trackerId': param: trackers.loadTracker
     'tasks':
         get: tasks.all
     'mails':
@@ -20,6 +22,10 @@ module.exports =
         put: coffeecups.updateToday
     'trackers':
         get: trackers.all
-    'coffeecups/:id':
+        post: trackers.create
+    'trackers/:trackerId':
         put: trackers.update
         del: trackers.destroy
+    'trackers/:trackerId/today':
+        get: trackers.today
+        put: trackers.updateTodayValue

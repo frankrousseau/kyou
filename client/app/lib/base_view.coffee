@@ -8,6 +8,7 @@ module.exports = class BaseView extends Backbone.View
         model: @model?.toJSON()
 
     render: ->
+        console.log "render " + @
         @beforeRender()
         @$el.html @template(@getRenderData())
         @afterRender()

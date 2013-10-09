@@ -17,7 +17,7 @@ module.exports = class AppView extends BaseView
         'click #neutral-mood-btn': 'onNeutralMoodClicked'
         'click #bad-mood-btn': 'onBadMoodClicked'
         'click #coffeecup button': 'onCoffeeButtonClicked'
-        'click #add-tracker-button': 'onTrackerButtonClicked'
+        'click #add-tracker-btn': 'onTrackerButtonClicked'
 
 
     onGoodMoodClicked: -> @updateMood 'good'
@@ -71,6 +71,7 @@ module.exports = class AppView extends BaseView
 
         @trackerList = new TrackerList()
         @$('#content').append @trackerList.$el
+        @trackerList.render()
         @trackerList.collection.fetch()
 
     loadMood: ->
@@ -147,7 +148,11 @@ module.exports = class AppView extends BaseView
         description = $('#add-tracker-description').val()
 
         if name.length > 0
-            @trackerList.create name: name, description: description,
-                success: ->
-                error: ->
-                    alert 'A server error occured while saving your tracker'
+            @trackerList.collection.create(
+                    name: name,
+                    description: description
+                ,
+                    success: ->
+                    error: ->
+                        alert 'A server error occured while saving your tracker'
+            )

@@ -37,6 +37,7 @@ module.exports = class ViewCollection extends BaseView
         @listenTo @collection, "add",     @addItem
         @listenTo @collection, "remove",  @removeItem
 
+
     # if we have views before a render call, we detach them
     render: ->
         view.$el.detach() for id, view of @views
@@ -44,7 +45,14 @@ module.exports = class ViewCollection extends BaseView
 
     # after render, we reattach the views
     afterRender: ->
-        @$collectionEl = $(@collectionEl)
+        console.log @collectionEl
+
+        if @colllectionEl?
+            @$collectionEl = $(@collectionEl)
+        else
+            @$collectionEl = @$el
+        console.log @$collectionEl
+
         @appendView view.$el for id, view of @views
         @onReset @collection
         @onChange @views
@@ -62,7 +70,7 @@ module.exports = class ViewCollection extends BaseView
     # event listeners for add
     addItem: (model) =>
         options = _.extend {}, {model: model}, @itemViewOptions(model)
-        view = new @itemview(options)
+        view = new @itemView(options)
         @views[model.cid] = view.render()
         @appendView view
         @onChange @views

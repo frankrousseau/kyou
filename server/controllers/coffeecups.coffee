@@ -5,7 +5,6 @@ normalizeResults = require '../lib/normalizer'
 # Return all coffeecups sorted by date
 module.exports.all = (req, res, next) ->
     CoffeeCup.rawRequest 'nbByDay', (err, rows) ->
-
         if err then next err
         else
             results = []

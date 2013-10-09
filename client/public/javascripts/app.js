@@ -244,6 +244,7 @@ window.require.register("lib/base_view", function(exports, require, module) {
     };
 
     BaseView.prototype.render = function() {
+      console.log("render " + this);
       this.beforeRender();
       this.$el.html(this.template(this.getRenderData()));
       this.afterRender();
@@ -401,7 +402,13 @@ window.require.register("lib/view_collection", function(exports, require, module
 
     ViewCollection.prototype.afterRender = function() {
       var id, view, _ref1;
-      this.$collectionEl = $(this.collectionEl);
+      console.log(this.collectionEl);
+      if (this.colllectionEl != null) {
+        this.$collectionEl = $(this.collectionEl);
+      } else {
+        this.$collectionEl = this.$el;
+      }
+      console.log(this.$collectionEl);
       _ref1 = this.views;
       for (id in _ref1) {
         view = _ref1[id];
@@ -431,7 +438,7 @@ window.require.register("lib/view_collection", function(exports, require, module
       options = _.extend({}, {
         model: model
       }, this.itemViewOptions(model));
-      view = new this.itemview(options);
+      view = new this.itemView(options);
       this.views[model.cid] = view.render();
       this.appendView(view);
       return this.onChange(this.views);
@@ -559,9 +566,11 @@ window.require.register("models/moods", function(exports, require, module) {
   
 });
 window.require.register("models/tracker", function(exports, require, module) {
-  var TrackerModel, _ref,
+  var TrackerModel, request, _ref,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  request = require('lib/request');
 
   module.exports = TrackerModel = (function(_super) {
     __extends(TrackerModel, _super);
@@ -572,6 +581,26 @@ window.require.register("models/tracker", function(exports, require, module) {
     }
 
     TrackerModel.prototype.rootUrl = "trackers/";
+
+    TrackerModel.prototype.getLast = function(callback) {
+      return request.get("trackers/" + (this.get('id')) + "/today/", function(err, tracker) {
+        if (err) {
+          return callback(err);
+        } else {
+          if (tracker.amount != null) {
+            return callback(null, new TrackerModel(tracker));
+          } else {
+            return callback(null, null);
+          }
+        }
+      });
+    };
+
+    TrackerModel.prototype.updateLast = function(amount, callback) {
+      return request.put("trackers/" + (this.get('id')) + "/today/", {
+        amount: amount
+      }, callback);
+    };
 
     return TrackerModel;
 
@@ -644,7 +673,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       'click #neutral-mood-btn': 'onNeutralMoodClicked',
       'click #bad-mood-btn': 'onBadMoodClicked',
       'click #coffeecup button': 'onCoffeeButtonClicked',
-      'click #add-tracker-button': 'onTrackerButtonClicked'
+      'click #add-tracker-btn': 'onTrackerButtonClicked'
     };
 
     AppView.prototype.onGoodMoodClicked = function() {
@@ -713,6 +742,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       $(window).on('resize', this.redrawCharts);
       this.trackerList = new TrackerList();
       this.$('#content').append(this.trackerList.$el);
+      this.trackerList.render();
       return this.trackerList.collection.fetch();
     };
 
@@ -809,7 +839,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       name = $('#add-tracker-name').val();
       description = $('#add-tracker-description').val();
       if (name.length > 0) {
-        return this.trackerList.create({
+        return this.trackerList.collection.create({
           name: name,
           description: description
         }, {
@@ -832,7 +862,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div><div id="coffeecup" class="line"><div class="mod w33 left"><h2>Coffee Cups</h2><p class="explaination">This tracker allows you to track the amount of coffee cup\nyou drink every day</p><p id="current-coffeecup">loading...</p><button>0</button><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button></div><div class="mod w66 left"><div id="coffeecups" class="graph-container"><div id="coffeecups-y-axis" class="y-axis"></div><div id="coffeecups-charts" class="chart"></div></div></div></div><div id="tracker-list"></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div><div id="coffeecup" class="line"><div class="mod w33 left"><h2>Coffee Cups</h2><p class="explaination">This tracker allows you to track the amount of coffee cup\nyou drink every day</p><p id="current-coffeecup">loading...</p><button>0</button><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button></div><div class="mod w66 left"><div id="coffeecups" class="graph-container"><div id="coffeecups-y-axis" class="y-axis"></div><div id="coffeecups-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
@@ -875,7 +905,7 @@ window.require.register("views/templates/tracker_list_item", function(exports, r
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<' + (name) + '></' + (name) + '><' + (description) + '></' + (description) + '>');
+  buf.push('<h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><p><button class="smaller pa0 remove-btn">remove tracker</button></p>');
   }
   return buf.join("");
   };
@@ -905,10 +935,6 @@ window.require.register("views/tracker_list", function(exports, require, module)
 
     TrackerList.prototype.collection = new TrackerCollection();
 
-    TrackerList.prototype.initialize = function() {
-      return TrackerList.__super__.initialize.apply(this, arguments);
-    };
-
     return TrackerList;
 
   })(ViewCollection);
@@ -916,6 +942,7 @@ window.require.register("views/tracker_list", function(exports, require, module)
 });
 window.require.register("views/tracker_list_item", function(exports, require, module) {
   var BaseView, TrackerItem, _ref,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -925,13 +952,70 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
     __extends(TrackerItem, _super);
 
     function TrackerItem() {
+      this.afterRender = __bind(this.afterRender, this);
+      this.onRemoveClicked = __bind(this.onRemoveClicked, this);
       _ref = TrackerItem.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
-    TrackerItem.prototype.className = 'tracker';
+    TrackerItem.prototype.className = 'tracker w33 mod';
 
     TrackerItem.prototype.template = require('views/templates/tracker_list_item');
+
+    TrackerItem.prototype.events = {
+      'click .remove-btn': 'onRemoveClicked',
+      'click .up-btn': 'onUpClicked',
+      'click .down-btn': 'onDownClicked'
+    };
+
+    TrackerItem.prototype.onRemoveClicked = function() {
+      var _this = this;
+      return this.model.destroy({
+        success: function() {
+          return _this.remove();
+        },
+        error: function() {
+          return alert('something went wrong while removing tracker.');
+        }
+      });
+    };
+
+    TrackerItem.prototype.afterRender = function() {
+      var _this = this;
+      return this.model.getLast(function(err, coffeecup) {
+        if (err) {
+          return alert("An error occured while retrieving coffee cup data");
+        } else if (coffeecup == null) {
+          return _this.$('.current-amount').html('Set value for today');
+        } else {
+          return _this.$('.current-amount').html(coffeecup.get('amount'));
+        }
+      });
+    };
+
+    TrackerItem.prototype.onUpClicked = function(event) {
+      var amount, button, label,
+        _this = this;
+      amount = this.model.get('amount');
+      if (amount == null) {
+        amount = 0;
+      }
+      label = this.$('.current-amount');
+      button = $(event.target);
+      label.css('color', 'transparent');
+      label.spin('tiny', {
+        color: '#444'
+      });
+      return this.model.updateLast(amount, function(err) {
+        label.spin();
+        label.css('color', '#444');
+        if (err) {
+          return alert('An error occured while saving data');
+        } else {
+          return label.html(amount);
+        }
+      });
+    };
 
     return TrackerItem;
 
