@@ -182,7 +182,7 @@ window.require.register("collections/trackers", function(exports, require, modul
 
     TrackersCollection.prototype.model = require('../models/tracker');
 
-    TrackersCollection.prototype.url = 'trackers/';
+    TrackersCollection.prototype.url = 'trackers';
 
     return TrackersCollection;
 
@@ -580,10 +580,10 @@ window.require.register("models/tracker", function(exports, require, module) {
       return _ref;
     }
 
-    TrackerModel.prototype.rootUrl = "trackers/";
+    TrackerModel.prototype.rootUrl = "trackers";
 
     TrackerModel.prototype.getLast = function(callback) {
-      return request.get("trackers/" + (this.get('id')) + "/today/", function(err, tracker) {
+      return request.get("trackers/" + (this.get('id')) + "/today", function(err, tracker) {
         if (err) {
           return callback(err);
         } else {
@@ -597,7 +597,7 @@ window.require.register("models/tracker", function(exports, require, module) {
     };
 
     TrackerModel.prototype.updateLast = function(amount, callback) {
-      return request.put("trackers/" + (this.get('id')) + "/today/", {
+      return request.put("trackers/" + (this.get('id')) + "/today", {
         amount: amount
       }, callback);
     };
@@ -905,7 +905,7 @@ window.require.register("views/templates/tracker_list_item", function(exports, r
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><p><button class="smaller pa0 remove-btn">remove tracker</button></p>');
+  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><p><button class="smaller pa0 remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
   }
   return buf.join("");
   };
@@ -941,12 +941,14 @@ window.require.register("views/tracker_list", function(exports, require, module)
   
 });
 window.require.register("views/tracker_list_item", function(exports, require, module) {
-  var BaseView, TrackerItem, _ref,
+  var BaseView, TrackerItem, request, _ref,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   BaseView = require('lib/base_view');
+
+  request = require('lib/request');
 
   module.exports = TrackerItem = (function(_super) {
     __extends(TrackerItem, _super);
@@ -958,7 +960,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       return _ref;
     }
 
-    TrackerItem.prototype.className = 'tracker w33 mod';
+    TrackerItem.prototype.className = 'tracker line';
 
     TrackerItem.prototype.template = require('views/templates/tracker_list_item');
 
@@ -982,39 +984,123 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
 
     TrackerItem.prototype.afterRender = function() {
       var _this = this;
-      return this.model.getLast(function(err, coffeecup) {
+      this.model.getLast(function(err, amount) {
         if (err) {
-          return alert("An error occured while retrieving coffee cup data");
-        } else if (coffeecup == null) {
+          return alert("An error occured while retrieving tracker data");
+        } else if (amount == null) {
           return _this.$('.current-amount').html('Set value for today');
         } else {
-          return _this.$('.current-amount').html(coffeecup.get('amount'));
+          return _this.$('.current-amount').html(amount.get('amount'));
+        }
+      });
+      return this.getAnalytics();
+    };
+
+    TrackerItem.prototype.onUpClicked = function(event) {
+      var _this = this;
+      return this.model.getLast(function(err, amount) {
+        var button, label;
+        if (err) {
+          alert('An error occured while retrieving data');
+        }
+        if ((amount != null) && (amount.get('amount') != null)) {
+          amount = amount.get('amount');
+        } else {
+          amount = 0;
+        }
+        amount++;
+        label = _this.$('.current-amount');
+        button = $(event.target);
+        label.css('color', 'transparent');
+        label.spin('tiny', {
+          color: '#444'
+        });
+        return _this.model.updateLast(amount, function(err) {
+          label.spin();
+          label.css('color', '#444');
+          if (err) {
+            return alert('An error occured while saving data');
+          } else {
+            return label.html(amount);
+          }
+        });
+      });
+    };
+
+    TrackerItem.prototype.onDownClicked = function(event) {
+      var _this = this;
+      return this.model.getLast(function(err, amount) {
+        var button, label;
+        if (err) {
+          alert('An error occured while retrieving data');
+        }
+        if ((amount != null) && (amount.get('amount') != null)) {
+          amount = amount.get('amount');
+        } else {
+          amount = 0;
+        }
+        if (amount > 0) {
+          amount--;
+        }
+        label = _this.$('.current-amount');
+        button = $(event.target);
+        label.css('color', 'transparent');
+        label.spin('tiny', {
+          color: '#444'
+        });
+        return _this.model.updateLast(amount, function(err) {
+          label.spin();
+          label.css('color', '#444');
+          if (err) {
+            return alert('An error occured while saving data');
+          } else {
+            return label.html(amount);
+          }
+        });
+      });
+    };
+
+    TrackerItem.prototype.getAnalytics = function() {
+      var _this = this;
+      this.$(".graph-container").spin('tiny');
+      return request.get("trackers/" + (this.model.get('id')) + "/amounts", function(err, data) {
+        var color, width;
+        if (err) {
+          return alert("An error occured while retrieving data");
+        } else {
+          _this.$(".graph-container").spin();
+          width = _this.$(".graph-container").width() - 30;
+          color = "black";
+          return _this.drawCharts(data, color, width);
         }
       });
     };
 
-    TrackerItem.prototype.onUpClicked = function(event) {
-      var amount, button, label,
-        _this = this;
-      amount = this.model.get('amount');
-      if (amount == null) {
-        amount = 0;
-      }
-      label = this.$('.current-amount');
-      button = $(event.target);
-      label.css('color', 'transparent');
-      label.spin('tiny', {
-        color: '#444'
+    TrackerItem.prototype.drawCharts = function(data, color, width) {
+      var graph, x_axis, y_axis;
+      graph = new Rickshaw.Graph({
+        element: this.$('.chart')[0],
+        width: width,
+        height: 300,
+        renderer: 'bar',
+        series: [
+          {
+            color: color,
+            data: data
+          }
+        ]
       });
-      return this.model.updateLast(amount, function(err) {
-        label.spin();
-        label.css('color', '#444');
-        if (err) {
-          return alert('An error occured while saving data');
-        } else {
-          return label.html(amount);
-        }
+      x_axis = new Rickshaw.Graph.Axis.Time({
+        graph: graph
       });
+      y_axis = new Rickshaw.Graph.Axis.Y({
+        graph: graph,
+        orientation: 'left',
+        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+        element: this.$('.y-axis')[0]
+      });
+      graph.render();
+      return graph;
     };
 
     return TrackerItem;

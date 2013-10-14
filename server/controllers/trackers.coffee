@@ -1,5 +1,6 @@
 Tracker = require '../models/tracker'
 TrackerAmount = require '../models/trackeramount'
+normalizeResults = require '../lib/normalizer'
 
 
 # Return number of tasks completed for every day
@@ -32,7 +33,6 @@ module.exports =
 
     today: (req, res, next) ->
         req.tracker.loadTodayAmount (err, trackerAmount) ->
-            console.log trackerAmount
             if err then next err
             else if trackerAmount? then res.send trackerAmount
             else res.send {}
@@ -53,6 +53,25 @@ module.exports =
                 TrackerAmount.create data, (err, trackerAmount) ->
                     if err then next err
                     else res.send trackerAmount
+
+    amounts: (req, res, next) ->
+        id = req.tracker.id
+        params = startkey: [id], endkey: [id + "0"], descending: false
+        TrackerAmount.rawRequest 'nbByDay', params, (err, rows) ->
+            if err then next err
+            else
+                results = []
+
+                tmpRows = []
+                for row in rows
+                    tmpRows.push key: row['key'][1], value: row['value']
+                data = normalizeResults tmpRows
+                console.log data
+                for date, value of data
+                    dateEpoch = new Date(date).getTime() / 1000
+                    results.push x: dateEpoch, y: value
+                res.send results, 200
+
 
     destroy: (req, res, next) ->
         TrackerAmount.destroyAll req.tracker (err) ->

@@ -29,3 +29,5 @@ module.exports =
     'trackers/:trackerId/today':
         get: trackers.today
         put: trackers.updateTodayValue
+    'trackers/:trackerId/amounts':
+        get: trackers.amounts

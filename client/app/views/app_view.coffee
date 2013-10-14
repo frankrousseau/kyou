@@ -142,7 +142,6 @@ module.exports = class AppView extends BaseView
         graph
 
 
-
     onTrackerButtonClicked: ->
         name = $('#add-tracker-name').val()
         description = $('#add-tracker-description').val()

@@ -7,6 +7,6 @@ date_helpers = require('../lib/date');
 
 module.exports = americano.getModel('TrackerAmount', {
   tracker: String,
-  amount: Number,
-  date: Date
+  date: Date,
+  amount: Number
 });
