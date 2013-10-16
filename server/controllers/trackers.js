@@ -125,7 +125,7 @@ module.exports = {
     });
   },
   destroy: function(req, res, next) {
-    return TrackerAmount.destroyAll(req.tracker(function(err) {
+    return TrackerAmount.destroyAll(req.tracker, function(err) {
       if (err) {
         return next(err);
       } else {
@@ -139,6 +139,6 @@ module.exports = {
           }
         });
       }
-    }));
+    });
   }
 };

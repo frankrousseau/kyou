@@ -73,7 +73,7 @@ module.exports =
 
 
     destroy: (req, res, next) ->
-        TrackerAmount.destroyAll req.tracker (err) ->
+        TrackerAmount.destroyAll req.tracker, (err) ->
             if err then next err
             else
                 req.tracker.destroy (err) ->

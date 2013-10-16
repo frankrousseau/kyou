@@ -20,7 +20,6 @@ Tracker.prototype.loadTodayAmount = function(callback) {
     descending: true
   };
   return TrackerAmount.request('byDay', params, function(err, trackerAmounts) {
-    console.log(trackerAmounts);
     return date_helpers.getTodayModel(err, trackerAmounts, callback);
   });
 };
