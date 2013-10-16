@@ -804,6 +804,7 @@ window.require.register("views/app_view", function(exports, require, module) {
         color = this.colors[dataType];
         this.drawCharts(data, chartId, yAxisId, color, width);
       }
+      this.trackerList.redrawAll();
       return true;
     };
 
@@ -905,7 +906,7 @@ window.require.register("views/templates/tracker_list_item", function(exports, r
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><p><button class="smaller pa0 remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
+  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">Set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><p><button class="smaller remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
   }
   return buf.join("");
   };
@@ -934,6 +935,18 @@ window.require.register("views/tracker_list", function(exports, require, module)
     TrackerList.prototype.template = require('views/templates/tracker_list');
 
     TrackerList.prototype.collection = new TrackerCollection();
+
+    TrackerList.prototype.redrawAll = function() {
+      var id, view, _ref1, _results;
+      console.log(this.views);
+      _ref1 = this.views;
+      _results = [];
+      for (id in _ref1) {
+        view = _ref1[id];
+        _results.push(view.redrawGraph());
+      }
+      return _results;
+    };
 
     return TrackerList;
 
@@ -1064,19 +1077,25 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       var _this = this;
       this.$(".graph-container").spin('tiny');
       return request.get("trackers/" + (this.model.get('id')) + "/amounts", function(err, data) {
-        var color, width;
+        var width;
         if (err) {
           return alert("An error occured while retrieving data");
         } else {
           _this.$(".graph-container").spin();
           width = _this.$(".graph-container").width() - 30;
-          color = "black";
-          return _this.drawCharts(data, color, width);
+          _this.data = data;
+          return _this.drawCharts(width);
         }
       });
     };
 
-    TrackerItem.prototype.drawCharts = function(data, color, width) {
+    TrackerItem.prototype.redrawGraph = function() {
+      var width;
+      width = this.$(".graph-container").width() - 30;
+      return this.drawCharts(width);
+    };
+
+    TrackerItem.prototype.drawCharts = function(width) {
       var graph, x_axis, y_axis;
       graph = new Rickshaw.Graph({
         element: this.$('.chart')[0],
@@ -1085,8 +1104,8 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         renderer: 'bar',
         series: [
           {
-            color: color,
-            data: data
+            color: "black",
+            data: this.data
           }
         ]
       });

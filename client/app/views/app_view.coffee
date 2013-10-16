@@ -116,6 +116,7 @@ module.exports = class AppView extends BaseView
             yAxisId = "#{dataType}-y-axis"
             color = @colors[dataType]
             @drawCharts data, chartId, yAxisId, color, width
+        @trackerList.redrawAll()
         true
 
 

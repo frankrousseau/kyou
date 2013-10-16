@@ -51,6 +51,7 @@ module.exports = class TrackerItem extends BaseView
                 else
                     label.html amount
 
+
     onDownClicked: (event) ->
         @model.getLast (err, amount) =>
             if err then alert 'An error occured while retrieving data'
@@ -82,19 +83,22 @@ module.exports = class TrackerItem extends BaseView
             else
                 @$(".graph-container").spin()
                 width = @$(".graph-container").width() - 30
-                color = "black"
-                @drawCharts data, color, width
+                @data = data
+                @drawCharts width
 
+    redrawGraph: ->
+        width = @$(".graph-container").width() - 30
+        @drawCharts width
 
-    drawCharts: (data, color, width) ->
+    drawCharts: (width) ->
         graph = new Rickshaw.Graph(
             element: @$('.chart')[0]
             width: width
             height: 300
             renderer: 'bar'
             series: [
-                color: color
-                data: data
+                color: "black"
+                data: @data
             ]
         )
 
