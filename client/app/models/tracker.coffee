@@ -4,7 +4,9 @@ module.exports = class TrackerModel extends Backbone.Model
     rootUrl: "trackers"
 
     getLast: (callback) ->
-        request.get "trackers/#{@get 'id'}/today", (err, tracker) ->
+        id = @get 'id'
+        id = @id unless id?
+        request.get "trackers/#{id}/today", (err, tracker) ->
             if err then callback err
             else
                 if tracker.amount?
@@ -13,4 +15,6 @@ module.exports = class TrackerModel extends Backbone.Model
                     callback null, null
 
     updateLast: (amount, callback) ->
-        request.put "trackers/#{@get 'id'}/today", amount: amount, callback
+        id = @get 'id'
+        id = @id unless id?
+        request.put "trackers/#{id}/today", amount: amount, callback

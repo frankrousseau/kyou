@@ -21,20 +21,28 @@ module.exports = class TrackerItem extends BaseView
                     alert 'something went wrong while removing tracker.'
 
     afterRender: =>
-        @model.getLast (err, amount) =>
-            if err
-                alert "An error occured while retrieving tracker data"
-            else if not amount?
-                @$('.current-amount').html(
-                    'Set value for today')
-            else
-                @$('.current-amount').html amount.get 'amount'
-        @getAnalytics()
+        getData = =>
+            @model.getLast (err, amount) =>
+                if err
+                    alert "An error occured while retrieving tracker data"
+                else if not amount?
+                    @$('.current-amount').html(
+                        'Set value for today')
+                else
+                    @$('.current-amount').html amount.get 'amount'
+                @getAnalytics()
+
+        if @model.id?
+            getData()
+        else
+            setTimeout getData, 1000
 
     onUpClicked: (event) ->
         @model.getLast (err, amount) =>
-            if err then alert 'An error occured while retrieving data'
-            if amount? and amount.get('amount')?
+            if err
+                alert 'An error occured while retrieving data'
+                return
+            else if amount? and amount.get('amount')?
                 amount = amount.get 'amount'
             else
                 amount = 0

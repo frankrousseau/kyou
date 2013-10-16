@@ -580,7 +580,12 @@ window.require.register("models/tracker", function(exports, require, module) {
     TrackerModel.prototype.rootUrl = "trackers";
 
     TrackerModel.prototype.getLast = function(callback) {
-      return request.get("trackers/" + (this.get('id')) + "/today", function(err, tracker) {
+      var id;
+      id = this.get('id');
+      if (id == null) {
+        id = this.id;
+      }
+      return request.get("trackers/" + id + "/today", function(err, tracker) {
         if (err) {
           return callback(err);
         } else {
@@ -594,7 +599,12 @@ window.require.register("models/tracker", function(exports, require, module) {
     };
 
     TrackerModel.prototype.updateLast = function(amount, callback) {
-      return request.put("trackers/" + (this.get('id')) + "/today", {
+      var id;
+      id = this.get('id');
+      if (id == null) {
+        id = this.id;
+      }
+      return request.put("trackers/" + id + "/today", {
         amount: amount
       }, callback);
     };
@@ -996,17 +1006,25 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
     };
 
     TrackerItem.prototype.afterRender = function() {
-      var _this = this;
-      this.model.getLast(function(err, amount) {
-        if (err) {
-          return alert("An error occured while retrieving tracker data");
-        } else if (amount == null) {
-          return _this.$('.current-amount').html('Set value for today');
-        } else {
-          return _this.$('.current-amount').html(amount.get('amount'));
-        }
-      });
-      return this.getAnalytics();
+      var getData,
+        _this = this;
+      getData = function() {
+        return _this.model.getLast(function(err, amount) {
+          if (err) {
+            alert("An error occured while retrieving tracker data");
+          } else if (amount == null) {
+            _this.$('.current-amount').html('Set value for today');
+          } else {
+            _this.$('.current-amount').html(amount.get('amount'));
+          }
+          return _this.getAnalytics();
+        });
+      };
+      if (this.model.id != null) {
+        return getData();
+      } else {
+        return setTimeout(getData, 1000);
+      }
     };
 
     TrackerItem.prototype.onUpClicked = function(event) {
@@ -1015,8 +1033,8 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         var button, label;
         if (err) {
           alert('An error occured while retrieving data');
-        }
-        if ((amount != null) && (amount.get('amount') != null)) {
+          return;
+        } else if ((amount != null) && (amount.get('amount') != null)) {
           amount = amount.get('amount');
         } else {
           amount = 0;
