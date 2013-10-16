@@ -112,7 +112,6 @@ module.exports = {
           });
         }
         data = normalizeResults(tmpRows);
-        console.log(data);
         for (date in data) {
           value = data[date];
           dateEpoch = new Date(date).getTime() / 1000;

@@ -984,15 +984,19 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
     };
 
     TrackerItem.prototype.onRemoveClicked = function() {
-      var _this = this;
-      return this.model.destroy({
-        success: function() {
-          return _this.remove();
-        },
-        error: function() {
-          return alert('something went wrong while removing tracker.');
-        }
-      });
+      var answer,
+        _this = this;
+      answer = confirm("Are you sure that you want to delete this tracker?");
+      if (answer) {
+        return this.model.destroy({
+          success: function() {
+            return _this.remove();
+          },
+          error: function() {
+            return alert('something went wrong while removing tracker.');
+          }
+        });
+      }
     };
 
     TrackerItem.prototype.afterRender = function() {
@@ -1034,7 +1038,11 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
           if (err) {
             return alert('An error occured while saving data');
           } else {
-            return label.html(amount);
+            label.html(amount);
+            _this.data[_this.data.length - 1]['y'] = amount;
+            _this.$('.chart').html(null);
+            _this.$('.y-axis').html(null);
+            return _this.redrawGraph();
           }
         });
       });
@@ -1067,7 +1075,11 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
           if (err) {
             return alert('An error occured while saving data');
           } else {
-            return label.html(amount);
+            label.html(amount);
+            _this.data[_this.data.length - 1]['y'] = amount;
+            _this.$('.chart').html(null);
+            _this.$('.y-axis').html(null);
+            return _this.redrawGraph();
           }
         });
       });
@@ -1077,26 +1089,23 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       var _this = this;
       this.$(".graph-container").spin('tiny');
       return request.get("trackers/" + (this.model.get('id')) + "/amounts", function(err, data) {
-        var width;
         if (err) {
           return alert("An error occured while retrieving data");
         } else {
           _this.$(".graph-container").spin();
-          width = _this.$(".graph-container").width() - 30;
           _this.data = data;
-          return _this.drawCharts(width);
+          return _this.drawCharts();
         }
       });
     };
 
     TrackerItem.prototype.redrawGraph = function() {
-      var width;
-      width = this.$(".graph-container").width() - 30;
-      return this.drawCharts(width);
+      return this.drawCharts();
     };
 
-    TrackerItem.prototype.drawCharts = function(width) {
-      var graph, x_axis, y_axis;
+    TrackerItem.prototype.drawCharts = function() {
+      var graph, width, x_axis, y_axis;
+      width = this.$(".graph-container").width() - 30;
       graph = new Rickshaw.Graph({
         element: this.$('.chart')[0],
         width: width,

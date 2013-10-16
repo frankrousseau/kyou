@@ -66,7 +66,6 @@ module.exports =
                 for row in rows
                     tmpRows.push key: row['key'][1], value: row['value']
                 data = normalizeResults tmpRows
-                console.log data
                 for date, value of data
                     dateEpoch = new Date(date).getTime() / 1000
                     results.push x: dateEpoch, y: value

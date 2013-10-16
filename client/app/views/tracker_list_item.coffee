@@ -12,11 +12,13 @@ module.exports = class TrackerItem extends BaseView
         'click .down-btn': 'onDownClicked'
 
     onRemoveClicked: =>
-        @model.destroy
-            success: =>
-                @remove()
-            error: ->
-                alert 'something went wrong while removing tracker.'
+        answer = confirm "Are you sure that you want to delete this tracker?"
+        if answer
+            @model.destroy
+                success: =>
+                    @remove()
+                error: ->
+                    alert 'something went wrong while removing tracker.'
 
     afterRender: =>
         @model.getLast (err, amount) =>
@@ -50,6 +52,10 @@ module.exports = class TrackerItem extends BaseView
                     alert 'An error occured while saving data'
                 else
                     label.html amount
+                    @data[@data.length - 1]['y'] = amount
+                    @$('.chart').html null
+                    @$('.y-axis').html null
+                    @redrawGraph()
 
 
     onDownClicked: (event) ->
@@ -73,6 +79,10 @@ module.exports = class TrackerItem extends BaseView
                     alert 'An error occured while saving data'
                 else
                     label.html amount
+                    @data[@data.length - 1]['y'] = amount
+                    @$('.chart').html null
+                    @$('.y-axis').html null
+                    @redrawGraph()
 
 
     getAnalytics: ->
@@ -82,15 +92,14 @@ module.exports = class TrackerItem extends BaseView
                 alert "An error occured while retrieving data"
             else
                 @$(".graph-container").spin()
-                width = @$(".graph-container").width() - 30
                 @data = data
-                @drawCharts width
+                @drawCharts()
 
     redrawGraph: ->
-        width = @$(".graph-container").width() - 30
-        @drawCharts width
+        @drawCharts()
 
-    drawCharts: (width) ->
+    drawCharts: ->
+        width = @$(".graph-container").width() - 30
         graph = new Rickshaw.Graph(
             element: @$('.chart')[0]
             width: width

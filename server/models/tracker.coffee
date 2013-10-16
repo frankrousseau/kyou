@@ -7,6 +7,6 @@ module.exports = Tracker = americano.getModel 'Tracker',
     description: String
 
 Tracker::loadTodayAmount = (callback) ->
-    params = startkey: [@id], endkey: [@id + "0"], descending: false
+    params = startkey: [@id + "0"], endkey: [@id], descending: true
     TrackerAmount.request 'byDay', params, (err, trackerAmounts) ->
         date_helpers.getTodayModel err, trackerAmounts, callback

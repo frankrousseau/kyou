@@ -15,11 +15,12 @@ module.exports = Tracker = americano.getModel('Tracker', {
 Tracker.prototype.loadTodayAmount = function(callback) {
   var params;
   params = {
-    startkey: [this.id],
-    endkey: [this.id + "0"],
-    descending: false
+    startkey: [this.id + "0"],
+    endkey: [this.id],
+    descending: true
   };
   return TrackerAmount.request('byDay', params, function(err, trackerAmounts) {
+    console.log(trackerAmounts);
     return date_helpers.getTodayModel(err, trackerAmounts, callback);
   });
 };
