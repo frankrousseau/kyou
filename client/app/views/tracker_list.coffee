@@ -8,5 +8,4 @@ module.exports = class TrackerList extends ViewCollection
     collection: new TrackerCollection()
 
     redrawAll: ->
-        console.log @views
         view.redrawGraph() for id, view of @views

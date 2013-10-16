@@ -244,7 +244,6 @@ window.require.register("lib/base_view", function(exports, require, module) {
     };
 
     BaseView.prototype.render = function() {
-      console.log("render " + this);
       this.beforeRender();
       this.$el.html(this.template(this.getRenderData()));
       this.afterRender();
@@ -402,13 +401,11 @@ window.require.register("lib/view_collection", function(exports, require, module
 
     ViewCollection.prototype.afterRender = function() {
       var id, view, _ref1;
-      console.log(this.collectionEl);
       if (this.colllectionEl != null) {
         this.$collectionEl = $(this.collectionEl);
       } else {
         this.$collectionEl = this.$el;
       }
-      console.log(this.$collectionEl);
       _ref1 = this.views;
       for (id in _ref1) {
         view = _ref1[id];
@@ -938,7 +935,6 @@ window.require.register("views/tracker_list", function(exports, require, module)
 
     TrackerList.prototype.redrawAll = function() {
       var id, view, _ref1, _results;
-      console.log(this.views);
       _ref1 = this.views;
       _results = [];
       for (id in _ref1) {
