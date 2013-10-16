@@ -53,6 +53,12 @@
     },
     "CoffeeCup": {
       "description": "Track the amount of coffeecup you drink every day."
+    },
+    "Tracker": {
+      "description": "Custom tracker you create."
+    },
+    "TrackerAmount": {
+      "description": "Values for your Custom tracker."
     }
   }
 }
