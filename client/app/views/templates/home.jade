@@ -1,4 +1,4 @@
-#content.pa2
+#content.pa2.trackers
     .line
         img(src='icons/main_icon.png', style='height: 50px').mt3.ml1.right
         h1.right 
@@ -61,3 +61,13 @@
             #coffeecups.graph-container
                 #coffeecups-y-axis.y-axis
                 #coffeecups-charts.chart
+
+.tools.line
+    #add-tracker-widget
+        h2 Create your tracker
+        .line
+            input#add-tracker-name(placeholder="name")
+        .line
+            textarea#add-tracker-description(placeholder="description")
+        .line
+            button#add-tracker-btn add tracker

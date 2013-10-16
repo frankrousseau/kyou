@@ -1,8 +1,11 @@
+request = require '../lib/request'
 BaseView = require '../lib/base_view'
+
 Mood = require '../models/mood'
 CoffeeCup = require '../models/coffeecup'
 Moods = require '../collections/moods'
-request = require '../lib/request'
+
+TrackerList = require './tracker_list'
 
 module.exports = class AppView extends BaseView
 
@@ -14,6 +17,8 @@ module.exports = class AppView extends BaseView
         'click #neutral-mood-btn': 'onNeutralMoodClicked'
         'click #bad-mood-btn': 'onBadMoodClicked'
         'click #coffeecup button': 'onCoffeeButtonClicked'
+        'click #add-tracker-btn': 'onTrackerButtonClicked'
+
 
     onGoodMoodClicked: -> @updateMood 'good'
     onNeutralMoodClicked: -> @updateMood 'neutral'
@@ -64,6 +69,11 @@ module.exports = class AppView extends BaseView
 
         $(window).on 'resize',  @redrawCharts
 
+        @trackerList = new TrackerList()
+        @$('#content').append @trackerList.$el
+        @trackerList.render()
+        @trackerList.collection.fetch()
+
     loadMood: ->
         Mood.getLast (err, mood) =>
             if err
@@ -106,6 +116,7 @@ module.exports = class AppView extends BaseView
             yAxisId = "#{dataType}-y-axis"
             color = @colors[dataType]
             @drawCharts data, chartId, yAxisId, color, width
+        @trackerList.redrawAll()
         true
 
 
@@ -130,3 +141,18 @@ module.exports = class AppView extends BaseView
 
         graph.render()
         graph
+
+
+    onTrackerButtonClicked: ->
+        name = $('#add-tracker-name').val()
+        description = $('#add-tracker-description').val()
+
+        if name.length > 0
+            @trackerList.collection.create(
+                    name: name,
+                    description: description
+                ,
+                    success: ->
+                    error: ->
+                        alert 'A server error occured while saving your tracker'
+            )

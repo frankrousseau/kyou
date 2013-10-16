@@ -167,6 +167,28 @@ window.require.register("collections/moods", function(exports, require, module) 
   })(Backbone.Collection);
   
 });
+window.require.register("collections/trackers", function(exports, require, module) {
+  var TrackersCollection, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = TrackersCollection = (function(_super) {
+    __extends(TrackersCollection, _super);
+
+    function TrackersCollection() {
+      _ref = TrackersCollection.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TrackersCollection.prototype.model = require('../models/tracker');
+
+    TrackersCollection.prototype.url = 'trackers';
+
+    return TrackersCollection;
+
+  })(Backbone.Collection);
+  
+});
 window.require.register("initialize", function(exports, require, module) {
   var app;
 
@@ -360,15 +382,11 @@ window.require.register("lib/view_collection", function(exports, require, module
     };
 
     ViewCollection.prototype.initialize = function() {
-      var collectionEl;
       ViewCollection.__super__.initialize.apply(this, arguments);
       this.views = {};
       this.listenTo(this.collection, "reset", this.onReset);
       this.listenTo(this.collection, "add", this.addItem);
-      this.listenTo(this.collection, "remove", this.removeItem);
-      if (this.collectionEl == null) {
-        return collectionEl = el;
-      }
+      return this.listenTo(this.collection, "remove", this.removeItem);
     };
 
     ViewCollection.prototype.render = function() {
@@ -383,7 +401,11 @@ window.require.register("lib/view_collection", function(exports, require, module
 
     ViewCollection.prototype.afterRender = function() {
       var id, view, _ref1;
-      this.$collectionEl = $(this.collectionEl);
+      if (this.colllectionEl != null) {
+        this.$collectionEl = $(this.collectionEl);
+      } else {
+        this.$collectionEl = this.$el;
+      }
       _ref1 = this.views;
       for (id in _ref1) {
         view = _ref1[id];
@@ -413,7 +435,7 @@ window.require.register("lib/view_collection", function(exports, require, module
       options = _.extend({}, {
         model: model
       }, this.itemViewOptions(model));
-      view = new this.itemview(options);
+      view = new this.itemView(options);
       this.views[model.cid] = view.render();
       this.appendView(view);
       return this.onChange(this.views);
@@ -540,6 +562,48 @@ window.require.register("models/moods", function(exports, require, module) {
   })(Backbone.Collection);
   
 });
+window.require.register("models/tracker", function(exports, require, module) {
+  var TrackerModel, request, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  request = require('lib/request');
+
+  module.exports = TrackerModel = (function(_super) {
+    __extends(TrackerModel, _super);
+
+    function TrackerModel() {
+      _ref = TrackerModel.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TrackerModel.prototype.rootUrl = "trackers";
+
+    TrackerModel.prototype.getLast = function(callback) {
+      return request.get("trackers/" + (this.get('id')) + "/today", function(err, tracker) {
+        if (err) {
+          return callback(err);
+        } else {
+          if (tracker.amount != null) {
+            return callback(null, new TrackerModel(tracker));
+          } else {
+            return callback(null, null);
+          }
+        }
+      });
+    };
+
+    TrackerModel.prototype.updateLast = function(amount, callback) {
+      return request.put("trackers/" + (this.get('id')) + "/today", {
+        amount: amount
+      }, callback);
+    };
+
+    return TrackerModel;
+
+  })(Backbone.Model);
+  
+});
 window.require.register("router", function(exports, require, module) {
   var AppView, Router, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -571,10 +635,12 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, CoffeeCup, Mood, Moods, request, _ref,
+  var AppView, BaseView, CoffeeCup, Mood, Moods, TrackerList, request, _ref,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  request = require('../lib/request');
 
   BaseView = require('../lib/base_view');
 
@@ -584,7 +650,7 @@ window.require.register("views/app_view", function(exports, require, module) {
 
   Moods = require('../collections/moods');
 
-  request = require('../lib/request');
+  TrackerList = require('./tracker_list');
 
   module.exports = AppView = (function(_super) {
     __extends(AppView, _super);
@@ -603,7 +669,8 @@ window.require.register("views/app_view", function(exports, require, module) {
       'click #good-mood-btn': 'onGoodMoodClicked',
       'click #neutral-mood-btn': 'onNeutralMoodClicked',
       'click #bad-mood-btn': 'onBadMoodClicked',
-      'click #coffeecup button': 'onCoffeeButtonClicked'
+      'click #coffeecup button': 'onCoffeeButtonClicked',
+      'click #add-tracker-btn': 'onTrackerButtonClicked'
     };
 
     AppView.prototype.onGoodMoodClicked = function() {
@@ -669,7 +736,11 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.getAnalytics('tasks', 'maroon');
       this.getAnalytics('mails', 'green');
       this.getAnalytics('coffeecups', 'yellow');
-      return $(window).on('resize', this.redrawCharts);
+      $(window).on('resize', this.redrawCharts);
+      this.trackerList = new TrackerList();
+      this.$('#content').append(this.trackerList.$el);
+      this.trackerList.render();
+      return this.trackerList.collection.fetch();
     };
 
     AppView.prototype.loadMood = function() {
@@ -730,6 +801,7 @@ window.require.register("views/app_view", function(exports, require, module) {
         color = this.colors[dataType];
         this.drawCharts(data, chartId, yAxisId, color, width);
       }
+      this.trackerList.redrawAll();
       return true;
     };
 
@@ -760,6 +832,23 @@ window.require.register("views/app_view", function(exports, require, module) {
       return graph;
     };
 
+    AppView.prototype.onTrackerButtonClicked = function() {
+      var description, name;
+      name = $('#add-tracker-name').val();
+      description = $('#add-tracker-description').val();
+      if (name.length > 0) {
+        return this.trackerList.collection.create({
+          name: name,
+          description: description
+        }, {
+          success: function() {},
+          error: function() {
+            return alert('A server error occured while saving your tracker');
+          }
+        });
+      }
+    };
+
     return AppView;
 
   })(BaseView);
@@ -771,7 +860,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div><div id="coffeecup" class="line"><div class="mod w33 left"><h2>Coffee Cups</h2><p class="explaination">This tracker allows you to track the amount of coffee cup\nyou drink every day</p><p id="current-coffeecup">loading...</p><button>0</button><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button></div><div class="mod w66 left"><div id="coffeecups" class="graph-container"><div id="coffeecups-y-axis" class="y-axis"></div><div id="coffeecups-charts" class="chart"></div></div></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div><div id="mail" class="line"><div class="mod w33 left"><h2>Mails</h2><p class="explaination">This tracker counts the amount of mails you received \nin your mailbox everyday.</p></div><div class="mod w66 left"><div id="mails" class="graph-container"><div id="mails-y-axis" class="y-axis"></div><div id="mails-charts" class="chart"></div></div></div></div><div id="coffeecup" class="line"><div class="mod w33 left"><h2>Coffee Cups</h2><p class="explaination">This tracker allows you to track the amount of coffee cup\nyou drink every day</p><p id="current-coffeecup">loading...</p><button>0</button><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button></div><div class="mod w66 left"><div id="coffeecups" class="graph-container"><div id="coffeecups-y-axis" class="y-axis"></div><div id="coffeecups-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
@@ -797,4 +886,249 @@ window.require.register("views/templates/task", function(exports, require, modul
   }
   return buf.join("");
   };
+});
+window.require.register("views/templates/tracker_list", function(exports, require, module) {
+  module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+  attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+  var buf = [];
+  with (locals || {}) {
+  var interp;
+  }
+  return buf.join("");
+  };
+});
+window.require.register("views/templates/tracker_list_item", function(exports, require, module) {
+  module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+  attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+  var buf = [];
+  with (locals || {}) {
+  var interp;
+  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">Set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><p><button class="smaller remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
+  }
+  return buf.join("");
+  };
+});
+window.require.register("views/tracker_list", function(exports, require, module) {
+  var TrackerCollection, TrackerList, ViewCollection, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ViewCollection = require('lib/view_collection');
+
+  TrackerCollection = require('collections/trackers');
+
+  module.exports = TrackerList = (function(_super) {
+    __extends(TrackerList, _super);
+
+    function TrackerList() {
+      _ref = TrackerList.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TrackerList.prototype.id = 'tracker-list';
+
+    TrackerList.prototype.itemView = require('views/tracker_list_item');
+
+    TrackerList.prototype.template = require('views/templates/tracker_list');
+
+    TrackerList.prototype.collection = new TrackerCollection();
+
+    TrackerList.prototype.redrawAll = function() {
+      var id, view, _ref1, _results;
+      _ref1 = this.views;
+      _results = [];
+      for (id in _ref1) {
+        view = _ref1[id];
+        _results.push(view.redrawGraph());
+      }
+      return _results;
+    };
+
+    return TrackerList;
+
+  })(ViewCollection);
+  
+});
+window.require.register("views/tracker_list_item", function(exports, require, module) {
+  var BaseView, TrackerItem, request, _ref,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  BaseView = require('lib/base_view');
+
+  request = require('lib/request');
+
+  module.exports = TrackerItem = (function(_super) {
+    __extends(TrackerItem, _super);
+
+    function TrackerItem() {
+      this.afterRender = __bind(this.afterRender, this);
+      this.onRemoveClicked = __bind(this.onRemoveClicked, this);
+      _ref = TrackerItem.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TrackerItem.prototype.className = 'tracker line';
+
+    TrackerItem.prototype.template = require('views/templates/tracker_list_item');
+
+    TrackerItem.prototype.events = {
+      'click .remove-btn': 'onRemoveClicked',
+      'click .up-btn': 'onUpClicked',
+      'click .down-btn': 'onDownClicked'
+    };
+
+    TrackerItem.prototype.onRemoveClicked = function() {
+      var answer,
+        _this = this;
+      answer = confirm("Are you sure that you want to delete this tracker?");
+      if (answer) {
+        return this.model.destroy({
+          success: function() {
+            return _this.remove();
+          },
+          error: function() {
+            return alert('something went wrong while removing tracker.');
+          }
+        });
+      }
+    };
+
+    TrackerItem.prototype.afterRender = function() {
+      var _this = this;
+      this.model.getLast(function(err, amount) {
+        if (err) {
+          return alert("An error occured while retrieving tracker data");
+        } else if (amount == null) {
+          return _this.$('.current-amount').html('Set value for today');
+        } else {
+          return _this.$('.current-amount').html(amount.get('amount'));
+        }
+      });
+      return this.getAnalytics();
+    };
+
+    TrackerItem.prototype.onUpClicked = function(event) {
+      var _this = this;
+      return this.model.getLast(function(err, amount) {
+        var button, label;
+        if (err) {
+          alert('An error occured while retrieving data');
+        }
+        if ((amount != null) && (amount.get('amount') != null)) {
+          amount = amount.get('amount');
+        } else {
+          amount = 0;
+        }
+        amount++;
+        label = _this.$('.current-amount');
+        button = $(event.target);
+        label.css('color', 'transparent');
+        label.spin('tiny', {
+          color: '#444'
+        });
+        return _this.model.updateLast(amount, function(err) {
+          label.spin();
+          label.css('color', '#444');
+          if (err) {
+            return alert('An error occured while saving data');
+          } else {
+            label.html(amount);
+            _this.data[_this.data.length - 1]['y'] = amount;
+            _this.$('.chart').html(null);
+            _this.$('.y-axis').html(null);
+            return _this.redrawGraph();
+          }
+        });
+      });
+    };
+
+    TrackerItem.prototype.onDownClicked = function(event) {
+      var _this = this;
+      return this.model.getLast(function(err, amount) {
+        var button, label;
+        if (err) {
+          alert('An error occured while retrieving data');
+        }
+        if ((amount != null) && (amount.get('amount') != null)) {
+          amount = amount.get('amount');
+        } else {
+          amount = 0;
+        }
+        if (amount > 0) {
+          amount--;
+        }
+        label = _this.$('.current-amount');
+        button = $(event.target);
+        label.css('color', 'transparent');
+        label.spin('tiny', {
+          color: '#444'
+        });
+        return _this.model.updateLast(amount, function(err) {
+          label.spin();
+          label.css('color', '#444');
+          if (err) {
+            return alert('An error occured while saving data');
+          } else {
+            label.html(amount);
+            _this.data[_this.data.length - 1]['y'] = amount;
+            _this.$('.chart').html(null);
+            _this.$('.y-axis').html(null);
+            return _this.redrawGraph();
+          }
+        });
+      });
+    };
+
+    TrackerItem.prototype.getAnalytics = function() {
+      var _this = this;
+      this.$(".graph-container").spin('tiny');
+      return request.get("trackers/" + (this.model.get('id')) + "/amounts", function(err, data) {
+        if (err) {
+          return alert("An error occured while retrieving data");
+        } else {
+          _this.$(".graph-container").spin();
+          _this.data = data;
+          return _this.drawCharts();
+        }
+      });
+    };
+
+    TrackerItem.prototype.redrawGraph = function() {
+      return this.drawCharts();
+    };
+
+    TrackerItem.prototype.drawCharts = function() {
+      var graph, width, x_axis, y_axis;
+      width = this.$(".graph-container").width() - 30;
+      graph = new Rickshaw.Graph({
+        element: this.$('.chart')[0],
+        width: width,
+        height: 300,
+        renderer: 'bar',
+        series: [
+          {
+            color: "black",
+            data: this.data
+          }
+        ]
+      });
+      x_axis = new Rickshaw.Graph.Axis.Time({
+        graph: graph
+      });
+      y_axis = new Rickshaw.Graph.Axis.Y({
+        graph: graph,
+        orientation: 'left',
+        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+        element: this.$('.y-axis')[0]
+      });
+      graph.render();
+      return graph;
+    };
+
+    return TrackerItem;
+
+  })(BaseView);
+  
 });
