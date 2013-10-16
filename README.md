@@ -36,6 +36,9 @@ other analytics.
 
 **Coffee Cups** Store the amount of coffee cup you drink everyday. 
 
+**Custrom trackers** The tracker you require, set title and description then go
+track your specific stuff.
+
 ## What about contributions?
 
 Here are the next things I have mind and not started yet. Your participation to
@@ -46,6 +49,7 @@ them would be highly appreciated. Of course any idea is welcome!
 * twitter post tracker: store your daily amount of twitter posts.
 * learn from previous trackers code to make trackers more modular and easier to
   code.
+* translations
 
 ## Credits
 
