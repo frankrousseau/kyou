@@ -1,4 +1,5 @@
-# Date formatter
+# Date formatter to format data without depency.
+# format: yyyy-mm-dd
 module.exports.getDateString = getDateString = (date) ->
     yyyy = date.getFullYear().toString()
     mm = (date.getMonth() + 1).toString()
@@ -8,6 +9,8 @@ module.exports.getDateString = getDateString = (date) ->
     dateString = yyyy + '-' + mm + '-' + dd
     dateString
 
+# Get first model of the list. If its date is today, it returns ity
+# else it returns null.
 module.exports.getTodayModel = (err, models, callback) ->
     if err
         callback err
