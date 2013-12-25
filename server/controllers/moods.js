@@ -27,7 +27,7 @@ module.exports.all = function(req, res, next) {
 };
 
 module.exports.today = function(req, res, next) {
-  return Mood.loadTodayMood(function(err, mood) {
+  return Mood.getMood(new Date(), function(err, mood) {
     if (err) {
       return next(err);
     } else if (mood != null) {
@@ -39,7 +39,7 @@ module.exports.today = function(req, res, next) {
 };
 
 module.exports.updateToday = function(req, res, next) {
-  return Mood.loadTodayMood(function(err, mood) {
+  return Mood.getMood(new Date(), function(err, mood) {
     var data;
     if (err) {
       return next(err);

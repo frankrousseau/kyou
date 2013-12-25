@@ -8,7 +8,7 @@
     "analytics"
   ],
   "scripts": {
-    "start": "coffee server.coffee"
+    "start": "node server.js"
   },
   "licenses": [
     {
@@ -27,13 +27,10 @@
     "node": "*"
   },
   "main": "server.js",
-  "scripts":
-  { 
-    "start": "node server.js"
-  },
   "dependencies": {
     "americano": "0.2.10",
-    "americano-cozy": "0.1.3"
+    "americano-cozy": "0.1.3",
+    "moment": "~2.5.0"
   },
   "devDependencies": {},
   "repository": {

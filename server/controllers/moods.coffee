@@ -17,7 +17,7 @@ module.exports.all = (req, res, next) ->
 
 # Return the mood of the day
 module.exports.today = (req, res, next) ->
-    Mood.loadTodayMood (err, mood) ->
+    Mood.getMood new Date(), (err, mood) ->
         if err then next err
         else if mood? then res.send mood
         else res.send {}
@@ -25,7 +25,7 @@ module.exports.today = (req, res, next) ->
 
 # Update mood of the day if it exists or create it either.
 module.exports.updateToday = (req, res, next) ->
-    Mood.loadTodayMood (err, mood) ->
+    Mood.getMood new Date(), (err, mood) ->
         if err then next err
         else if mood?
             mood.status = req.body.status

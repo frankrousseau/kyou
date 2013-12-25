@@ -57,7 +57,7 @@ module.exports = {
       return emit(doc.date.substring(0, 10), status);
     },
     byDay: function(doc) {
-      return emit(doc.date, doc);
+      return emit(doc.date.substring(0, 10), doc);
     }
   },
   coffeecup: {

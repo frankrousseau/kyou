@@ -1,23 +1,16 @@
-americano = require('americano-cozy')
-date_helpers = require '../lib/date'
+americano = require 'americano-cozy'
+moment = require 'moment'
 
 module.exports = Mood = americano.getModel 'Mood',
     status: type: String
     date: type: Date
 
-Mood.loadTodayMood = (callback) ->
-    Mood.request 'byDay', descending: true, (err, moods) ->
+Mood.getMood = (day, callback) ->
+    day = moment(day).format 'YYYY-MM-DD'
+    Mood.request 'byDay', key: day, (err, moods) ->
         if err
             callback err
         else if moods.length isnt 0
-            mood = moods[0]
-            now = date_helpers.getDateString new Date
-            date = date_helpers.getDateString mood.date
-
-            if now is date
-                mood.id = mood._id
-                callback null, mood
-            else
-                callback()
+            callback null, moods[0]
         else
             callback()
