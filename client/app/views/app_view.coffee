@@ -2,7 +2,6 @@ request = require '../lib/request'
 BaseView = require '../lib/base_view'
 
 Mood = require '../models/mood'
-CoffeeCup = require '../models/coffeecup'
 Moods = require '../collections/moods'
 
 TrackerList = require './tracker_list'
@@ -16,7 +15,6 @@ module.exports = class AppView extends BaseView
         'click #good-mood-btn': 'onGoodMoodClicked'
         'click #neutral-mood-btn': 'onNeutralMoodClicked'
         'click #bad-mood-btn': 'onBadMoodClicked'
-        'click #coffeecup button': 'onCoffeeButtonClicked'
         'click #add-tracker-btn': 'onTrackerButtonClicked'
 
 
@@ -38,34 +36,14 @@ module.exports = class AppView extends BaseView
                 @$('#moods-y-axis').html ''
                 @getAnalytics 'moods', 'steelblue'
 
-    onCoffeeButtonClicked: (event) ->
-        label = @$('#current-coffeecup')
-        button = $(event.target)
-        val = parseInt button.html()
-
-        label.css 'color', 'transparent'
-        label.spin 'tiny', color: '#444'
-        CoffeeCup.updateLast val, (err, coffeecup) =>
-            label.spin()
-            label.css 'color', '#444'
-            if err
-                alert 'An error occured while saving data'
-            else
-                label.html val
-                @$('#coffeecups-charts').html ''
-                @$('#coffeecups-y-axis').html ''
-                @getAnalytics 'coffeecups', 'yellow'
-
     afterRender: ->
         @data = {}
         @colors = {}
 
         @loadMood()
-        @loadCoffeeCup()
         @getAnalytics 'moods', 'steelblue'
         @getAnalytics 'tasks', 'maroon'
         @getAnalytics 'mails', 'green'
-        @getAnalytics 'coffeecups', 'yellow'
 
         $(window).on 'resize',  @redrawCharts
 
@@ -83,16 +61,6 @@ module.exports = class AppView extends BaseView
             else
                 @$('#current-mood').html mood.get 'status'
 
-    loadCoffeeCup: ->
-        CoffeeCup.getLast (err, coffeecup) =>
-            if err
-                alert "An error occured while retrieving coffee cup data"
-            else if not coffeecup?
-                @$('#current-coffeecup').html(
-                    'Set your coffee consumption for today')
-            else
-                @$('#current-coffeecup').html coffeecup.get 'amount'
-
     getAnalytics: (dataType, color) ->
         $("##{dataType}").spin 'tiny'
         request.get dataType, (err, data) =>
@@ -106,6 +74,7 @@ module.exports = class AppView extends BaseView
                 @data[dataType] = data
                 @colors[dataType] = color
                 @drawCharts data, chartId, yAxisId, color, width
+
 
     redrawCharts: =>
         $('.chart').html null

@@ -17,7 +17,7 @@ module.exports.all = (req, res, next) ->
 
 # Return the coffeecup of the day
 module.exports.today = (req, res, next) ->
-    CoffeeCup.loadTodayConsumption (err, coffeecup) ->
+    CoffeeCup.getConsumption new Date, (err, coffeecup) ->
         if err then next err
         else if coffeecup? then res.send coffeecup
         else res.send {}
@@ -25,7 +25,7 @@ module.exports.today = (req, res, next) ->
 
 # Update coffeecup of the day if it exists or create it either.
 module.exports.updateToday = (req, res, next) ->
-    CoffeeCup.loadTodayConsumption (err, coffeecup) ->
+    CoffeeCup.getConsumption new Date, (err, coffeecup) ->
         if err then next err
         else if coffeecup?
             coffeecup.amount = req.body.amount
