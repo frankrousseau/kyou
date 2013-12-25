@@ -27,7 +27,7 @@ module.exports.all = function(req, res, next) {
 };
 
 module.exports.today = function(req, res, next) {
-  return CoffeeCup.loadTodayConsumption(function(err, coffeecup) {
+  return CoffeeCup.getConsumption(new Date, function(err, coffeecup) {
     if (err) {
       return next(err);
     } else if (coffeecup != null) {
@@ -39,7 +39,7 @@ module.exports.today = function(req, res, next) {
 };
 
 module.exports.updateToday = function(req, res, next) {
-  return CoffeeCup.loadTodayConsumption(function(err, coffeecup) {
+  return CoffeeCup.getConsumption(new Date, function(err, coffeecup) {
     var data;
     if (err) {
       return next(err);

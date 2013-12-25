@@ -3,19 +3,21 @@ var date_helpers;
 
 date_helpers = require('./date');
 
-module.exports = function(rows) {
-  var data, date, dateString, normalizedRows, now, row, _i, _len;
+module.exports = function(rows, end) {
+  var data, date, dateString, normalizedRows, row, _i, _len;
+  if (end == null) {
+    end = new Date;
+  }
   normalizedRows = {};
   data = {};
   for (_i = 0, _len = rows.length; _i < _len; _i++) {
     row = rows[_i];
     data[row.key] = row.value;
   }
-  now = new Date;
-  now.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
   date = new Date;
-  date.setDate(date.getDate() - 133);
-  while (date < now) {
+  date.setDate(end.getDate() - 133);
+  while (date < end) {
     date.setDate(date.getDate() + 1);
     dateString = date_helpers.getDateString(date);
     if (data[dateString] != null) {
