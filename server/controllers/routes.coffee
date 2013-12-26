@@ -1,7 +1,6 @@
 moods = require './moods'
 tasks = require './tasks'
 mails = require './mails'
-coffeecups = require './coffeecups'
 trackers = require './trackers'
 
 module.exports =
