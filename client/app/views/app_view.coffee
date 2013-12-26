@@ -38,10 +38,12 @@ module.exports = class AppView extends BaseView
         @trackerList.collection.fetch()
 
         @$("#datepicker").datepicker maxDate: "+0D"
+        @$("#datepicker").val @currentDate.format('LL'), trigger: false
 
     onDatePickerChanged: ->
         @currentDate = moment @$("#datepicker").val()
         @loadBaseAnalytics()
+        @$("#datepicker").val @currentDate.format('LL'), trigger: false
 
     loadBaseAnalytics: ->
         @loadMood()
