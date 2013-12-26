@@ -57,15 +57,7 @@ module.exports = {
       return emit(doc.date.substring(0, 10), status);
     },
     byDay: function(doc) {
-      return emit(doc.date, doc);
-    }
-  },
-  coffeecup: {
-    nbByDay: function(doc) {
-      return emit(doc.date.substring(0, 10), doc.amount);
-    },
-    byDay: function(doc) {
-      return emit(doc.date, doc);
+      return emit(doc.date.substring(0, 10), doc);
     }
   },
   tracker: {
@@ -76,7 +68,7 @@ module.exports = {
       return emit([doc.tracker, doc.date.substring(0, 10)], doc.amount);
     },
     byDay: function(doc) {
-      return emit([doc.tracker, doc.date], doc);
+      return emit([doc.tracker, doc.date.substring(0, 10)], doc);
     }
   }
 };

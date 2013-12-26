@@ -4,6 +4,8 @@
         h1.right 
             a(href="http://frankrousseau.github.io/kyou/", target="_blank")
                 | Kantify YOU
+    .line
+        input#datepicker
     .line#mood
         .mod.w33.left
             h2 Mood
@@ -30,37 +32,16 @@
             #tasks.graph-container
                 #tasks-y-axis.y-axis
                 #tasks-charts.chart
-    .line#mail
-        .mod.w33.left
-            h2 Mails
-            p.explaination
-                | This tracker counts the amount of mails you received 
-                | in your mailbox everyday.
-        .mod.w66.left
-            #mails.graph-container
-                #mails-y-axis.y-axis
-                #mails-charts.chart
-    .line#coffeecup
-        .mod.w33.left
-            h2 Coffee Cups
-            p.explaination
-                | This tracker allows you to track the amount of coffee cup
-                | you drink every day
-            p#current-coffeecup loading...
-            button 0
-            button 1
-            button 2
-            button 3
-            button 4
-            button 5
-            button 6
-            button 7
-            button 8
-            button 9
-        .mod.w66.left
-            #coffeecups.graph-container
-                #coffeecups-y-axis.y-axis
-                #coffeecups-charts.chart
+    //-.line#mail
+        //-.mod.w33.left
+            //-h2 Emails
+            //-p.explaination
+                //-| This tracker counts the amount of emails you received 
+                //-| in your mailbox everyday.
+        //-.mod.w66.left
+            //-#mails.graph-container
+                //-#mails-y-axis.y-axis
+                //-#mails-charts.chart
 
 .tools.line
     #add-tracker-widget

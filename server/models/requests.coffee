@@ -21,7 +21,6 @@ module.exports =
                     dd = "0" + dd if dd.length is 1
                     dateString = yyyy + '-' + mm + '-' + dd
                     emit dateString, 1
-
             reduce: (key, values, rereduce) ->
                 sum values
 
@@ -34,13 +33,7 @@ module.exports =
             status = 3 if doc.status is "good"
             emit doc.date.substring(0,10), status
         byDay: (doc) ->
-            emit doc.date, doc
-
-    coffeecup:
-        nbByDay: (doc) ->
-            emit doc.date.substring(0,10), doc.amount
-        byDay: (doc) ->
-            emit doc.date, doc
+            emit doc.date.substring(0,10), doc
 
     tracker:
         all: americano.defaultRequests.all
@@ -49,6 +42,4 @@ module.exports =
         nbByDay: (doc) ->
             emit [doc.tracker, doc.date.substring(0,10)], doc.amount
         byDay: (doc) ->
-            emit [doc.tracker, doc.date], doc
-
-
+            emit [doc.tracker, doc.date.substring(0,10)], doc

@@ -9,3 +9,8 @@ module.exports = class TrackerList extends ViewCollection
 
     redrawAll: ->
         view.redrawGraph() for id, view of @views
+
+    reloadAll: ->
+        @$(".tracker .chart").html ''
+        @$(".tracker .y-axis").html ''
+        view.afterRender() for id, view of @views

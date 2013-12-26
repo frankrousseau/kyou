@@ -2,7 +2,6 @@ request = require '../lib/request'
 BaseView = require '../lib/base_view'
 
 Mood = require '../models/mood'
-CoffeeCup = require '../models/coffeecup'
 Moods = require '../collections/moods'
 
 TrackerList = require './tracker_list'
@@ -16,9 +15,42 @@ module.exports = class AppView extends BaseView
         'click #good-mood-btn': 'onGoodMoodClicked'
         'click #neutral-mood-btn': 'onNeutralMoodClicked'
         'click #bad-mood-btn': 'onBadMoodClicked'
-        'click #coffeecup button': 'onCoffeeButtonClicked'
         'click #add-tracker-btn': 'onTrackerButtonClicked'
+        'change #datepicker': 'onDatePickerChanged'
 
+    constructor: ->
+        super
+        @currentDate = moment()
+
+    getRenderData: =>
+        currentDate: @currentDate.format 'MM/DD/YYYY'
+
+    afterRender: ->
+        @data = {}
+        @colors = {}
+        $(window).on 'resize',  @redrawCharts
+
+        @loadBaseAnalytics()
+
+        @trackerList = new TrackerList()
+        @$('#content').append @trackerList.$el
+        @trackerList.render()
+        @trackerList.collection.fetch()
+
+        @$("#datepicker").datepicker maxDate: "+0D"
+        @$("#datepicker").val @currentDate.format('LL'), trigger: false
+
+    onDatePickerChanged: ->
+        @currentDate = moment @$("#datepicker").val()
+        @loadBaseAnalytics()
+        @$("#datepicker").val @currentDate.format('LL'), trigger: false
+
+    loadBaseAnalytics: ->
+        @loadMood()
+        @getAnalytics "moods", 'steelblue'
+        @getAnalytics 'tasks', 'maroon'
+        #@getAnalytics 'mails', 'green'
+        @trackerList.reloadAll() if @trackerList?
 
     onGoodMoodClicked: -> @updateMood 'good'
     onNeutralMoodClicked: -> @updateMood 'neutral'
@@ -27,7 +59,7 @@ module.exports = class AppView extends BaseView
     updateMood: (status) ->
         @$('#current-mood').html '&nbsp;'
         @$('#current-mood').spin 'tiny'
-        Mood.updateLast status, (err, mood) =>
+        Mood.updateDay @currentDate, status, (err, mood) =>
             if err
                 @$('#current-mood').spin()
                 alert "An error occured while saving data"
@@ -38,64 +70,21 @@ module.exports = class AppView extends BaseView
                 @$('#moods-y-axis').html ''
                 @getAnalytics 'moods', 'steelblue'
 
-    onCoffeeButtonClicked: (event) ->
-        label = @$('#current-coffeecup')
-        button = $(event.target)
-        val = parseInt button.html()
-
-        label.css 'color', 'transparent'
-        label.spin 'tiny', color: '#444'
-        CoffeeCup.updateLast val, (err, coffeecup) =>
-            label.spin()
-            label.css 'color', '#444'
-            if err
-                alert 'An error occured while saving data'
-            else
-                label.html val
-                @$('#coffeecups-charts').html ''
-                @$('#coffeecups-y-axis').html ''
-                @getAnalytics 'coffeecups', 'yellow'
-
-    afterRender: ->
-        @data = {}
-        @colors = {}
-
-        @loadMood()
-        @loadCoffeeCup()
-        @getAnalytics 'moods', 'steelblue'
-        @getAnalytics 'tasks', 'maroon'
-        @getAnalytics 'mails', 'green'
-        @getAnalytics 'coffeecups', 'yellow'
-
-        $(window).on 'resize',  @redrawCharts
-
-        @trackerList = new TrackerList()
-        @$('#content').append @trackerList.$el
-        @trackerList.render()
-        @trackerList.collection.fetch()
-
     loadMood: ->
-        Mood.getLast (err, mood) =>
+        Mood.getDay @currentDate, (err, mood) =>
             if err
                 alert "An error occured while retrieving mood data"
             else if not mood?
-                @$('#current-mood').html 'Set your mood for today'
+                @$('#current-mood').html 'Set your mood for current day'
             else
                 @$('#current-mood').html mood.get 'status'
 
-    loadCoffeeCup: ->
-        CoffeeCup.getLast (err, coffeecup) =>
-            if err
-                alert "An error occured while retrieving coffee cup data"
-            else if not coffeecup?
-                @$('#current-coffeecup').html(
-                    'Set your coffee consumption for today')
-            else
-                @$('#current-coffeecup').html coffeecup.get 'amount'
-
     getAnalytics: (dataType, color) ->
+        @$("##{dataType}-charts").html ''
+        @$("##{dataType}-y-axis").html ''
         $("##{dataType}").spin 'tiny'
-        request.get dataType, (err, data) =>
+        path = "#{dataType}/#{@currentDate.format 'YYYY-MM-DD'}"
+        request.get path, (err, data) =>
             if err
                 alert "An error occured while retrieving #{dataType} data"
             else
@@ -106,6 +95,7 @@ module.exports = class AppView extends BaseView
                 @data[dataType] = data
                 @colors[dataType] = color
                 @drawCharts data, chartId, yAxisId, color, width
+
 
     redrawCharts: =>
         $('.chart').html null

@@ -1,11 +1,11 @@
 # KYou
 
-Through your webtools, your objects and your collaborations you create an huge
+Through your webtools, your objects and your collaborations you create a huge
 amount of personal data. Unfortunately you can't take advantage of it at its
 full potential. That's a pity because you could learn a lot about yourself. To
 picture it, let's say that the world of personal data is like an unexplored
 land where the entrance is right behind your house.  You know you could enter
-it but you don't really know where to go once you arethere. It makes you sad
+it but you don't really know where to go once you are there. It makes you sad
 because you are pretty sure that lots of new suprises await you.
 
 KYou is the first steps through this new country. By building analytics from
