@@ -21,13 +21,14 @@ module.exports = class TrackerItem extends BaseView
                     alert 'something went wrong while removing tracker.'
 
     afterRender: =>
+        day = window.app.mainView.currentDate
         getData = =>
-            @model.getLast (err, amount) =>
+            @model.getDay day, (err, amount) =>
                 if err
                     alert "An error occured while retrieving tracker data"
                 else if not amount?
                     @$('.current-amount').html(
-                        'Set value for today')
+                        'Set value for current day')
                 else
                     @$('.current-amount').html amount.get 'amount'
                 @getAnalytics()
@@ -38,7 +39,8 @@ module.exports = class TrackerItem extends BaseView
             setTimeout getData, 1000
 
     onUpClicked: (event) ->
-        @model.getLast (err, amount) =>
+        day = window.app.mainView.currentDate
+        @model.getDay day, (err, amount) =>
             if err
                 alert 'An error occured while retrieving data'
                 return
@@ -53,7 +55,8 @@ module.exports = class TrackerItem extends BaseView
             button = $(event.target)
             label.css 'color', 'transparent'
             label.spin 'tiny', color: '#444'
-            @model.updateLast amount, (err) =>
+            day = window.app.mainView.currentDate
+            @model.updateDay day, amount, (err) =>
                 label.spin()
                 label.css 'color', '#444'
                 if err
@@ -67,7 +70,8 @@ module.exports = class TrackerItem extends BaseView
 
 
     onDownClicked: (event) ->
-        @model.getLast (err, amount) =>
+        day = window.app.mainView.currentDate
+        @model.getDay day, (err, amount) =>
             if err then alert 'An error occured while retrieving data'
             if amount? and amount.get('amount')?
                 amount = amount.get 'amount'
@@ -80,7 +84,8 @@ module.exports = class TrackerItem extends BaseView
             button = $(event.target)
             label.css 'color', 'transparent'
             label.spin 'tiny', color: '#444'
-            @model.updateLast amount, (err) =>
+            day = window.app.mainView.currentDate
+            @model.updateDay day, amount, (err) =>
                 label.spin()
                 label.css 'color', '#444'
                 if err
@@ -95,7 +100,8 @@ module.exports = class TrackerItem extends BaseView
 
     getAnalytics: ->
         @$(".graph-container").spin 'tiny'
-        request.get "trackers/#{@model.get 'id'}/amounts", (err, data) =>
+        day = window.app.mainView.currentDate.format "YYYY-MM-DD"
+        request.get "trackers/#{@model.get 'id'}/amounts/#{day}", (err, data) =>
             if err
                 alert "An error occured while retrieving data"
             else

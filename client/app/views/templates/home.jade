@@ -4,6 +4,8 @@
         h1.right 
             a(href="http://frankrousseau.github.io/kyou/", target="_blank")
                 | Kantify YOU
+    .line
+        input#datepicker(value="#{currentDate}")
     .line#mood
         .mod.w33.left
             h2 Mood
@@ -30,16 +32,16 @@
             #tasks.graph-container
                 #tasks-y-axis.y-axis
                 #tasks-charts.chart
-    .line#mail
-        .mod.w33.left
-            h2 Emails
-            p.explaination
-                | This tracker counts the amount of emails you received 
-                | in your mailbox everyday.
-        .mod.w66.left
-            #mails.graph-container
-                #mails-y-axis.y-axis
-                #mails-charts.chart
+    //-.line#mail
+        //-.mod.w33.left
+            //-h2 Emails
+            //-p.explaination
+                //-| This tracker counts the amount of emails you received 
+                //-| in your mailbox everyday.
+        //-.mod.w66.left
+            //-#mails.graph-container
+                //-#mails-y-axis.y-axis
+                //-#mails-charts.chart
 
 .tools.line
     #add-tracker-widget

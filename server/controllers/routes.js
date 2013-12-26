@@ -15,25 +15,18 @@ module.exports = {
   'trackerId': {
     param: trackers.loadTracker
   },
-  'tasks': {
+  'tasks/:day': {
     get: tasks.all
   },
-  'mails': {
+  'mails/:day': {
     get: mails.all
   },
-  'moods': {
+  'moods/:day': {
     get: moods.all
   },
-  'moods/today': {
-    get: moods.today,
-    put: moods.updateToday
-  },
-  'coffeecups': {
-    get: coffeecups.all
-  },
-  'coffeecups/today': {
-    get: coffeecups.today,
-    put: coffeecups.updateToday
+  'moods/mood/:day': {
+    get: moods.day,
+    put: moods.updateDay
   },
   'trackers': {
     get: trackers.all,
@@ -43,11 +36,11 @@ module.exports = {
     put: trackers.update,
     del: trackers.destroy
   },
-  'trackers/:trackerId/today': {
-    get: trackers.today,
-    put: trackers.updateTodayValue
+  'trackers/:trackerId/day/:day': {
+    get: trackers.day,
+    put: trackers.updateDayValue
   },
-  'trackers/:trackerId/amounts': {
+  'trackers/:trackerId/amounts/:day': {
     get: trackers.amounts
   }
 };

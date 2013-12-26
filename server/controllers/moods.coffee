@@ -1,4 +1,5 @@
 Mood = require '../models/mood'
+moment = require 'moment'
 normalizeResults = require '../lib/normalizer'
 
 
@@ -8,7 +9,8 @@ module.exports.all = (req, res, next) ->
         if err then next err
         else
             results = []
-            data = normalizeResults rows
+            limitDate = moment req.params.day
+            data = normalizeResults rows, limitDate
             for date, value of data
                 dateEpoch = new Date(date).getTime() / 1000
                 results.push x: dateEpoch, y: value
@@ -16,16 +18,20 @@ module.exports.all = (req, res, next) ->
 
 
 # Return the mood of the day
-module.exports.today = (req, res, next) ->
-    Mood.getMood new Date(), (err, mood) ->
+module.exports.day = (req, res, next) ->
+    day = moment req.params.day
+    day.hours 0, 0, 0, 0
+    Mood.getMood day, (err, mood) ->
         if err then next err
         else if mood? then res.send mood
         else res.send {}
 
 
 # Update mood of the day if it exists or create it either.
-module.exports.updateToday = (req, res, next) ->
-    Mood.getMood new Date(), (err, mood) ->
+module.exports.updateDay = (req, res, next) ->
+    day = moment req.params.day
+    day.hours 0, 0, 0, 0
+    Mood.getMood day, (err, mood) ->
         if err then next err
         else if mood?
             mood.status = req.body.status
@@ -35,7 +41,7 @@ module.exports.updateToday = (req, res, next) ->
         else
             data =
                 status: req.body.status
-                date: new Date
+                date: day
             Mood.create data, (err, mood) ->
                 if err then next err
                 else res.send mood

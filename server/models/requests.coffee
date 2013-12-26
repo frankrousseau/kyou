@@ -35,12 +35,6 @@ module.exports =
         byDay: (doc) ->
             emit doc.date.substring(0,10), doc
 
-    coffeecup:
-        nbByDay: (doc) ->
-            emit doc.date.substring(0,10), doc.amount
-        byDay: (doc) ->
-            emit doc.date, doc
-
     tracker:
         all: americano.defaultRequests.all
 
@@ -48,4 +42,4 @@ module.exports =
         nbByDay: (doc) ->
             emit [doc.tracker, doc.date.substring(0,10)], doc.amount
         byDay: (doc) ->
-            emit [doc.tracker, doc.date], doc
+            emit [doc.tracker, doc.date.substring(0,10)], doc

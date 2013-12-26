@@ -16,7 +16,39 @@ module.exports = class AppView extends BaseView
         'click #neutral-mood-btn': 'onNeutralMoodClicked'
         'click #bad-mood-btn': 'onBadMoodClicked'
         'click #add-tracker-btn': 'onTrackerButtonClicked'
+        'change #datepicker': 'onDatePickerChanged'
 
+    constructor: ->
+        super
+        @currentDate = moment()
+
+    getRenderData: =>
+        currentDate: @currentDate.format 'MM/DD/YYYY'
+
+    afterRender: ->
+        @data = {}
+        @colors = {}
+        $(window).on 'resize',  @redrawCharts
+
+        @loadBaseAnalytics()
+
+        @trackerList = new TrackerList()
+        @$('#content').append @trackerList.$el
+        @trackerList.render()
+        @trackerList.collection.fetch()
+
+        @$("#datepicker").datepicker maxDate: "+0D"
+
+    onDatePickerChanged: ->
+        @currentDate = moment @$("#datepicker").val()
+        @loadBaseAnalytics()
+
+    loadBaseAnalytics: ->
+        @loadMood()
+        @getAnalytics "moods", 'steelblue'
+        @getAnalytics 'tasks', 'maroon'
+        #@getAnalytics 'mails', 'green'
+        @trackerList.reloadAll() if @trackerList?
 
     onGoodMoodClicked: -> @updateMood 'good'
     onNeutralMoodClicked: -> @updateMood 'neutral'
@@ -25,7 +57,7 @@ module.exports = class AppView extends BaseView
     updateMood: (status) ->
         @$('#current-mood').html '&nbsp;'
         @$('#current-mood').spin 'tiny'
-        Mood.updateLast status, (err, mood) =>
+        Mood.updateDay @currentDate, status, (err, mood) =>
             if err
                 @$('#current-mood').spin()
                 alert "An error occured while saving data"
@@ -36,34 +68,21 @@ module.exports = class AppView extends BaseView
                 @$('#moods-y-axis').html ''
                 @getAnalytics 'moods', 'steelblue'
 
-    afterRender: ->
-        @data = {}
-        @colors = {}
-
-        @loadMood()
-        @getAnalytics 'moods', 'steelblue'
-        @getAnalytics 'tasks', 'maroon'
-        @getAnalytics 'mails', 'green'
-
-        $(window).on 'resize',  @redrawCharts
-
-        @trackerList = new TrackerList()
-        @$('#content').append @trackerList.$el
-        @trackerList.render()
-        @trackerList.collection.fetch()
-
     loadMood: ->
-        Mood.getLast (err, mood) =>
+        Mood.getDay @currentDate, (err, mood) =>
             if err
                 alert "An error occured while retrieving mood data"
             else if not mood?
-                @$('#current-mood').html 'Set your mood for today'
+                @$('#current-mood').html 'Set your mood for current day'
             else
                 @$('#current-mood').html mood.get 'status'
 
     getAnalytics: (dataType, color) ->
+        @$("##{dataType}-charts").html ''
+        @$("##{dataType}-y-axis").html ''
         $("##{dataType}").spin 'tiny'
-        request.get dataType, (err, data) =>
+        path = "#{dataType}/#{@currentDate.format 'YYYY-MM-DD'}"
+        request.get path, (err, data) =>
             if err
                 alert "An error occured while retrieving #{dataType} data"
             else

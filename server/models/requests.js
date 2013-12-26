@@ -60,14 +60,6 @@ module.exports = {
       return emit(doc.date.substring(0, 10), doc);
     }
   },
-  coffeecup: {
-    nbByDay: function(doc) {
-      return emit(doc.date.substring(0, 10), doc.amount);
-    },
-    byDay: function(doc) {
-      return emit(doc.date, doc);
-    }
-  },
   tracker: {
     all: americano.defaultRequests.all
   },
@@ -76,7 +68,7 @@ module.exports = {
       return emit([doc.tracker, doc.date.substring(0, 10)], doc.amount);
     },
     byDay: function(doc) {
-      return emit([doc.tracker, doc.date], doc);
+      return emit([doc.tracker, doc.date.substring(0, 10)], doc);
     }
   }
 };

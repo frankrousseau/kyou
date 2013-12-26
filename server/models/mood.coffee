@@ -6,7 +6,8 @@ module.exports = Mood = americano.getModel 'Mood',
     date: type: Date
 
 Mood.getMood = (day, callback) ->
-    day = moment(day).format 'YYYY-MM-DD'
+    day = moment(day, 'YYYY-MM-DD').format 'YYYY-MM-DD'
+
     Mood.request 'byDay', key: day, (err, moods) ->
         if err
             callback err

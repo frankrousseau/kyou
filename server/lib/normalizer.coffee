@@ -1,18 +1,19 @@
-date_helpers = require './date'
+moment = require 'moment'
 
 # Build a list of tuple (day, value) for six months from given data.
 # If for a given day there is no value, a (day, 0) is inserted.
-module.exports = (rows, end=new Date) ->
+module.exports = (rows, end=moment()) ->
     normalizedRows = {}
     data = {}
     data[row.key] = row.value for row in rows
-    end.setHours 0, 0, 0, 0
-    date = new Date
-    date.setDate(end.getDate() - 133)
+
+    end.hours 0, 0, 0, 0
+    date = moment end
+    date.subtract 'month', 6
 
     while date < end
-        date.setDate(date.getDate() + 1)
-        dateString = date_helpers.getDateString date
+        date = date.add 'days', 1
+        dateString = date.format "YYYY-MM-DD"
 
         if data[dateString]?
             normalizedRows[dateString] = data[dateString]

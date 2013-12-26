@@ -3,10 +3,11 @@ request = require 'lib/request'
 module.exports = class TrackerModel extends Backbone.Model
     rootUrl: "trackers"
 
-    getLast: (callback) ->
+    getDay: (day, callback) ->
         id = @get 'id'
         id = @id unless id?
-        request.get "trackers/#{id}/today", (err, tracker) ->
+        path = "trackers/#{id}/day/#{day.format 'YYYY-MM-DD'}"
+        request.get path, (err, tracker) ->
             if err then callback err
             else
                 if tracker.amount?
@@ -14,7 +15,8 @@ module.exports = class TrackerModel extends Backbone.Model
                 else
                     callback null, null
 
-    updateLast: (amount, callback) ->
+    updateDay: (day, amount, callback) ->
         id = @get 'id'
         id = @id unless id?
-        request.put "trackers/#{id}/today", amount: amount, callback
+        path = "trackers/#{id}/day/#{day.format 'YYYY-MM-DD'}"
+        request.put path, amount: amount, callback

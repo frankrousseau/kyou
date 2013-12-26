@@ -8,3 +8,6 @@ module.exports = class Router extends Backbone.Router
     main: ->
         mainView = new AppView()
         mainView.render()
+
+        window.app = {}
+        window.app.mainView = mainView
