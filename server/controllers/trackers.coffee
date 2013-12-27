@@ -1,8 +1,10 @@
 moment = require 'moment'
+slugify = require 'cozy-slug'
 
 Tracker = require '../models/tracker'
 TrackerAmount = require '../models/trackeramount'
 normalizeResults = require '../lib/normalizer'
+trackerUtils = require '../lib/trackers'
 
 
 # Return number of tasks completed for every day
@@ -17,6 +19,14 @@ module.exports =
             else
                 req.tracker = trackers[0]
                 next()
+
+    allBasicTrackers: (req, res, next) ->
+        trackers = trackerUtils.getTrackers()
+        for tracker in trackers
+            tracker.slug = slugify tracker.name
+            tracker.path = "basic-trackers/#{tracker.slug}"
+            delete tracker.request
+        res.send trackers
 
     all: (req, res, next) ->
         Tracker.all (err, trackers) ->

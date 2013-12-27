@@ -14,6 +14,8 @@ module.exports =
     'moods/mood/:day':
         get: moods.day
         put: moods.updateDay
+    'basic-trackers':
+        get: trackers.allBasicTrackers
     'trackers':
         get: trackers.all
         post: trackers.create
