@@ -9,21 +9,6 @@ module.exports =
             reduce: (key, values, rereduce) ->
                 sum values
 
-    task:
-        nbByDay:
-            map: (doc) ->
-                if doc.completionDate? and doc.done
-                    date = new Date doc.completionDate
-                    yyyy = date.getFullYear().toString()
-                    mm = (date.getMonth() + 1).toString()
-                    mm = "0" + mm if mm.length is 1
-                    dd  = date.getDate().toString()
-                    dd = "0" + dd if dd.length is 1
-                    dateString = yyyy + '-' + mm + '-' + dd
-                    emit dateString, 1
-            reduce: (key, values, rereduce) ->
-                sum values
-
     mood:
         all: americano.defaultRequests.all
         statusByDay: (doc) ->

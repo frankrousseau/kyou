@@ -47,6 +47,9 @@
     "Task": {
       "description": "Track the number of tasks you achieved."
     },
+    "TwitterTweet": {
+      "description": "Tracker the number of Tweets you published"
+    },
     "Mood": {
       "description": "Track your mood on a daily basis."
     },

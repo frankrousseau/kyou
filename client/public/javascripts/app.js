@@ -728,7 +728,6 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.loadBaseAnalytics = function() {
       this.loadMood();
       this.getAnalytics("moods", 'steelblue');
-      this.getAnalytics('tasks', 'maroon');
       if (this.trackerList != null) {
         this.basicTrackerList.reloadAll();
       }
@@ -1052,7 +1051,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line"><input id="datepicker"/></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div><div id="task" class="line"><div class="mod w33 left"><h2>Tasks</h2><p class="explaination">This tracker counts the tasks marked as done in\nyour Cozy. The date used to build the graph is the completion\ndate</p></div><div class="mod w66 left"><div id="tasks" class="graph-container"><div id="tasks-y-axis" class="y-axis"></div><div id="tasks-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line"><input id="datepicker"/></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
@@ -1064,17 +1063,6 @@ window.require.register("views/templates/mood", function(exports, require, modul
   with (locals || {}) {
   var interp;
   buf.push('<p><' + (date) + '>- ' + escape((interp = status) == null ? '' : interp) + '</' + (date) + '></p>');
-  }
-  return buf.join("");
-  };
-});
-window.require.register("views/templates/task", function(exports, require, module) {
-  module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
-  attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
-  var buf = [];
-  with (locals || {}) {
-  var interp;
-  buf.push('<p><' + (date) + '>- ' + escape((interp = nbTasks) == null ? '' : interp) + '</' + (date) + '></p>');
   }
   return buf.join("");
   };

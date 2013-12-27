@@ -54,7 +54,6 @@ module.exports = class AppView extends BaseView
     loadBaseAnalytics: ->
         @loadMood()
         @getAnalytics "moods", 'steelblue'
-        @getAnalytics 'tasks', 'maroon'
         #@getAnalytics 'mails', 'green'
         @basicTrackerList.reloadAll() if @trackerList?
         @trackerList.reloadAll() if @trackerList?

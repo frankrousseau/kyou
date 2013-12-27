@@ -5,8 +5,6 @@ trackers = require './trackers'
 
 module.exports =
     'trackerId': param: trackers.loadTracker
-    'tasks/:day':
-        get: tasks.all
     'mails/:day':
         get: mails.all
     'moods/:day':
