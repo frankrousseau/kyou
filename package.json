@@ -47,6 +47,15 @@
     "Task": {
       "description": "Track the number of tasks you achieved."
     },
+    "RescueTimeActivity": {
+      "description": "Track time spent on productive apps/websites."
+    },
+    "JawboneMove": {
+      "description": "Track steps count from Jawbone data."
+    },
+    "JawboneSleep": {
+      "description": "Track sleep duration from Jawbone data."
+    },
     "TwitterTweet": {
       "description": "Tracker the number of Tweets you published"
     },
