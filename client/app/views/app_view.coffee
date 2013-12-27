@@ -130,6 +130,14 @@ module.exports = class AppView extends BaseView
              element: document.getElementById(yAxisId)
 
         graph.render()
+
+        hoverDetail = new Rickshaw.Graph.HoverDetail
+            graph: graph,
+            xFormatter: (series, x, y) ->
+                return moment(x).format('LL')
+            formatter: (series, x, y) ->
+                return Math.floor y
+
         graph
 
 

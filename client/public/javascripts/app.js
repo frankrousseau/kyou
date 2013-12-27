@@ -768,7 +768,7 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.drawCharts = function(data, chartId, yAxisId, color, width) {
-      var graph, x_axis, y_axis;
+      var graph, hoverDetail, x_axis, y_axis;
       graph = new Rickshaw.Graph({
         element: document.querySelector("#" + chartId),
         width: width,
@@ -791,6 +791,15 @@ window.require.register("views/app_view", function(exports, require, module) {
         element: document.getElementById(yAxisId)
       });
       graph.render();
+      hoverDetail = new Rickshaw.Graph.HoverDetail({
+        graph: graph,
+        xFormatter: function(series, x, y) {
+          return moment(x).format('LL');
+        },
+        formatter: function(series, x, y) {
+          return Math.floor(y);
+        }
+      });
       return graph;
     };
 
@@ -1092,7 +1101,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
     };
 
     TrackerItem.prototype.drawCharts = function() {
-      var graph, width, x_axis, y_axis;
+      var graph, hoverDetail, width, x_axis, y_axis;
       width = this.$(".graph-container").width() - 30;
       graph = new Rickshaw.Graph({
         element: this.$('.chart')[0],
@@ -1116,6 +1125,15 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         element: this.$('.y-axis')[0]
       });
       graph.render();
+      hoverDetail = new Rickshaw.Graph.HoverDetail({
+        graph: graph,
+        xFormatter: function(series, x, y) {
+          return moment(x).format('LL');
+        },
+        formatter: function(series, x, y) {
+          return Math.floor(y);
+        }
+      });
       return graph;
     };
 
