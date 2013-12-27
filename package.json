@@ -47,6 +47,9 @@
     "Event": {
       "description": "Track the number of events you had."
     },
+    "BankOperation": {
+      "description": "Track the expenses you make."
+    },
     "Task": {
       "description": "Track the number of tasks you achieved."
     },
