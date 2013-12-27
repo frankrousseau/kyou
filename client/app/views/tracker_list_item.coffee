@@ -136,8 +136,8 @@ module.exports = class TrackerItem extends BaseView
 
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
-            xFormatter: (series, x, y) ->
-                return moment(x).format('LL')
+            xFormatter: (x) ->
+                return moment(x * 1000).format('LL')
             formatter: (series, x, y) ->
                 return Math.floor y
 

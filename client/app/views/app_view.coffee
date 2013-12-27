@@ -54,7 +54,6 @@ module.exports = class AppView extends BaseView
     loadBaseAnalytics: ->
         @loadMood()
         @getAnalytics "moods", 'steelblue'
-        #@getAnalytics 'mails', 'green'
         @basicTrackerList.reloadAll() if @trackerList?
         @trackerList.reloadAll() if @trackerList?
 
@@ -140,8 +139,8 @@ module.exports = class AppView extends BaseView
 
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
-            xFormatter: (series, x, y) ->
-                return moment(x).format('LL')
+            xFormatter: (x) ->
+                return moment(x * 1000).format('LL')
             formatter: (series, x, y) ->
                 return Math.floor y
 

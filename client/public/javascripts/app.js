@@ -846,8 +846,8 @@ window.require.register("views/app_view", function(exports, require, module) {
       graph.render();
       hoverDetail = new Rickshaw.Graph.HoverDetail({
         graph: graph,
-        xFormatter: function(series, x, y) {
-          return moment(x).format('LL');
+        xFormatter: function(x) {
+          return moment(x * 1000).format('LL');
         },
         formatter: function(series, x, y) {
           return Math.floor(y);
@@ -1336,8 +1336,8 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       graph.render();
       hoverDetail = new Rickshaw.Graph.HoverDetail({
         graph: graph,
-        xFormatter: function(series, x, y) {
-          return moment(x).format('LL');
+        xFormatter: function(x) {
+          return moment(x * 1000).format('LL');
         },
         formatter: function(series, x, y) {
           return Math.floor(y);
