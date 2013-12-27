@@ -44,6 +44,9 @@
     "Mail": {
       "description": "Track the number of mails you receive."
     },
+    "Event": {
+      "description": "Track the number of events you had."
+    },
     "Task": {
       "description": "Track the number of tasks you achieved."
     },
