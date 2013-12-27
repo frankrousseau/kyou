@@ -983,7 +983,6 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
 
     BasicTrackerItem.prototype.drawCharts = function() {
       var graph, hoverDetail, width, x_axis, y_axis;
-      console.log(this.model.get('color'));
       width = this.$(".graph-container").width() - 30;
       graph = new Rickshaw.Graph({
         element: this.$('.chart')[0],

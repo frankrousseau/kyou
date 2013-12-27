@@ -25,8 +25,6 @@ module.exports = class BasicTrackerItem extends BaseView
         @drawCharts()
 
     drawCharts: ->
-        console.log @model.get 'color'
-
         width = @$(".graph-container").width() - 30
         graph = new Rickshaw.Graph(
             element: @$('.chart')[0]
