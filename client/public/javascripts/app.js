@@ -145,6 +145,28 @@ window.require.register("application", function(exports, require, module) {
   };
   
 });
+window.require.register("collections/basic_trackers", function(exports, require, module) {
+  var TrackersCollection, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  module.exports = TrackersCollection = (function(_super) {
+    __extends(TrackersCollection, _super);
+
+    function TrackersCollection() {
+      _ref = TrackersCollection.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TrackersCollection.prototype.model = require('../models/basic_tracker');
+
+    TrackersCollection.prototype.url = 'basic-trackers';
+
+    return TrackersCollection;
+
+  })(Backbone.Collection);
+  
+});
 window.require.register("collections/moods", function(exports, require, module) {
   var Moods, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -452,6 +474,28 @@ window.require.register("lib/view_collection", function(exports, require, module
   })(BaseView);
   
 });
+window.require.register("models/basic_tracker", function(exports, require, module) {
+  var TrackerModel, request, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  request = require('lib/request');
+
+  module.exports = TrackerModel = (function(_super) {
+    __extends(TrackerModel, _super);
+
+    function TrackerModel() {
+      _ref = TrackerModel.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TrackerModel.prototype.rootUrl = "basic-trackers";
+
+    return TrackerModel;
+
+  })(Backbone.Model);
+  
+});
 window.require.register("models/mood", function(exports, require, module) {
   var Model, Mood, request, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -607,7 +651,7 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, Mood, Moods, TrackerList, request,
+  var AppView, BaseView, BasicTrackerList, Mood, Moods, TrackerList, request,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -621,6 +665,8 @@ window.require.register("views/app_view", function(exports, require, module) {
   Moods = require('../collections/moods');
 
   TrackerList = require('./tracker_list');
+
+  BasicTrackerList = require('./basic_tracker_list');
 
   module.exports = AppView = (function(_super) {
     __extends(AppView, _super);
@@ -655,6 +701,10 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.colors = {};
       $(window).on('resize', this.redrawCharts);
       this.loadBaseAnalytics();
+      this.basicTrackerList = new BasicTrackerList();
+      this.$('#content').append(this.basicTrackerList.$el);
+      this.basicTrackerList.render();
+      this.basicTrackerList.collection.fetch();
       this.trackerList = new TrackerList();
       this.$('#content').append(this.trackerList.$el);
       this.trackerList.render();
@@ -679,6 +729,9 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.loadMood();
       this.getAnalytics("moods", 'steelblue');
       this.getAnalytics('tasks', 'maroon');
+      if (this.trackerList != null) {
+        this.basicTrackerList.reloadAll();
+      }
       if (this.trackerList != null) {
         return this.trackerList.reloadAll();
       }
@@ -764,6 +817,7 @@ window.require.register("views/app_view", function(exports, require, module) {
         this.drawCharts(data, chartId, yAxisId, color, width);
       }
       this.trackerList.redrawAll();
+      this.basicTrackerList.redrawAll();
       return true;
     };
 
@@ -824,6 +878,173 @@ window.require.register("views/app_view", function(exports, require, module) {
 
   })(BaseView);
   
+});
+window.require.register("views/basic_tracker_list", function(exports, require, module) {
+  var BasicTrackerCollection, TrackerList, ViewCollection, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ViewCollection = require('lib/view_collection');
+
+  BasicTrackerCollection = require('collections/basic_trackers');
+
+  module.exports = TrackerList = (function(_super) {
+    __extends(TrackerList, _super);
+
+    function TrackerList() {
+      _ref = TrackerList.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TrackerList.prototype.id = 'basic-tracker-list';
+
+    TrackerList.prototype.itemView = require('views/basic_tracker_list_item');
+
+    TrackerList.prototype.template = require('views/templates/basic_tracker_list');
+
+    TrackerList.prototype.collection = new BasicTrackerCollection();
+
+    TrackerList.prototype.redrawAll = function() {
+      var id, view, _ref1, _results;
+      _ref1 = this.views;
+      _results = [];
+      for (id in _ref1) {
+        view = _ref1[id];
+        _results.push(view.redrawGraph());
+      }
+      return _results;
+    };
+
+    TrackerList.prototype.reloadAll = function() {
+      var id, view, _ref1, _results;
+      this.$(".tracker .chart").html('');
+      this.$(".tracker .y-axis").html('');
+      _ref1 = this.views;
+      _results = [];
+      for (id in _ref1) {
+        view = _ref1[id];
+        _results.push(view.afterRender());
+      }
+      return _results;
+    };
+
+    return TrackerList;
+
+  })(ViewCollection);
+  
+});
+window.require.register("views/basic_tracker_list_item", function(exports, require, module) {
+  var BaseView, BasicTrackerItem, request, _ref,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  BaseView = require('lib/base_view');
+
+  request = require('lib/request');
+
+  module.exports = BasicTrackerItem = (function(_super) {
+    __extends(BasicTrackerItem, _super);
+
+    function BasicTrackerItem() {
+      this.afterRender = __bind(this.afterRender, this);
+      _ref = BasicTrackerItem.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    BasicTrackerItem.prototype.className = 'tracker line';
+
+    BasicTrackerItem.prototype.template = require('views/templates/basic_tracker_list_item');
+
+    BasicTrackerItem.prototype.afterRender = function() {
+      var day;
+      day = window.app.mainView.currentDate;
+      return this.getAnalytics();
+    };
+
+    BasicTrackerItem.prototype.getAnalytics = function() {
+      var day,
+        _this = this;
+      this.$(".graph-container").spin('tiny');
+      day = window.app.mainView.currentDate.format("YYYY-MM-DD");
+      return request.get(this.model.get('path'), function(err, data) {
+        if (err) {
+          return alert("An error occured while retrieving data");
+        } else {
+          _this.$(".graph-container").spin();
+          _this.data = data;
+          return _this.drawCharts();
+        }
+      });
+    };
+
+    BasicTrackerItem.prototype.redrawGraph = function() {
+      return this.drawCharts();
+    };
+
+    BasicTrackerItem.prototype.drawCharts = function() {
+      var graph, hoverDetail, width, x_axis, y_axis;
+      console.log(this.model.get('color'));
+      width = this.$(".graph-container").width() - 30;
+      graph = new Rickshaw.Graph({
+        element: this.$('.chart')[0],
+        width: width,
+        height: 300,
+        renderer: 'bar',
+        series: [
+          {
+            color: this.model.get('color'),
+            data: this.data
+          }
+        ]
+      });
+      x_axis = new Rickshaw.Graph.Axis.Time({
+        graph: graph
+      });
+      y_axis = new Rickshaw.Graph.Axis.Y({
+        graph: graph,
+        orientation: 'left',
+        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+        element: this.$('.y-axis')[0]
+      });
+      graph.render();
+      hoverDetail = new Rickshaw.Graph.HoverDetail({
+        graph: graph,
+        xFormatter: function(x) {
+          return moment(x * 1000).format('LL');
+        },
+        formatter: function(series, x, y) {
+          return Math.floor(y);
+        }
+      });
+      return graph;
+    };
+
+    return BasicTrackerItem;
+
+  })(BaseView);
+  
+});
+window.require.register("views/templates/basic_tracker_list", function(exports, require, module) {
+  module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+  attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+  var buf = [];
+  with (locals || {}) {
+  var interp;
+  }
+  return buf.join("");
+  };
+});
+window.require.register("views/templates/basic_tracker_list_item", function(exports, require, module) {
+  module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+  attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+  var buf = [];
+  with (locals || {}) {
+  var interp;
+  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
+  }
+  return buf.join("");
+  };
 });
 window.require.register("views/templates/home", function(exports, require, module) {
   module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {

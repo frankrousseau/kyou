@@ -5,6 +5,7 @@ Mood = require '../models/mood'
 Moods = require '../collections/moods'
 
 TrackerList = require './tracker_list'
+BasicTrackerList = require './basic_tracker_list'
 
 module.exports = class AppView extends BaseView
 
@@ -32,6 +33,11 @@ module.exports = class AppView extends BaseView
 
         @loadBaseAnalytics()
 
+        @basicTrackerList = new BasicTrackerList()
+        @$('#content').append @basicTrackerList.$el
+        @basicTrackerList.render()
+        @basicTrackerList.collection.fetch()
+
         @trackerList = new TrackerList()
         @$('#content').append @trackerList.$el
         @trackerList.render()
@@ -50,6 +56,7 @@ module.exports = class AppView extends BaseView
         @getAnalytics "moods", 'steelblue'
         @getAnalytics 'tasks', 'maroon'
         #@getAnalytics 'mails', 'green'
+        @basicTrackerList.reloadAll() if @trackerList?
         @trackerList.reloadAll() if @trackerList?
 
     onGoodMoodClicked: -> @updateMood 'good'
@@ -107,6 +114,7 @@ module.exports = class AppView extends BaseView
             color = @colors[dataType]
             @drawCharts data, chartId, yAxisId, color, width
         @trackerList.redrawAll()
+        @basicTrackerList.redrawAll()
         true
 
 
