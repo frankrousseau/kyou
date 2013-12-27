@@ -6,7 +6,7 @@ module.exports =
     description: """
 This tracker counts the tasks marked as done in your Cozy. The date used to
 build the graph is the completion date."""
-    model: americano.getModel 'Tasks', completionDate: Date
+    model: americano.getModel 'Task', completionDate: Date
     request:
         map: (doc) ->
             if doc.completionDate? and doc.done
