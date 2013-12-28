@@ -7,7 +7,7 @@ module.exports = {
   name: "Expenses",
   color: "#297FB8",
   description: "Sum of every bank operations below 0 (all accounts).",
-  model: americano.getModel('BankOperation', {
+  model: americano.getModel('bankoperation', {
     date: Date
   }),
   request: {

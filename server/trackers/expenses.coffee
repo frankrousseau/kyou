@@ -5,7 +5,7 @@ module.exports =
     color: "#297FB8"
     description: """
 Sum of every bank operations below 0 (all accounts)."""
-    model: americano.getModel 'BankOperation', date: Date
+    model: americano.getModel 'bankoperation', date: Date
     request:
         map: (doc) ->
             if doc.amount < 0
