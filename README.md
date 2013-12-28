@@ -31,10 +31,18 @@ other analytics.
 **Task** Count how many tasks were marked done every day. Data comes from 
 [Cozy Todos](https://github.com/mycozycloud/cozy-todos)
 
-**Mails** Count how many mails you received every day. Data comes from 
-[Cozy Mails](https://github.com/mycozycloud/cozy-mails)
+**Events** Count how many events were listed every day. Data comes from 
+[Cozy Calendar](https://github.com/mycozycloud/cozy-calendar)
 
-**Coffee Cups** Store the amount of coffee cup you drink everyday. 
+**Expenses** Count how many money you spent every day. Data comes from 
+[Cozy PFM](https://github.com/seeker89/cozy-pfm)
+
+**Steps** Count how many steps you walk every day. Data comes from Jawbone UP.
+
+**Sleep** Count how many minutes you sleep every day. Data comes from Jawbone
+UP.
+
+**Tweets** Count how many tweets you published every day. Data comes from Twitter.
 
 **Custrom trackers** The tracker you require, set title and description then go
 track your specific stuff.
@@ -46,9 +54,6 @@ them would be highly appreciated. Of course any idea is welcome!
 
 * weather tracker: store your location and track temperature and pluviometry.
 * github commit tracker: store your daily amount of commits.
-* twitter post tracker: store your daily amount of twitter posts.
-* learn from previous trackers code to make trackers more modular and easier to
-  code.
 * translations
 
 ## Credits
