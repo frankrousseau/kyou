@@ -12,7 +12,7 @@ module.exports = {
   }),
   request: {
     map: function(doc) {
-      if (doc.amount > 0) {
+      if (doc.amount < 0) {
         return emit(doc.date.substring(0, 10), -1 * doc.amount);
       }
     },
