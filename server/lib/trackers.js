@@ -27,6 +27,18 @@ module.exports = {
         trackers.push(require(modulePath));
       }
     }
+    trackers.sort(function(a, b) {
+      var nameA, nameB;
+      nameA = a.name.toLowerCase();
+      nameB = b.name.toLowerCase();
+      if (nameA < nameB) {
+        return -1;
+      } else if (nameA > nameB) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
     return trackers;
   }
 };

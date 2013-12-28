@@ -43,5 +43,5 @@ module.exports = (app) ->
                     log.info 'Tracker request creation succeed.'
                     recConfig()
 
-    trackers = getTrackers()
+    trackers = getTrackers().reverse()
     recConfig()

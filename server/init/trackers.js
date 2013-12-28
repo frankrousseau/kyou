@@ -67,6 +67,6 @@ module.exports = function(app) {
       });
     }
   };
-  trackers = getTrackers();
+  trackers = getTrackers().reverse();
   return recConfig();
 };

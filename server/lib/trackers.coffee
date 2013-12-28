@@ -18,6 +18,12 @@ module.exports =
                 name = trackerFile.split('.')[0]
                 modulePath = path.join modulesPath, name
                 trackers.push require modulePath
+
+        trackers.sort (a, b) ->
+            nameA = a.name.toLowerCase()
+            nameB = b.name.toLowerCase()
+            if nameA < nameB then -1
+            else if nameA > nameB then 1
+            else 0
+
         trackers
-
-
