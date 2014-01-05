@@ -87,7 +87,6 @@ module.exports =
             if err then next err
             else
                 results = []
-
                 tmpRows = []
                 for row in rows
                     tmpRows.push key: row['key'][1], value: row['value']
