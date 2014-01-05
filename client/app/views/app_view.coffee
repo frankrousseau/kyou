@@ -33,15 +33,15 @@ module.exports = class AppView extends BaseView
 
         @loadBaseAnalytics()
 
-        @basicTrackerList = new BasicTrackerList()
-        @$('#content').append @basicTrackerList.$el
-        @basicTrackerList.render()
-        @basicTrackerList.collection.fetch()
-
         @trackerList = new TrackerList()
         @$('#content').append @trackerList.$el
         @trackerList.render()
         @trackerList.collection.fetch()
+
+        @basicTrackerList = new BasicTrackerList()
+        @$('#content').append @basicTrackerList.$el
+        @basicTrackerList.render()
+        @basicTrackerList.collection.fetch()
 
         @$("#datepicker").datepicker maxDate: "+0D"
         @$("#datepicker").val @currentDate.format('LL'), trigger: false

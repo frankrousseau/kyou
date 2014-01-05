@@ -701,14 +701,14 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.colors = {};
       $(window).on('resize', this.redrawCharts);
       this.loadBaseAnalytics();
-      this.basicTrackerList = new BasicTrackerList();
-      this.$('#content').append(this.basicTrackerList.$el);
-      this.basicTrackerList.render();
-      this.basicTrackerList.collection.fetch();
       this.trackerList = new TrackerList();
       this.$('#content').append(this.trackerList.$el);
       this.trackerList.render();
       this.trackerList.collection.fetch();
+      this.basicTrackerList = new BasicTrackerList();
+      this.$('#content').append(this.basicTrackerList.$el);
+      this.basicTrackerList.render();
+      this.basicTrackerList.collection.fetch();
       this.$("#datepicker").datepicker({
         maxDate: "+0D"
       });
