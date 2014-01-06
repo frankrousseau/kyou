@@ -54,7 +54,12 @@ them would be highly appreciated. Of course any idea is welcome!
 
 * weather tracker: store your location and track temperature and pluviometry.
 * github commit tracker: store your daily amount of commits.
-* translations
+* localization/translations
+* allow edition for custom trackers
+* improve custom trackers amount setter
+* ask for confirmation before deleting custrom trackers
+* add a comparator tool for data 
+* write tests
 
 ## Credits
 
