@@ -1,14 +1,6 @@
 americano = require 'americano-cozy'
 
 module.exports =
-    mail:
-        nbByDay:
-            map: (doc) ->
-                if doc.date?
-                    emit doc.date.substring(0, 10), 1
-            reduce: (key, values, rereduce) ->
-                sum values
-
     mood:
         all: americano.defaultRequests.all
         statusByDay: (doc) ->

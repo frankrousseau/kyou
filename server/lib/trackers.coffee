@@ -7,6 +7,9 @@ isJsFile = (fileName) ->
     firstChar isnt '.' and extension is 'js'
 
 module.exports =
+
+    # Get all trackers by listing all js files located in the server/trackers
+    # directory.
     getTrackers: ->
         currentPath = path.dirname fs.realpathSync __filename
         modulesPath = path.join currentPath, '..', 'trackers'

@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+
 moment = require 'moment'
 slugify = require 'cozy-slug'
 log = require('printit')
@@ -9,11 +10,16 @@ log = require('printit')
 normalizeResults = require '../lib/normalizer'
 getTrackers = require('../lib/trackers').getTrackers
 
+
 module.exports = (app) ->
 
+    # Express Controller to be run when given tracker is request through the
+    # REST API.
+    # It returns 6 months that ends at day given in params
     getController = (tracker) ->
         (req, res, next) ->
             options = group: true
+
             tracker.model.rawRequest 'nbByDay', options, (err, rows) ->
                 if err then next err
                 else
@@ -25,6 +31,8 @@ module.exports = (app) ->
                         results.push x: dateEpoch, y: value
                     res.send results
 
+    # For all trackers located in tracker directory, add a route to get
+    # its data and created data system request.
     recConfig = ->
         if trackers.length > 0
             tracker = trackers.pop()
@@ -40,7 +48,7 @@ module.exports = (app) ->
                     log.error 'Tracker request creation failed.'
                     recConfig()
                 else
-                    log.info 'Tracker request creation succeed.'
+                    log.info 'Tracker request creation succeeded.'
                     recConfig()
 
     trackers = getTrackers().reverse()

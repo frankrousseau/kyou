@@ -10,6 +10,7 @@ trackerUtils = require '../lib/trackers'
 # Return number of tasks completed for every day
 module.exports =
 
+    # Load tracker before processing request.
     loadTracker: (req, res, next, trackerId) ->
         Tracker.request 'all', key: trackerId, (err, trackers) ->
             if err then next err
@@ -20,6 +21,7 @@ module.exports =
                 req.tracker = trackers[0]
                 next()
 
+    # Get all trackers described in the KYou code, from the trackers folder.
     allBasicTrackers: (req, res, next) ->
         trackers = trackerUtils.getTrackers()
         for tracker in trackers
@@ -28,21 +30,26 @@ module.exports =
             delete tracker.request
         res.send trackers
 
+    # Return all user custom trackers.
     all: (req, res, next) ->
         Tracker.all (err, trackers) ->
             if err then next err
             else
                 res.send trackers
 
+    # Create a user custom tracker.
     create: (req, res, next) ->
         Tracker.create req.body, (err, tracker) ->
             if err then next err
             else
                 res.send tracker
 
+    # Update given user custom tracker.
     update: (req, res, next) ->
         res.send error: 'not implemented yet', 500
 
+
+    # Destroy given user custom tracker.
     destroy: (req, res, next) ->
         TrackerAmount.destroyAll req.tracker, (err) ->
             if err then next err
@@ -52,6 +59,7 @@ module.exports =
                     else
                         res.send success: true
 
+    # Get value for given day and given custom tracker.
     day: (req, res, next) ->
         day = moment req.params.day
         day.hours 0, 0, 0, 0
@@ -60,6 +68,7 @@ module.exports =
             else if trackerAmount? then res.send trackerAmount
             else res.send {}
 
+    # Set value for given day and given custom tracker.
     updateDayValue: (req, res, next) ->
         day = moment req.params.day
         day.hours 0, 0, 0, 0
@@ -79,6 +88,7 @@ module.exports =
                     if err then next err
                     else res.send trackerAmount
 
+    # Return 6 month of data for given custom tracker.
     amounts: (req, res, next) ->
         id = req.tracker.id
         day = moment req.params.day
