@@ -61,7 +61,7 @@ module.exports = function(app) {
           log.error('Tracker request creation failed.');
           return recConfig();
         } else {
-          log.info('Tracker request creation succeed.');
+          log.info('Tracker request creation succeeded.');
           return recConfig();
         }
       });

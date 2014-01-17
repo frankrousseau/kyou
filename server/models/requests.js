@@ -4,18 +4,6 @@ var americano;
 americano = require('americano-cozy');
 
 module.exports = {
-  mail: {
-    nbByDay: {
-      map: function(doc) {
-        if (doc.date != null) {
-          return emit(doc.date.substring(0, 10), 1);
-        }
-      },
-      reduce: function(key, values, rereduce) {
-        return sum(values);
-      }
-    }
-  },
   mood: {
     all: americano.defaultRequests.all,
     statusByDay: function(doc) {

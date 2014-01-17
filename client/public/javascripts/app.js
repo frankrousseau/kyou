@@ -1082,7 +1082,7 @@ window.require.register("views/templates/tracker_list_item", function(exports, r
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">Set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><p><button class="smaller remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
+  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">Set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><input value="1" class="tracker-increment"/><p><button class="smaller remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
   }
   return buf.join("");
   };
@@ -1224,7 +1224,11 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         } else {
           amount = 0;
         }
-        amount++;
+        try {
+          amount += parseInt(_this.$('.tracker-increment').val());
+        } catch (_error) {
+          return false;
+        }
         label = _this.$('.current-amount');
         button = $(event.target);
         label.css('color', 'transparent');
@@ -1262,8 +1266,13 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         } else {
           amount = 0;
         }
-        if (amount > 0) {
-          amount--;
+        try {
+          amount -= parseInt(_this.$('.tracker-increment').val());
+          if (amount < 0) {
+            amount = 0;
+          }
+        } catch (_error) {
+          return false;
         }
         label = _this.$('.current-amount');
         button = $(event.target);

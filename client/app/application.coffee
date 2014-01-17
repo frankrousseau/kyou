@@ -1,10 +1,7 @@
 module.exports =
 
     initialize: ->
-        # Used in inter-app communication
-        #SocketListener = require '../lib/socket_listener'
-
-        # Add JQuery extensions
+        # Initialize spinner tool.
         $.fn.spin = (opts, color) ->
             presets =
                 tiny:
