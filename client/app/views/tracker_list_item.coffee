@@ -49,7 +49,10 @@ module.exports = class TrackerItem extends BaseView
             else
                 amount = 0
 
-            amount++
+            try
+                amount += parseInt @$('.tracker-increment').val()
+            catch
+                return false
             label = @$('.current-amount')
 
             button = $(event.target)
@@ -78,7 +81,11 @@ module.exports = class TrackerItem extends BaseView
             else
                 amount = 0
 
-            amount-- if amount > 0
+            try
+                amount -= parseInt @$('.tracker-increment').val()
+                amount = 0 if amount < 0
+            catch
+                return false
             label = @$('.current-amount')
 
             button = $(event.target)
