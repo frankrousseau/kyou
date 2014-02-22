@@ -1,4 +1,5 @@
 moods = require './moods'
+dailynotes = require './dailynotes'
 trackers = require './trackers'
 
 module.exports =
@@ -21,3 +22,6 @@ module.exports =
         put: trackers.updateDayValue
     'trackers/:trackerId/amounts/:day':
         get: trackers.amounts
+    'dailynotes/:day':
+        get: dailynotes.day
+        put: dailynotes.updateDay

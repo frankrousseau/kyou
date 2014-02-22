@@ -2,6 +2,7 @@ request = require '../lib/request'
 BaseView = require '../lib/base_view'
 
 Mood = require '../models/mood'
+DailyNote = require '../models/dailynote'
 Moods = require '../collections/moods'
 
 TrackerList = require './tracker_list'
@@ -18,6 +19,7 @@ module.exports = class AppView extends BaseView
         'click #bad-mood-btn': 'onBadMoodClicked'
         'click #add-tracker-btn': 'onTrackerButtonClicked'
         'change #datepicker': 'onDatePickerChanged'
+        'blur #dailynote': 'onDailyNoteChanged'
 
     constructor: ->
         super
@@ -31,6 +33,7 @@ module.exports = class AppView extends BaseView
         @colors = {}
         $(window).on 'resize',  @redrawCharts
 
+        @loadNote()
         @loadBaseAnalytics()
 
         @trackerList = new TrackerList()
@@ -43,15 +46,12 @@ module.exports = class AppView extends BaseView
         @basicTrackerList.render()
         @basicTrackerList.collection.fetch()
 
-        #setTimeout ->
-
-        #, 2000
-
         @$("#datepicker").datepicker maxDate: "+0D"
         @$("#datepicker").val @currentDate.format('LL'), trigger: false
 
     onDatePickerChanged: ->
         @currentDate = moment @$("#datepicker").val()
+        @loadNote()
         @loadBaseAnalytics()
         @$("#datepicker").val @currentDate.format('LL'), trigger: false
 
@@ -87,6 +87,21 @@ module.exports = class AppView extends BaseView
                 @$('#current-mood').html 'Set your mood for current day'
             else
                 @$('#current-mood').html mood.get 'status'
+
+    onDailyNoteChanged: (event) ->
+        text = @$("#dailynote").val()
+        DailyNote.updateDay @currentDate, text, (err, mood) =>
+            if err
+                alert "An error occured while saving note of the day"
+
+    loadNote: ->
+        DailyNote.getDay @currentDate, (err, dailynote) =>
+            if err
+                alert "An error occured while retrieving daily note data"
+            else if not dailynote?
+                @$('#dailynote').val null
+            else
+                @$('#dailynote').val dailynote.get 'text'
 
     getAnalytics: (dataType, color) ->
         @$("##{dataType}-charts").html ''

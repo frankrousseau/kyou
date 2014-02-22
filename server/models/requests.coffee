@@ -20,3 +20,7 @@ module.exports =
             emit [doc.tracker, doc.date.substring(0,10)], doc.amount
         byDay: (doc) ->
             emit [doc.tracker, doc.date.substring(0,10)], doc
+
+    dailynote:
+        byDay: (doc) ->
+            emit doc.date.substring(0,10), doc
