@@ -1169,7 +1169,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       'click .remove-btn': 'onRemoveClicked',
       'click .up-btn': 'onUpClicked',
       'click .down-btn': 'onDownClicked',
-      'keyup .current-amount': 'onCurrentAmountKeyup'
+      'keyup .tracker-increment': 'onCurrentAmountKeyup'
     };
 
     TrackerItem.prototype.onRemoveClicked = function() {
@@ -1215,7 +1215,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       var keyCode;
       keyCode = event.which || event.keyCode;
       if (keyCode === 13) {
-        return onUpClicked();
+        return this.onUpClicked();
       }
     };
 
@@ -1224,7 +1224,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         _this = this;
       day = window.app.mainView.currentDate;
       return this.model.getDay(day, function(err, amount) {
-        var button, label;
+        var label;
         if (err) {
           alert('An error occured while retrieving data');
           return;
@@ -1239,7 +1239,6 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
           return false;
         }
         label = _this.$('.current-amount');
-        button = $(event.target);
         label.css('color', 'transparent');
         label.spin('tiny', {
           color: '#444'
@@ -1266,7 +1265,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         _this = this;
       day = window.app.mainView.currentDate;
       return this.model.getDay(day, function(err, amount) {
-        var button, label;
+        var label;
         if (err) {
           alert('An error occured while retrieving data');
         }
@@ -1284,7 +1283,6 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
           return false;
         }
         label = _this.$('.current-amount');
-        button = $(event.target);
         label.css('color', 'transparent');
         label.spin('tiny', {
           color: '#444'
