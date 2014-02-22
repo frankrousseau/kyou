@@ -76,7 +76,7 @@
     },
     "TrackerAmount": {
       "description": "Values for your Custom tracker."
-    }
+    },
     "DailyNote": {
       "description": "Small note to add details that can't be measured."
     }
