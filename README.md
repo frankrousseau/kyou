@@ -9,7 +9,7 @@ it but you don't really know where to go once you are there. It makes you sad
 because you are pretty sure that lots of new suprises await you.
 
 KYou is the first steps through this new country. By building analytics from
-your [Cozy](http://cozy.io) data, it provides you with the first shape of a
+your [Cozy](http://cozy.io) data, it provides you the first shape of a
 better knowledge of yourself. Kyou aggregates data from your web applications
 and displays it as simple charts. With the help of these new insights, you
 will learn more about you and improve yourself.
@@ -37,29 +37,40 @@ other analytics.
 **Expenses** Count how many money you spent every day. Data comes from 
 [Cozy PFM](https://github.com/seeker89/cozy-pfm)
 
-**Steps** Count how many steps you walk every day. Data comes from Jawbone UP.
+**Steps** Count how many steps you walk every day. Data comes from [Jawbone
+UP](http://www.jawbone.com/up).
 
-**Sleep** Count how many minutes you sleep every day. Data comes from Jawbone
-UP.
+**Sleep** Count how many minutes you sleep every day. Data comes from [Jawbone
+UP](http://www.jawbone.com/up).
 
-**Tweets** Count how many tweets you published every day. Data comes from Twitter.
+**Tweets** Count how many tweets you published every day. Data comes from 
+[Twitter](https://twitter.com)
 
 **Custrom trackers** The tracker you require, set title and description then go
 track your specific stuff.
 
 ## What about contributions?
 
-Here are the next things I have mind and not started yet. Your participation to
+Here are the next things I have in mind and not started yet. Your participation to
 them would be highly appreciated. Of course any idea is welcome!
 
 * weather tracker: store your location and track temperature and pluviometry.
 * github commit tracker: store your daily amount of commits.
 * localization/translations
 * allow edition for custom trackers
-* improve custom trackers amount setter
 * ask for confirmation before deleting custrom trackers
 * add a comparator tool for data 
+* allow to see graph
+* allow to set a note on what happened the day you are currently watching
+* add a comparator tool for data 
+* add a goal line on analytics
 * write tests
+
+## Press
+
+[Wired](http://www.wired.com/wiredenterprise/2013/09/cozy-cloud/), 
+[MeMachine](http://memachine.nl/?p=1381)
+
 
 ## Credits
 
