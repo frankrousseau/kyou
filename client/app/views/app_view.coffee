@@ -43,6 +43,10 @@ module.exports = class AppView extends BaseView
         @basicTrackerList.render()
         @basicTrackerList.collection.fetch()
 
+        #setTimeout ->
+
+        #, 2000
+
         @$("#datepicker").datepicker maxDate: "+0D"
         @$("#datepicker").val @currentDate.format('LL'), trigger: false
 
@@ -119,7 +123,7 @@ module.exports = class AppView extends BaseView
     drawCharts: (data, chartId, yAxisId, color, width) ->
         graph = new Rickshaw.Graph(
             element: document.querySelector("##{chartId}")
-            width: width
+            width: width - 40
             height: 300
             renderer: 'bar'
             series: [
@@ -140,9 +144,9 @@ module.exports = class AppView extends BaseView
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
             xFormatter: (x) ->
-                return moment(x * 1000).format('LL')
+                moment(x * 1000).format 'MM/DD/YY'
             formatter: (series, x, y) ->
-                return Math.floor y
+                Math.floor y
 
         graph
 

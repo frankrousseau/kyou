@@ -123,7 +123,7 @@ module.exports = class TrackerItem extends BaseView
         width = @$(".graph-container").width() - 30
         graph = new Rickshaw.Graph(
             element: @$('.chart')[0]
-            width: width
+            width: width - 40
             height: 300
             renderer: 'bar'
             series: [
@@ -144,8 +144,8 @@ module.exports = class TrackerItem extends BaseView
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
             xFormatter: (x) ->
-                return moment(x * 1000).format('LL')
+                moment(x * 1000).format 'MM/DD/YY'
             formatter: (series, x, y) ->
-                return Math.floor y
+                Math.floor y
 
         graph

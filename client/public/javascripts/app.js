@@ -824,7 +824,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       var graph, hoverDetail, x_axis, y_axis;
       graph = new Rickshaw.Graph({
         element: document.querySelector("#" + chartId),
-        width: width,
+        width: width - 40,
         height: 300,
         renderer: 'bar',
         series: [
@@ -847,7 +847,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       hoverDetail = new Rickshaw.Graph.HoverDetail({
         graph: graph,
         xFormatter: function(x) {
-          return moment(x * 1000).format('LL');
+          return moment(x * 1000).format('MM/DD/YY');
         },
         formatter: function(series, x, y) {
           return Math.floor(y);
@@ -986,7 +986,7 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
       width = this.$(".graph-container").width() - 30;
       graph = new Rickshaw.Graph({
         element: this.$('.chart')[0],
-        width: width,
+        width: width - 40,
         height: 300,
         renderer: 'bar',
         series: [
@@ -1009,7 +1009,7 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
       hoverDetail = new Rickshaw.Graph.HoverDetail({
         graph: graph,
         xFormatter: function(x) {
-          return moment(x * 1000).format('LL');
+          return moment(x * 1000).format('MM/DD/YY');
         },
         formatter: function(series, x, y) {
           return Math.floor(y);
@@ -1168,7 +1168,8 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
     TrackerItem.prototype.events = {
       'click .remove-btn': 'onRemoveClicked',
       'click .up-btn': 'onUpClicked',
-      'click .down-btn': 'onDownClicked'
+      'click .down-btn': 'onDownClicked',
+      'keyup .current-amount': 'onCurrentAmountKeyup'
     };
 
     TrackerItem.prototype.onRemoveClicked = function() {
@@ -1207,6 +1208,14 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         return getData();
       } else {
         return setTimeout(getData, 1000);
+      }
+    };
+
+    TrackerItem.prototype.onCurrentAmountKeyup = function(event) {
+      var keyCode;
+      keyCode = event.which || event.keyCode;
+      if (keyCode === 13) {
+        return onUpClicked();
       }
     };
 
@@ -1322,7 +1331,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       width = this.$(".graph-container").width() - 30;
       graph = new Rickshaw.Graph({
         element: this.$('.chart')[0],
-        width: width,
+        width: width - 40,
         height: 300,
         renderer: 'bar',
         series: [
@@ -1345,7 +1354,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       hoverDetail = new Rickshaw.Graph.HoverDetail({
         graph: graph,
         xFormatter: function(x) {
-          return moment(x * 1000).format('LL');
+          return moment(x * 1000).format('MM/DD/YY');
         },
         formatter: function(series, x, y) {
           return Math.floor(y);

@@ -64,6 +64,7 @@ them would be highly appreciated. Of course any idea is welcome!
 * allow to set a note on what happened the day you are currently watching
 * add a comparator tool for data 
 * add a goal line on analytics
+* allow user to hide the trackers he doesn't use
 * write tests
 
 ## Press
