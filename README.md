@@ -60,7 +60,7 @@ them would be highly appreciated. Of course any idea is welcome!
 * allow edition for custom trackers
 * ask for confirmation before deleting custrom trackers
 * add a comparator tool for data 
-* allow to see graph
+* allow to see graph with month and week aggregations
 * allow to set a note on what happened the day you are currently watching
 * add a comparator tool for data 
 * add a goal line on analytics
