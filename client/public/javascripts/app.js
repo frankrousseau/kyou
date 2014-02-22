@@ -496,6 +496,52 @@ window.require.register("models/basic_tracker", function(exports, require, modul
   })(Backbone.Model);
   
 });
+window.require.register("models/dailynote", function(exports, require, module) {
+  var DailyNote, Model, request, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Model = require('lib/model');
+
+  request = require('lib/request');
+
+  module.exports = DailyNote = (function(_super) {
+    __extends(DailyNote, _super);
+
+    function DailyNote() {
+      _ref = DailyNote.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    DailyNote.prototype.urlRoot = 'dailynotes/';
+
+    DailyNote.getDay = function(day, callback) {
+      return request.get("dailynotes/" + (day.format('YYYY-MM-DD')), function(err, dailynote) {
+        if (err) {
+          return callback(err);
+        } else {
+          if (dailynote.text != null) {
+            return callback(null, new DailyNote(dailynote));
+          } else {
+            return callback(null, null);
+          }
+        }
+      });
+    };
+
+    DailyNote.updateDay = function(day, text, callback) {
+      var path;
+      path = "dailynotes/" + (day.format('YYYY-MM-DD'));
+      return request.put(path, {
+        text: text
+      }, callback);
+    };
+
+    return DailyNote;
+
+  })(Model);
+  
+});
 window.require.register("models/mood", function(exports, require, module) {
   var Model, Mood, request, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -651,7 +697,7 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, BasicTrackerList, Mood, Moods, TrackerList, request,
+  var AppView, BaseView, BasicTrackerList, DailyNote, Mood, Moods, TrackerList, request,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -661,6 +707,8 @@ window.require.register("views/app_view", function(exports, require, module) {
   BaseView = require('../lib/base_view');
 
   Mood = require('../models/mood');
+
+  DailyNote = require('../models/dailynote');
 
   Moods = require('../collections/moods');
 
@@ -680,7 +728,8 @@ window.require.register("views/app_view", function(exports, require, module) {
       'click #neutral-mood-btn': 'onNeutralMoodClicked',
       'click #bad-mood-btn': 'onBadMoodClicked',
       'click #add-tracker-btn': 'onTrackerButtonClicked',
-      'change #datepicker': 'onDatePickerChanged'
+      'change #datepicker': 'onDatePickerChanged',
+      'blur #dailynote': 'onDailyNoteChanged'
     };
 
     function AppView() {
@@ -700,6 +749,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.data = {};
       this.colors = {};
       $(window).on('resize', this.redrawCharts);
+      this.loadNote();
       this.loadBaseAnalytics();
       this.trackerList = new TrackerList();
       this.$('#content').append(this.trackerList.$el);
@@ -719,6 +769,7 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.onDatePickerChanged = function() {
       this.currentDate = moment(this.$("#datepicker").val());
+      this.loadNote();
       this.loadBaseAnalytics();
       return this.$("#datepicker").val(this.currentDate.format('LL'), {
         trigger: false
@@ -779,6 +830,30 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
+    AppView.prototype.onDailyNoteChanged = function(event) {
+      var text,
+        _this = this;
+      text = this.$("#dailynote").val();
+      return DailyNote.updateDay(this.currentDate, text, function(err, mood) {
+        if (err) {
+          return alert("An error occured while saving note of the day");
+        }
+      });
+    };
+
+    AppView.prototype.loadNote = function() {
+      var _this = this;
+      return DailyNote.getDay(this.currentDate, function(err, dailynote) {
+        if (err) {
+          return alert("An error occured while retrieving daily note data");
+        } else if (dailynote == null) {
+          return _this.$('#dailynote').val(null);
+        } else {
+          return _this.$('#dailynote').val(dailynote.get('text'));
+        }
+      });
+    };
+
     AppView.prototype.getAnalytics = function(dataType, color) {
       var path,
         _this = this;
@@ -824,7 +899,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       var graph, hoverDetail, x_axis, y_axis;
       graph = new Rickshaw.Graph({
         element: document.querySelector("#" + chartId),
-        width: width,
+        width: width - 40,
         height: 300,
         renderer: 'bar',
         series: [
@@ -847,7 +922,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       hoverDetail = new Rickshaw.Graph.HoverDetail({
         graph: graph,
         xFormatter: function(x) {
-          return moment(x * 1000).format('LL');
+          return moment(x * 1000).format('MM/DD/YY');
         },
         formatter: function(series, x, y) {
           return Math.floor(y);
@@ -986,7 +1061,7 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
       width = this.$(".graph-container").width() - 30;
       graph = new Rickshaw.Graph({
         element: this.$('.chart')[0],
-        width: width,
+        width: width - 40,
         height: 300,
         renderer: 'bar',
         series: [
@@ -1009,7 +1084,7 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
       hoverDetail = new Rickshaw.Graph.HoverDetail({
         graph: graph,
         xFormatter: function(x) {
-          return moment(x * 1000).format('LL');
+          return moment(x * 1000).format('MM/DD/YY');
         },
         formatter: function(series, x, y) {
           return Math.floor(y);
@@ -1050,7 +1125,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line"><input id="datepicker"/></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
@@ -1168,7 +1243,8 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
     TrackerItem.prototype.events = {
       'click .remove-btn': 'onRemoveClicked',
       'click .up-btn': 'onUpClicked',
-      'click .down-btn': 'onDownClicked'
+      'click .down-btn': 'onDownClicked',
+      'keyup .tracker-increment': 'onCurrentAmountKeyup'
     };
 
     TrackerItem.prototype.onRemoveClicked = function() {
@@ -1210,12 +1286,20 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       }
     };
 
+    TrackerItem.prototype.onCurrentAmountKeyup = function(event) {
+      var keyCode;
+      keyCode = event.which || event.keyCode;
+      if (keyCode === 13) {
+        return this.onUpClicked();
+      }
+    };
+
     TrackerItem.prototype.onUpClicked = function(event) {
       var day,
         _this = this;
       day = window.app.mainView.currentDate;
       return this.model.getDay(day, function(err, amount) {
-        var button, label;
+        var label;
         if (err) {
           alert('An error occured while retrieving data');
           return;
@@ -1230,7 +1314,6 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
           return false;
         }
         label = _this.$('.current-amount');
-        button = $(event.target);
         label.css('color', 'transparent');
         label.spin('tiny', {
           color: '#444'
@@ -1257,7 +1340,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         _this = this;
       day = window.app.mainView.currentDate;
       return this.model.getDay(day, function(err, amount) {
-        var button, label;
+        var label;
         if (err) {
           alert('An error occured while retrieving data');
         }
@@ -1275,7 +1358,6 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
           return false;
         }
         label = _this.$('.current-amount');
-        button = $(event.target);
         label.css('color', 'transparent');
         label.spin('tiny', {
           color: '#444'
@@ -1322,7 +1404,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       width = this.$(".graph-container").width() - 30;
       graph = new Rickshaw.Graph({
         element: this.$('.chart')[0],
-        width: width,
+        width: width - 40,
         height: 300,
         renderer: 'bar',
         series: [
@@ -1345,7 +1427,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       hoverDetail = new Rickshaw.Graph.HoverDetail({
         graph: graph,
         xFormatter: function(x) {
-          return moment(x * 1000).format('LL');
+          return moment(x * 1000).format('MM/DD/YY');
         },
         formatter: function(series, x, y) {
           return Math.floor(y);

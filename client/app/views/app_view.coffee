@@ -2,6 +2,7 @@ request = require '../lib/request'
 BaseView = require '../lib/base_view'
 
 Mood = require '../models/mood'
+DailyNote = require '../models/dailynote'
 Moods = require '../collections/moods'
 
 TrackerList = require './tracker_list'
@@ -18,6 +19,7 @@ module.exports = class AppView extends BaseView
         'click #bad-mood-btn': 'onBadMoodClicked'
         'click #add-tracker-btn': 'onTrackerButtonClicked'
         'change #datepicker': 'onDatePickerChanged'
+        'blur #dailynote': 'onDailyNoteChanged'
 
     constructor: ->
         super
@@ -31,6 +33,7 @@ module.exports = class AppView extends BaseView
         @colors = {}
         $(window).on 'resize',  @redrawCharts
 
+        @loadNote()
         @loadBaseAnalytics()
 
         @trackerList = new TrackerList()
@@ -48,6 +51,7 @@ module.exports = class AppView extends BaseView
 
     onDatePickerChanged: ->
         @currentDate = moment @$("#datepicker").val()
+        @loadNote()
         @loadBaseAnalytics()
         @$("#datepicker").val @currentDate.format('LL'), trigger: false
 
@@ -84,6 +88,21 @@ module.exports = class AppView extends BaseView
             else
                 @$('#current-mood').html mood.get 'status'
 
+    onDailyNoteChanged: (event) ->
+        text = @$("#dailynote").val()
+        DailyNote.updateDay @currentDate, text, (err, mood) =>
+            if err
+                alert "An error occured while saving note of the day"
+
+    loadNote: ->
+        DailyNote.getDay @currentDate, (err, dailynote) =>
+            if err
+                alert "An error occured while retrieving daily note data"
+            else if not dailynote?
+                @$('#dailynote').val null
+            else
+                @$('#dailynote').val dailynote.get 'text'
+
     getAnalytics: (dataType, color) ->
         @$("##{dataType}-charts").html ''
         @$("##{dataType}-y-axis").html ''
@@ -119,7 +138,7 @@ module.exports = class AppView extends BaseView
     drawCharts: (data, chartId, yAxisId, color, width) ->
         graph = new Rickshaw.Graph(
             element: document.querySelector("##{chartId}")
-            width: width
+            width: width - 40
             height: 300
             renderer: 'bar'
             series: [
@@ -140,9 +159,9 @@ module.exports = class AppView extends BaseView
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
             xFormatter: (x) ->
-                return moment(x * 1000).format('LL')
+                moment(x * 1000).format 'MM/DD/YY'
             formatter: (series, x, y) ->
-                return Math.floor y
+                Math.floor y
 
         graph
 

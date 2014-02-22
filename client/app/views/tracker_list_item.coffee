@@ -10,6 +10,7 @@ module.exports = class TrackerItem extends BaseView
         'click .remove-btn': 'onRemoveClicked'
         'click .up-btn': 'onUpClicked'
         'click .down-btn': 'onDownClicked'
+        'keyup .tracker-increment': 'onCurrentAmountKeyup'
 
     onRemoveClicked: =>
         answer = confirm "Are you sure that you want to delete this tracker?"
@@ -38,6 +39,10 @@ module.exports = class TrackerItem extends BaseView
         else
             setTimeout getData, 1000
 
+    onCurrentAmountKeyup: (event) ->
+        keyCode = event.which or event.keyCode
+        @onUpClicked() if keyCode is 13
+
     onUpClicked: (event) ->
         day = window.app.mainView.currentDate
         @model.getDay day, (err, amount) =>
@@ -53,9 +58,8 @@ module.exports = class TrackerItem extends BaseView
                 amount += parseInt @$('.tracker-increment').val()
             catch
                 return false
-            label = @$('.current-amount')
 
-            button = $(event.target)
+            label = @$('.current-amount')
             label.css 'color', 'transparent'
             label.spin 'tiny', color: '#444'
             day = window.app.mainView.currentDate
@@ -86,9 +90,8 @@ module.exports = class TrackerItem extends BaseView
                 amount = 0 if amount < 0
             catch
                 return false
-            label = @$('.current-amount')
 
-            button = $(event.target)
+            label = @$('.current-amount')
             label.css 'color', 'transparent'
             label.spin 'tiny', color: '#444'
             day = window.app.mainView.currentDate
@@ -123,7 +126,7 @@ module.exports = class TrackerItem extends BaseView
         width = @$(".graph-container").width() - 30
         graph = new Rickshaw.Graph(
             element: @$('.chart')[0]
-            width: width
+            width: width - 40
             height: 300
             renderer: 'bar'
             series: [
@@ -144,8 +147,8 @@ module.exports = class TrackerItem extends BaseView
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
             xFormatter: (x) ->
-                return moment(x * 1000).format('LL')
+                moment(x * 1000).format 'MM/DD/YY'
             formatter: (series, x, y) ->
-                return Math.floor y
+                Math.floor y
 
         graph
