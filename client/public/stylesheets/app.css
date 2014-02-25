@@ -2257,11 +2257,11 @@ button:active {
   -webkit-box-shadow: 2px 2px 2px #aa391d inset;
   box-shadow: 2px 2px 2px #aa391d inset;
 }
-h1 a,
-h1 a:hover,
-h1 a:visited,
-h1 a:active,
-h1 a:focus {
+a,
+a:hover,
+a:visited,
+a:active,
+a:focus {
   color: #000;
   outline: 0;
 }
