@@ -1,5 +1,6 @@
 .mod.w33.left
-    h2 #{model.name}
+    h2 
+        a(href="#trackers/#{model.id}") #{model.name}
     p.explaination #{model.description}
     .current-amount
         | Set value for today

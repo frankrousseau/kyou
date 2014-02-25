@@ -680,15 +680,41 @@ window.require.register("router", function(exports, require, module) {
     }
 
     Router.prototype.routes = {
-      '': 'main'
+      '': 'main',
+      'basic-trackers/:name': 'basicTracker',
+      'trackers/:name': 'tracker',
+      'mood': 'mood',
+      '*path': 'main'
+    };
+
+    Router.prototype.createMainView = function() {
+      var mainView, _ref1;
+      if (((_ref1 = window.app) != null ? _ref1.mainView : void 0) == null) {
+        mainView = new AppView();
+        mainView.render();
+        window.app = {};
+        return window.app.mainView = mainView;
+      }
     };
 
     Router.prototype.main = function() {
-      var mainView;
-      mainView = new AppView();
-      mainView.render();
-      window.app = {};
-      return window.app.mainView = mainView;
+      this.createMainView();
+      return window.app.mainView.displayTrackers();
+    };
+
+    Router.prototype.basicTracker = function(name) {
+      this.createMainView();
+      return window.app.mainView.displayBasicTracker(name);
+    };
+
+    Router.prototype.tracker = function(name) {
+      this.createMainView();
+      return window.app.mainView.displayTracker(name);
+    };
+
+    Router.prototype.mood = function(name) {
+      this.createMainView();
+      return window.app.mainView.displayMood();
     };
 
     return Router;
@@ -697,7 +723,7 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, BasicTrackerList, DailyNote, Mood, Moods, TrackerList, request,
+  var AppView, BaseView, BasicTrackerList, DailyNote, Mood, Moods, Tracker, TrackerList, request,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -707,6 +733,8 @@ window.require.register("views/app_view", function(exports, require, module) {
   BaseView = require('../lib/base_view');
 
   Mood = require('../models/mood');
+
+  Tracker = require('../models/tracker');
 
   DailyNote = require('../models/dailynote');
 
@@ -729,10 +757,13 @@ window.require.register("views/app_view", function(exports, require, module) {
       'click #bad-mood-btn': 'onBadMoodClicked',
       'click #add-tracker-btn': 'onTrackerButtonClicked',
       'change #datepicker': 'onDatePickerChanged',
-      'blur #dailynote': 'onDailyNoteChanged'
+      'blur #dailynote': 'onDailyNoteChanged',
+      'change #zoomtimeunit': 'onTimeUnitChanged'
     };
 
     function AppView() {
+      this.showZoomTracker = __bind(this.showZoomTracker, this);
+      this.showTrackers = __bind(this.showTrackers, this);
       this.redrawCharts = __bind(this.redrawCharts, this);
       this.getRenderData = __bind(this.getRenderData, this);
       AppView.__super__.constructor.apply(this, arguments);
@@ -754,11 +785,9 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.trackerList = new TrackerList();
       this.$('#content').append(this.trackerList.$el);
       this.trackerList.render();
-      this.trackerList.collection.fetch();
       this.basicTrackerList = new BasicTrackerList();
       this.$('#content').append(this.basicTrackerList.$el);
       this.basicTrackerList.render();
-      this.basicTrackerList.collection.fetch();
       this.$("#datepicker").datepicker({
         maxDate: "+0D"
       });
@@ -948,6 +977,199 @@ window.require.register("views/app_view", function(exports, require, module) {
       }
     };
 
+    AppView.prototype.loadTrackers = function(callback) {
+      var _this = this;
+      this.dataLoaded = false;
+      return this.trackerList.collection.fetch({
+        success: function() {
+          return _this.basicTrackerList.collection.fetch({
+            success: function() {
+              _this.dataLoaded = true;
+              return callback();
+            }
+          });
+        }
+      });
+    };
+
+    AppView.prototype.showTrackers = function() {
+      this.$("#mood").show();
+      this.$("#tracker-list").show();
+      this.$("#basic-tracker-list").show();
+      this.$(".tools").show();
+      return this.$("#zoomtracker").hide();
+    };
+
+    AppView.prototype.showZoomTracker = function() {
+      this.$("#mood").hide();
+      this.$("#tracker-list").hide();
+      this.$("#basic-tracker-list").hide();
+      this.$(".tools").hide();
+      return this.$("#zoomtracker").show();
+    };
+
+    AppView.prototype.displayTrackers = function() {
+      this.showTrackers();
+      if (!this.dataLoaded) {
+        return this.loadTrackers();
+      }
+    };
+
+    AppView.prototype.displayZoomTracker = function(callback) {
+      var _this = this;
+      if (this.dataLoaded) {
+        this.showZoomTracker();
+        return callback();
+      } else {
+        return this.loadTrackers(function() {
+          _this.showZoomTracker();
+          return callback();
+        });
+      }
+    };
+
+    AppView.prototype.displayMood = function() {
+      var _this = this;
+      return this.displayZoomTracker(function() {
+        _this.$("#zoomtitle").html(_this.$("#mood h2").html());
+        _this.$("#zoomexplaination").html(_this.$("#mood .explaination").html());
+        _this.currentData = _this.data['moods'];
+        _this.currentTracker = new Tracker({
+          name: 'moods',
+          color: 'steelblue'
+        });
+        return _this.printZoomGraph(_this.currentData, 'steelblue');
+      });
+    };
+
+    AppView.prototype.displayBasicTracker = function(slug) {
+      var _this = this;
+      return this.displayZoomTracker(function() {
+        var tracker, _ref;
+        tracker = _this.basicTrackerList.collection.findWhere({
+          slug: slug
+        });
+        if (tracker == null) {
+          return alert("Tracker does not exist");
+        } else {
+          _this.$("#zoomtitle").html(tracker.get('name'));
+          _this.$("#zoomexplaination").html(tracker.get('description'));
+          _this.currentData = (_ref = _this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
+          _this.currentTracker = tracker;
+          return _this.printZoomGraph(_this.currentData, tracker.get('color'));
+        }
+      });
+    };
+
+    AppView.prototype.displayTracker = function(id) {
+      var _this = this;
+      return this.displayZoomTracker(function() {
+        var tracker, _ref;
+        tracker = _this.trackerList.collection.findWhere({
+          id: id
+        });
+        if (tracker == null) {
+          return alert("Tracker does not exist");
+        } else {
+          _this.$("#zoomtitle").html(tracker.get('name'));
+          _this.$("#zoomexplaination").html(tracker.get('description'));
+          _this.currentData = (_ref = _this.trackerList.views[tracker.cid]) != null ? _ref.data : void 0;
+          _this.currentTracker = tracker;
+          return _this.printZoomGraph(_this.currentData, tracker.get('color'));
+        }
+      });
+    };
+
+    AppView.prototype.onTimeUnitChanged = function(event) {
+      var data, date, entry, epoch, graphData, graphDataArray, timeUnit, value, _i, _j, _len, _len1, _ref, _ref1;
+      timeUnit = $("#zoomtimeunit").val();
+      if (timeUnit === 'day') {
+        graphDataArray = this.currentData;
+      } else {
+        data = this.currentData;
+        graphData = {};
+        if (timeUnit === 'week') {
+          data = {};
+          _ref = this.currentData;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            entry = _ref[_i];
+            date = moment(new Date(entry.x * 1000));
+            date = date.day(1);
+            epoch = date.unix();
+            if (graphData[epoch] != null) {
+              graphData[epoch] += entry.y;
+            } else {
+              graphData[epoch] = entry.y;
+            }
+          }
+        } else if (timeUnit === 'month') {
+          data = {};
+          _ref1 = this.currentData;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            entry = _ref1[_j];
+            date = moment(new Date(entry.x * 1000));
+            date = date.date(1);
+            epoch = date.unix();
+            if (graphData[epoch] != null) {
+              graphData[epoch] += entry.y;
+            } else {
+              graphData[epoch] = entry.y;
+            }
+          }
+        }
+        graphDataArray = [];
+        for (epoch in graphData) {
+          value = graphData[epoch];
+          graphDataArray.push({
+            x: parseInt(epoch),
+            y: value
+          });
+        }
+      }
+      return this.printZoomGraph(graphDataArray, this.currentTracker.get('color'));
+    };
+
+    AppView.prototype.printZoomGraph = function(data, color) {
+      var chartId, graph, hoverDetail, width, x_axis, yAxisId, y_axis;
+      this.$('#zoom-charts').html(null);
+      this.$('#zoom-y-axis').html(null);
+      width = $(window).width() - 100;
+      chartId = 'zoom-charts';
+      yAxisId = 'zoom-y-axis';
+      graph = new Rickshaw.Graph({
+        element: document.querySelector("#" + chartId),
+        width: width - 40,
+        height: 300,
+        renderer: 'bar',
+        series: [
+          {
+            color: color,
+            data: data
+          }
+        ]
+      });
+      x_axis = new Rickshaw.Graph.Axis.Time({
+        graph: graph
+      });
+      y_axis = new Rickshaw.Graph.Axis.Y({
+        graph: graph,
+        orientation: 'left',
+        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+        element: document.getElementById(yAxisId)
+      });
+      graph.render();
+      hoverDetail = new Rickshaw.Graph.HoverDetail({
+        graph: graph,
+        xFormatter: function(x) {
+          return moment(x * 1000).format('MM/DD/YY');
+        },
+        formatter: function(series, x, y) {
+          return Math.floor(y);
+        }
+      });
+      return graph;
+    };
+
     return AppView;
 
   })(BaseView);
@@ -1114,7 +1336,9 @@ window.require.register("views/templates/basic_tracker_list_item", function(expo
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
+  buf.push('<div class="mod w33 left"><h2> <a');
+  buf.push(attrs({ 'href':("#basic-trackers/" + (model.slug) + "") }, {"href":true}));
+  buf.push('>' + escape((interp = model.name) == null ? '' : interp) + '</a></h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
   }
   return buf.join("");
   };
@@ -1125,7 +1349,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="mood" class="line"><div class="mod w33 left"><h2>Mood</h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div><div id="mood" class="line"><div class="mod w33 left"><h2> <a href="#mood">Mood</a></h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
@@ -1157,7 +1381,9 @@ window.require.register("views/templates/tracker_list_item", function(exports, r
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div class="mod w33 left"><h2>' + escape((interp = model.name) == null ? '' : interp) + '</h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">Set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><input value="1" class="tracker-increment"/><p><button class="smaller remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
+  buf.push('<div class="mod w33 left"><h2> <a');
+  buf.push(attrs({ 'href':("#trackers/" + (model.id) + "") }, {"href":true}));
+  buf.push('>' + escape((interp = model.name) == null ? '' : interp) + '</a></h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">Set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><input value="1" class="tracker-increment"/><p><button class="smaller remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
   }
   return buf.join("");
   };

@@ -2,6 +2,7 @@ request = require '../lib/request'
 BaseView = require '../lib/base_view'
 
 Mood = require '../models/mood'
+Tracker = require '../models/tracker'
 DailyNote = require '../models/dailynote'
 Moods = require '../collections/moods'
 
@@ -20,6 +21,7 @@ module.exports = class AppView extends BaseView
         'click #add-tracker-btn': 'onTrackerButtonClicked'
         'change #datepicker': 'onDatePickerChanged'
         'blur #dailynote': 'onDailyNoteChanged'
+        'change #zoomtimeunit': 'onTimeUnitChanged'
 
     constructor: ->
         super
@@ -39,12 +41,10 @@ module.exports = class AppView extends BaseView
         @trackerList = new TrackerList()
         @$('#content').append @trackerList.$el
         @trackerList.render()
-        @trackerList.collection.fetch()
 
         @basicTrackerList = new BasicTrackerList()
         @$('#content').append @basicTrackerList.$el
         @basicTrackerList.render()
-        @basicTrackerList.collection.fetch()
 
         @$("#datepicker").datepicker maxDate: "+0D"
         @$("#datepicker").val @currentDate.format('LL'), trigger: false
@@ -179,3 +179,160 @@ module.exports = class AppView extends BaseView
                     error: ->
                         alert 'A server error occured while saving your tracker'
             )
+
+
+    loadTrackers: (callback) ->
+        @dataLoaded = false
+        @trackerList.collection.fetch
+            success: =>
+                @basicTrackerList.collection.fetch
+                    success: =>
+                        @dataLoaded = true
+                        callback()
+
+
+    showTrackers: =>
+        @$("#mood").show()
+        @$("#tracker-list").show()
+        @$("#basic-tracker-list").show()
+        @$(".tools").show()
+        @$("#zoomtracker").hide()
+
+    showZoomTracker: =>
+        @$("#mood").hide()
+        @$("#tracker-list").hide()
+        @$("#basic-tracker-list").hide()
+        @$(".tools").hide()
+        @$("#zoomtracker").show()
+
+    displayTrackers: ->
+        @showTrackers()
+        @loadTrackers() unless @dataLoaded
+
+    displayZoomTracker: (callback) ->
+        if @dataLoaded
+            @showZoomTracker()
+            callback()
+        else
+            @loadTrackers =>
+                @showZoomTracker()
+                callback()
+
+
+    displayMood: ->
+        @displayZoomTracker =>
+            @$("#zoomtitle").html @$("#mood h2").html()
+            @$("#zoomexplaination").html @$("#mood .explaination").html()
+
+            @currentData = @data['moods']
+            @currentTracker = new Tracker
+                name: 'moods'
+                color: 'steelblue'
+            @printZoomGraph @currentData, 'steelblue'
+
+    displayBasicTracker: (slug) ->
+        @displayZoomTracker =>
+            tracker = @basicTrackerList.collection.findWhere slug: slug
+            unless tracker?
+                alert "Tracker does not exist"
+            else
+                @$("#zoomtitle").html tracker.get 'name'
+                @$("#zoomexplaination").html tracker.get 'description'
+
+                @currentData = @basicTrackerList.views[tracker.cid]?.data
+                @currentTracker = tracker
+                @printZoomGraph @currentData, tracker.get 'color'
+
+    displayTracker: (id) ->
+        @displayZoomTracker =>
+            tracker = @trackerList.collection.findWhere id: id
+            unless tracker?
+                alert "Tracker does not exist"
+            else
+                @$("#zoomtitle").html tracker.get 'name'
+                @$("#zoomexplaination").html tracker.get 'description'
+
+                @currentData = @trackerList.views[tracker.cid]?.data
+                @currentTracker = tracker
+                @printZoomGraph @currentData, tracker.get 'color'
+
+
+    onTimeUnitChanged: (event) ->
+        timeUnit = $("#zoomtimeunit").val()
+
+        if timeUnit is 'day'
+            graphDataArray = @currentData
+
+        else
+            data = @currentData
+            graphData = {}
+
+            if timeUnit is 'week'
+                data = {}
+                for entry in @currentData
+                    date = moment new Date(entry.x * 1000)
+                    date = date.day 1
+                    epoch = date.unix()
+
+                    if graphData[epoch]?
+                        graphData[epoch] += entry.y
+                    else
+                        graphData[epoch] = entry.y
+
+            else if timeUnit is 'month'
+                data = {}
+                for entry in @currentData
+                    date = moment new Date(entry.x * 1000)
+                    date = date.date 1
+                    epoch = date.unix()
+
+                    if graphData[epoch]?
+                        graphData[epoch] += entry.y
+                    else
+                        graphData[epoch] = entry.y
+
+            graphDataArray = []
+            for epoch, value of graphData
+                graphDataArray.push
+                    x: parseInt(epoch)
+                    y: value
+
+        @printZoomGraph graphDataArray, @currentTracker.get 'color'
+
+    printZoomGraph: (data, color) ->
+        @$('#zoom-charts').html null
+        @$('#zoom-y-axis').html null
+        width = $(window).width() - 100
+        chartId = 'zoom-charts'
+        yAxisId = 'zoom-y-axis'
+
+        graph = new Rickshaw.Graph(
+            element: document.querySelector("##{chartId}")
+            width: width - 40
+            height: 300
+            renderer: 'bar'
+            series: [
+                color: color
+                data: data
+            ]
+        )
+
+        x_axis = new Rickshaw.Graph.Axis.Time graph: graph
+        y_axis = new Rickshaw.Graph.Axis.Y
+             graph: graph
+             orientation: 'left'
+             tickFormat: Rickshaw.Fixtures.Number.formatKMBT
+             element: document.getElementById(yAxisId)
+
+        graph.render()
+
+        hoverDetail = new Rickshaw.Graph.HoverDetail
+            graph: graph,
+            xFormatter: (x) ->
+                moment(x * 1000).format 'MM/DD/YY'
+            formatter: (series, x, y) ->
+                Math.floor y
+
+        graph
+
+
