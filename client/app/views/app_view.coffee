@@ -1,4 +1,5 @@
 request = require '../lib/request'
+graphHelper = require '../lib/graph'
 BaseView = require '../lib/base_view'
 
 Mood = require '../models/mood'
@@ -57,7 +58,7 @@ module.exports = class AppView extends BaseView
 
     loadBaseAnalytics: ->
         @loadMood()
-        @getAnalytics "moods", 'steelblue'
+        @getMoodAnalytics()
         @basicTrackerList.reloadAll() if @trackerList?
         @trackerList.reloadAll() if @trackerList?
 
@@ -75,9 +76,8 @@ module.exports = class AppView extends BaseView
             else
                 @$('#current-mood').spin()
                 @$('#current-mood').html status
-                @$('#moods-charts').html ''
-                @$('#moods-y-axis').html ''
-                @getAnalytics 'moods', 'steelblue'
+                graphHelper.clear @$('#moods-charts'), @$('#moods-y-axis')
+                @getMoodAnalytics()
 
     loadMood: ->
         Mood.getDay @currentDate, (err, mood) =>
@@ -103,67 +103,34 @@ module.exports = class AppView extends BaseView
             else
                 @$('#dailynote').val dailynote.get 'text'
 
-    getAnalytics: (dataType, color) ->
-        @$("##{dataType}-charts").html ''
-        @$("##{dataType}-y-axis").html ''
-        $("##{dataType}").spin 'tiny'
-        path = "#{dataType}/#{@currentDate.format 'YYYY-MM-DD'}"
+    drawMoodGraph: (data) ->
+        width = @$("#moods").width() - 70
+        el = @$("#moods-charts")[0]
+        yEl = @$("#moods-y-axis")[0]
+        @data['moods'] = data
+        graphHelper.draw el, yEl, width, 'steelblue', data
+
+
+    getMoodAnalytics: ->
+        @$("#moods-charts").html ''
+        @$("#moods-y-axis").html ''
+        @$("#moods").spin 'tiny'
+        path = "moods/#{@currentDate.format 'YYYY-MM-DD'}"
         request.get path, (err, data) =>
             if err
-                alert "An error occured while retrieving #{dataType} data"
+                alert "An error occured while retrieving moods data"
             else
-                $("##{dataType}").spin()
-                width = $("##{dataType}").width() - 30
-                chartId = "#{dataType}-charts"
-                yAxisId = "#{dataType}-y-axis"
-                @data[dataType] = data
-                @colors[dataType] = color
-                @drawCharts data, chartId, yAxisId, color, width
+                $("#moods").spin()
+                @drawMoodGraph data
 
 
     redrawCharts: =>
         $('.chart').html null
         $('.y-axis').html null
-        for dataType, data of @data
-            width = $("##{dataType}").width() - 30
-            chartId = "#{dataType}-charts"
-            yAxisId = "#{dataType}-y-axis"
-            color = @colors[dataType]
-            @drawCharts data, chartId, yAxisId, color, width
+        @drawMoodGraph()
         @trackerList.redrawAll()
         @basicTrackerList.redrawAll()
         true
-
-
-    drawCharts: (data, chartId, yAxisId, color, width) ->
-        graph = new Rickshaw.Graph(
-            element: document.querySelector("##{chartId}")
-            width: width - 40
-            height: 300
-            renderer: 'bar'
-            series: [
-                color: color
-                data: data
-            ]
-        )
-
-        x_axis = new Rickshaw.Graph.Axis.Time graph: graph
-        y_axis = new Rickshaw.Graph.Axis.Y
-             graph: graph
-             orientation: 'left'
-             tickFormat: Rickshaw.Fixtures.Number.formatKMBT
-             element: document.getElementById(yAxisId)
-
-        graph.render()
-
-        hoverDetail = new Rickshaw.Graph.HoverDetail
-            graph: graph,
-            xFormatter: (x) ->
-                moment(x * 1000).format 'MM/DD/YY'
-            formatter: (series, x, y) ->
-                Math.floor y
-
-        graph
 
 
     onTrackerButtonClicked: ->
@@ -188,7 +155,7 @@ module.exports = class AppView extends BaseView
                 @basicTrackerList.collection.fetch
                     success: =>
                         @dataLoaded = true
-                        callback()
+                        callback() if callback?
 
 
     showTrackers: =>
@@ -300,39 +267,9 @@ module.exports = class AppView extends BaseView
         @printZoomGraph graphDataArray, @currentTracker.get 'color'
 
     printZoomGraph: (data, color) ->
-        @$('#zoom-charts').html null
-        @$('#zoom-y-axis').html null
         width = $(window).width() - 100
-        chartId = 'zoom-charts'
-        yAxisId = 'zoom-y-axis'
+        el = @$('#zoom-charts')[0]
+        yEl = @$('#zoom-y-axis')[0]
 
-        graph = new Rickshaw.Graph(
-            element: document.querySelector("##{chartId}")
-            width: width - 40
-            height: 300
-            renderer: 'bar'
-            series: [
-                color: color
-                data: data
-            ]
-        )
-
-        x_axis = new Rickshaw.Graph.Axis.Time graph: graph
-        y_axis = new Rickshaw.Graph.Axis.Y
-             graph: graph
-             orientation: 'left'
-             tickFormat: Rickshaw.Fixtures.Number.formatKMBT
-             element: document.getElementById(yAxisId)
-
-        graph.render()
-
-        hoverDetail = new Rickshaw.Graph.HoverDetail
-            graph: graph,
-            xFormatter: (x) ->
-                moment(x * 1000).format 'MM/DD/YY'
-            formatter: (series, x, y) ->
-                Math.floor y
-
-        graph
-
-
+        graphHelper.clear el, yEl
+        graphHelper.draw el, yEl, width, color, data

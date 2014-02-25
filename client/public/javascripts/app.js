@@ -288,6 +288,51 @@ window.require.register("lib/base_view", function(exports, require, module) {
   })(Backbone.View);
   
 });
+window.require.register("lib/graph", function(exports, require, module) {
+  module.exports = {
+    draw: function(el, yEl, width, color, data) {
+      var graph, hoverDetail, x_axis, y_axis;
+      this.data = data;
+      graph = new Rickshaw.Graph({
+        element: el,
+        width: width,
+        height: 300,
+        renderer: 'bar',
+        series: [
+          {
+            color: color,
+            data: data
+          }
+        ]
+      });
+      x_axis = new Rickshaw.Graph.Axis.Time({
+        graph: graph
+      });
+      y_axis = new Rickshaw.Graph.Axis.Y({
+        graph: graph,
+        orientation: 'left',
+        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+        element: yEl
+      });
+      graph.render();
+      hoverDetail = new Rickshaw.Graph.HoverDetail({
+        graph: graph,
+        xFormatter: function(x) {
+          return moment(x * 1000).format('MM/DD/YY');
+        },
+        formatter: function(series, x, y) {
+          return Math.floor(y);
+        }
+      });
+      return graph;
+    },
+    clear: function(el, yEl) {
+      el.html(null);
+      return yEl.html(null);
+    }
+  };
+  
+});
 window.require.register("lib/model", function(exports, require, module) {
   var Model, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -723,12 +768,14 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, BasicTrackerList, DailyNote, Mood, Moods, Tracker, TrackerList, request,
+  var AppView, BaseView, BasicTrackerList, DailyNote, Mood, Moods, Tracker, TrackerList, graphHelper, request,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   request = require('../lib/request');
+
+  graphHelper = require('../lib/graph');
 
   BaseView = require('../lib/base_view');
 
@@ -807,7 +854,7 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.loadBaseAnalytics = function() {
       this.loadMood();
-      this.getAnalytics("moods", 'steelblue');
+      this.getMoodAnalytics();
       if (this.trackerList != null) {
         this.basicTrackerList.reloadAll();
       }
@@ -839,9 +886,8 @@ window.require.register("views/app_view", function(exports, require, module) {
         } else {
           _this.$('#current-mood').spin();
           _this.$('#current-mood').html(status);
-          _this.$('#moods-charts').html('');
-          _this.$('#moods-y-axis').html('');
-          return _this.getAnalytics('moods', 'steelblue');
+          graphHelper.clear(_this.$('#moods-charts'), _this.$('#moods-y-axis'));
+          return _this.getMoodAnalytics();
         }
       });
     };
@@ -883,81 +929,39 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
-    AppView.prototype.getAnalytics = function(dataType, color) {
+    AppView.prototype.drawMoodGraph = function(data) {
+      var el, width, yEl;
+      width = this.$("#moods").width() - 70;
+      el = this.$("#moods-charts")[0];
+      yEl = this.$("#moods-y-axis")[0];
+      this.data['moods'] = data;
+      return graphHelper.draw(el, yEl, width, 'steelblue', data);
+    };
+
+    AppView.prototype.getMoodAnalytics = function() {
       var path,
         _this = this;
-      this.$("#" + dataType + "-charts").html('');
-      this.$("#" + dataType + "-y-axis").html('');
-      $("#" + dataType).spin('tiny');
-      path = "" + dataType + "/" + (this.currentDate.format('YYYY-MM-DD'));
+      this.$("#moods-charts").html('');
+      this.$("#moods-y-axis").html('');
+      this.$("#moods").spin('tiny');
+      path = "moods/" + (this.currentDate.format('YYYY-MM-DD'));
       return request.get(path, function(err, data) {
-        var chartId, width, yAxisId;
         if (err) {
-          return alert("An error occured while retrieving " + dataType + " data");
+          return alert("An error occured while retrieving moods data");
         } else {
-          $("#" + dataType).spin();
-          width = $("#" + dataType).width() - 30;
-          chartId = "" + dataType + "-charts";
-          yAxisId = "" + dataType + "-y-axis";
-          _this.data[dataType] = data;
-          _this.colors[dataType] = color;
-          return _this.drawCharts(data, chartId, yAxisId, color, width);
+          $("#moods").spin();
+          return _this.drawMoodGraph(data);
         }
       });
     };
 
     AppView.prototype.redrawCharts = function() {
-      var chartId, color, data, dataType, width, yAxisId, _ref;
       $('.chart').html(null);
       $('.y-axis').html(null);
-      _ref = this.data;
-      for (dataType in _ref) {
-        data = _ref[dataType];
-        width = $("#" + dataType).width() - 30;
-        chartId = "" + dataType + "-charts";
-        yAxisId = "" + dataType + "-y-axis";
-        color = this.colors[dataType];
-        this.drawCharts(data, chartId, yAxisId, color, width);
-      }
+      this.drawMoodGraph();
       this.trackerList.redrawAll();
       this.basicTrackerList.redrawAll();
       return true;
-    };
-
-    AppView.prototype.drawCharts = function(data, chartId, yAxisId, color, width) {
-      var graph, hoverDetail, x_axis, y_axis;
-      graph = new Rickshaw.Graph({
-        element: document.querySelector("#" + chartId),
-        width: width - 40,
-        height: 300,
-        renderer: 'bar',
-        series: [
-          {
-            color: color,
-            data: data
-          }
-        ]
-      });
-      x_axis = new Rickshaw.Graph.Axis.Time({
-        graph: graph
-      });
-      y_axis = new Rickshaw.Graph.Axis.Y({
-        graph: graph,
-        orientation: 'left',
-        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-        element: document.getElementById(yAxisId)
-      });
-      graph.render();
-      hoverDetail = new Rickshaw.Graph.HoverDetail({
-        graph: graph,
-        xFormatter: function(x) {
-          return moment(x * 1000).format('MM/DD/YY');
-        },
-        formatter: function(series, x, y) {
-          return Math.floor(y);
-        }
-      });
-      return graph;
     };
 
     AppView.prototype.onTrackerButtonClicked = function() {
@@ -985,7 +989,9 @@ window.require.register("views/app_view", function(exports, require, module) {
           return _this.basicTrackerList.collection.fetch({
             success: function() {
               _this.dataLoaded = true;
-              return callback();
+              if (callback != null) {
+                return callback();
+              }
             }
           });
         }
@@ -1130,44 +1136,12 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.printZoomGraph = function(data, color) {
-      var chartId, graph, hoverDetail, width, x_axis, yAxisId, y_axis;
-      this.$('#zoom-charts').html(null);
-      this.$('#zoom-y-axis').html(null);
+      var el, width, yEl;
       width = $(window).width() - 100;
-      chartId = 'zoom-charts';
-      yAxisId = 'zoom-y-axis';
-      graph = new Rickshaw.Graph({
-        element: document.querySelector("#" + chartId),
-        width: width - 40,
-        height: 300,
-        renderer: 'bar',
-        series: [
-          {
-            color: color,
-            data: data
-          }
-        ]
-      });
-      x_axis = new Rickshaw.Graph.Axis.Time({
-        graph: graph
-      });
-      y_axis = new Rickshaw.Graph.Axis.Y({
-        graph: graph,
-        orientation: 'left',
-        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-        element: document.getElementById(yAxisId)
-      });
-      graph.render();
-      hoverDetail = new Rickshaw.Graph.HoverDetail({
-        graph: graph,
-        xFormatter: function(x) {
-          return moment(x * 1000).format('MM/DD/YY');
-        },
-        formatter: function(series, x, y) {
-          return Math.floor(y);
-        }
-      });
-      return graph;
+      el = this.$('#zoom-charts')[0];
+      yEl = this.$('#zoom-y-axis')[0];
+      graphHelper.clear(el, yEl);
+      return graphHelper.draw(el, yEl, width, color, data);
     };
 
     return AppView;
@@ -1230,7 +1204,7 @@ window.require.register("views/basic_tracker_list", function(exports, require, m
   
 });
 window.require.register("views/basic_tracker_list_item", function(exports, require, module) {
-  var BaseView, BasicTrackerItem, request, _ref,
+  var BaseView, BasicTrackerItem, graph, request, _ref,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1238,6 +1212,8 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
   BaseView = require('lib/base_view');
 
   request = require('lib/request');
+
+  graph = require('lib/graph');
 
   module.exports = BasicTrackerItem = (function(_super) {
     __extends(BasicTrackerItem, _super);
@@ -1279,40 +1255,12 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
     };
 
     BasicTrackerItem.prototype.drawCharts = function() {
-      var graph, hoverDetail, width, x_axis, y_axis;
-      width = this.$(".graph-container").width() - 30;
-      graph = new Rickshaw.Graph({
-        element: this.$('.chart')[0],
-        width: width - 40,
-        height: 300,
-        renderer: 'bar',
-        series: [
-          {
-            color: this.model.get('color'),
-            data: this.data
-          }
-        ]
-      });
-      x_axis = new Rickshaw.Graph.Axis.Time({
-        graph: graph
-      });
-      y_axis = new Rickshaw.Graph.Axis.Y({
-        graph: graph,
-        orientation: 'left',
-        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-        element: this.$('.y-axis')[0]
-      });
-      graph.render();
-      hoverDetail = new Rickshaw.Graph.HoverDetail({
-        graph: graph,
-        xFormatter: function(x) {
-          return moment(x * 1000).format('MM/DD/YY');
-        },
-        formatter: function(series, x, y) {
-          return Math.floor(y);
-        }
-      });
-      return graph;
+      var color, el, width, yEl;
+      width = this.$(".graph-container").width() - 70;
+      el = this.$('.chart')[0];
+      yEl = this.$('.y-axis')[0];
+      color = this.model.get('color');
+      return graph.draw(el, yEl, width, color, this.data);
     };
 
     return BasicTrackerItem;
@@ -1443,7 +1391,7 @@ window.require.register("views/tracker_list", function(exports, require, module)
   
 });
 window.require.register("views/tracker_list_item", function(exports, require, module) {
-  var BaseView, TrackerItem, request, _ref,
+  var BaseView, TrackerItem, graph, request, _ref,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1451,6 +1399,8 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
   BaseView = require('lib/base_view');
 
   request = require('lib/request');
+
+  graph = require('lib/graph');
 
   module.exports = TrackerItem = (function(_super) {
     __extends(TrackerItem, _super);
@@ -1626,40 +1576,12 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
     };
 
     TrackerItem.prototype.drawCharts = function() {
-      var graph, hoverDetail, width, x_axis, y_axis;
-      width = this.$(".graph-container").width() - 30;
-      graph = new Rickshaw.Graph({
-        element: this.$('.chart')[0],
-        width: width - 40,
-        height: 300,
-        renderer: 'bar',
-        series: [
-          {
-            color: "black",
-            data: this.data
-          }
-        ]
-      });
-      x_axis = new Rickshaw.Graph.Axis.Time({
-        graph: graph
-      });
-      y_axis = new Rickshaw.Graph.Axis.Y({
-        graph: graph,
-        orientation: 'left',
-        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-        element: this.$('.y-axis')[0]
-      });
-      graph.render();
-      hoverDetail = new Rickshaw.Graph.HoverDetail({
-        graph: graph,
-        xFormatter: function(x) {
-          return moment(x * 1000).format('MM/DD/YY');
-        },
-        formatter: function(series, x, y) {
-          return Math.floor(y);
-        }
-      });
-      return graph;
+      var color, el, width, yEl;
+      width = this.$(".graph-container").width() - 70;
+      el = this.$('.chart')[0];
+      yEl = this.$('.y-axis')[0];
+      color = 'black';
+      return graph.draw(el, yEl, width, color, this.data);
     };
 
     return TrackerItem;
