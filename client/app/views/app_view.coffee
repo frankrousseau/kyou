@@ -57,7 +57,6 @@ module.exports = class AppView extends BaseView
         @currentDate = moment @$("#datepicker").val()
         @loadNote()
         @loadAnalytics()
-        #@$("#datepicker").val @currentDate.format('LL'), trigger: false
 
 
     loadAnalytics: ->
