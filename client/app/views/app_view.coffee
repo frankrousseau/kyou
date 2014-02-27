@@ -2,11 +2,10 @@ request = require '../lib/request'
 graphHelper = require '../lib/graph'
 BaseView = require '../lib/base_view'
 
-Mood = require '../models/mood'
 Tracker = require '../models/tracker'
 DailyNote = require '../models/dailynote'
-Moods = require '../collections/moods'
 
+MoodTracker = require './mood_tracker'
 TrackerList = require './tracker_list'
 BasicTrackerList = require './basic_tracker_list'
 
@@ -16,12 +15,9 @@ module.exports = class AppView extends BaseView
     template: require('./templates/home')
 
     events:
-        'click #good-mood-btn': 'onGoodMoodClicked'
-        'click #neutral-mood-btn': 'onNeutralMoodClicked'
-        'click #bad-mood-btn': 'onBadMoodClicked'
-        'click #add-tracker-btn': 'onTrackerButtonClicked'
         'change #datepicker': 'onDatePickerChanged'
         'blur #dailynote': 'onDailyNoteChanged'
+        'click #add-tracker-btn': 'onTrackerButtonClicked'
         'change #zoomtimeunit': 'onTimeUnitChanged'
 
     constructor: ->
@@ -35,9 +31,12 @@ module.exports = class AppView extends BaseView
         @data = {}
         @colors = {}
         $(window).on 'resize',  @redrawCharts
+        window.app = {}
+        window.app.mainView = @
 
-        @loadNote()
-        @loadBaseAnalytics()
+        @moodTracker = new MoodTracker()
+        @$('#content').append @moodTracker.$el
+        @moodTracker.render()
 
         @trackerList = new TrackerList()
         @$('#content').append @trackerList.$el
@@ -50,49 +49,63 @@ module.exports = class AppView extends BaseView
         @$("#datepicker").datepicker maxDate: "+0D"
         @$("#datepicker").val @currentDate.format('LL'), trigger: false
 
+        @loadNote()
+        @moodTracker.reload()
+
+
     onDatePickerChanged: ->
         @currentDate = moment @$("#datepicker").val()
         @loadNote()
-        @loadBaseAnalytics()
-        @$("#datepicker").val @currentDate.format('LL'), trigger: false
+        @loadAnalytics()
+        #@$("#datepicker").val @currentDate.format('LL'), trigger: false
 
-    loadBaseAnalytics: ->
-        @loadMood()
-        @getMoodAnalytics()
+
+    loadAnalytics: ->
+        @moodTracker.reload()
         @basicTrackerList.reloadAll() if @trackerList?
         @trackerList.reloadAll() if @trackerList?
 
-    onGoodMoodClicked: -> @updateMood 'good'
-    onNeutralMoodClicked: -> @updateMood 'neutral'
-    onBadMoodClicked: -> @updateMood 'bad'
 
-    updateMood: (status) ->
-        @$('#current-mood').html '&nbsp;'
-        @$('#current-mood').spin 'tiny'
-        Mood.updateDay @currentDate, status, (err, mood) =>
-            if err
-                @$('#current-mood').spin()
-                alert "An error occured while saving data"
-            else
-                @$('#current-mood').spin()
-                @$('#current-mood').html status
-                graphHelper.clear @$('#moods-charts'), @$('#moods-y-axis')
-                @getMoodAnalytics()
+    redrawCharts: =>
+        $('.chart').html null
+        $('.y-axis').html null
+        @moodTracker.redraw()
+        @trackerList.redrawAll()
+        @basicTrackerList.redrawAll()
+        true
 
-    loadMood: ->
-        Mood.getDay @currentDate, (err, mood) =>
-            if err
-                alert "An error occured while retrieving mood data"
-            else if not mood?
-                @$('#current-mood').html 'Set your mood for current day'
-            else
-                @$('#current-mood').html mood.get 'status'
+    # View management
+
+    showTrackers: =>
+        @$("#mood").show()
+        @$("#tracker-list").show()
+        @$("#basic-tracker-list").show()
+        @$(".tools").show()
+        @$("#zoomtracker").hide()
+
+
+    showZoomTracker: =>
+        @$("#mood").hide()
+        @$("#tracker-list").hide()
+        @$("#basic-tracker-list").hide()
+        @$(".tools").hide()
+        @$("#zoomtracker").show()
+
+
+    displayTrackers: ->
+        @showTrackers()
+        @loadTrackers() unless @dataLoaded
+
+
+
+    ## Note Widget
 
     onDailyNoteChanged: (event) ->
         text = @$("#dailynote").val()
         DailyNote.updateDay @currentDate, text, (err, mood) =>
             if err
                 alert "An error occured while saving note of the day"
+
 
     loadNote: ->
         DailyNote.getDay @currentDate, (err, dailynote) =>
@@ -103,35 +116,8 @@ module.exports = class AppView extends BaseView
             else
                 @$('#dailynote').val dailynote.get 'text'
 
-    drawMoodGraph: (data) ->
-        width = @$("#moods").width() - 70
-        el = @$("#moods-charts")[0]
-        yEl = @$("#moods-y-axis")[0]
-        @data['moods'] = data
-        graphHelper.draw el, yEl, width, 'steelblue', data
 
-
-    getMoodAnalytics: ->
-        @$("#moods-charts").html ''
-        @$("#moods-y-axis").html ''
-        @$("#moods").spin 'tiny'
-        path = "moods/#{@currentDate.format 'YYYY-MM-DD'}"
-        request.get path, (err, data) =>
-            if err
-                alert "An error occured while retrieving moods data"
-            else
-                $("#moods").spin()
-                @drawMoodGraph data
-
-
-    redrawCharts: =>
-        $('.chart').html null
-        $('.y-axis').html null
-        @drawMoodGraph()
-        @trackerList.redrawAll()
-        @basicTrackerList.redrawAll()
-        true
-
+    ## Tracker creation widget
 
     onTrackerButtonClicked: ->
         name = $('#add-tracker-name').val()
@@ -158,23 +144,7 @@ module.exports = class AppView extends BaseView
                         callback() if callback?
 
 
-    showTrackers: =>
-        @$("#mood").show()
-        @$("#tracker-list").show()
-        @$("#basic-tracker-list").show()
-        @$(".tools").show()
-        @$("#zoomtracker").hide()
-
-    showZoomTracker: =>
-        @$("#mood").hide()
-        @$("#tracker-list").hide()
-        @$("#basic-tracker-list").hide()
-        @$(".tools").hide()
-        @$("#zoomtracker").show()
-
-    displayTrackers: ->
-        @showTrackers()
-        @loadTrackers() unless @dataLoaded
+    ## Zoom widgeT
 
     displayZoomTracker: (callback) ->
         if @dataLoaded
@@ -185,13 +155,12 @@ module.exports = class AppView extends BaseView
                 @showZoomTracker()
                 callback()
 
-
     displayMood: ->
         @displayZoomTracker =>
             @$("#zoomtitle").html @$("#mood h2").html()
             @$("#zoomexplaination").html @$("#mood .explaination").html()
 
-            @currentData = @data['moods']
+            @currentData = @moodTracker.data
             @currentTracker = new Tracker
                 name: 'moods'
                 color: 'steelblue'

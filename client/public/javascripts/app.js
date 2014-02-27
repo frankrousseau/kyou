@@ -768,7 +768,7 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, BasicTrackerList, DailyNote, Mood, Moods, Tracker, TrackerList, graphHelper, request,
+  var AppView, BaseView, BasicTrackerList, DailyNote, MoodTracker, Tracker, TrackerList, graphHelper, request,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -779,13 +779,11 @@ window.require.register("views/app_view", function(exports, require, module) {
 
   BaseView = require('../lib/base_view');
 
-  Mood = require('../models/mood');
-
   Tracker = require('../models/tracker');
 
   DailyNote = require('../models/dailynote');
 
-  Moods = require('../collections/moods');
+  MoodTracker = require('./mood_tracker');
 
   TrackerList = require('./tracker_list');
 
@@ -799,12 +797,9 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.template = require('./templates/home');
 
     AppView.prototype.events = {
-      'click #good-mood-btn': 'onGoodMoodClicked',
-      'click #neutral-mood-btn': 'onNeutralMoodClicked',
-      'click #bad-mood-btn': 'onBadMoodClicked',
-      'click #add-tracker-btn': 'onTrackerButtonClicked',
       'change #datepicker': 'onDatePickerChanged',
       'blur #dailynote': 'onDailyNoteChanged',
+      'click #add-tracker-btn': 'onTrackerButtonClicked',
       'change #zoomtimeunit': 'onTimeUnitChanged'
     };
 
@@ -827,8 +822,11 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.data = {};
       this.colors = {};
       $(window).on('resize', this.redrawCharts);
-      this.loadNote();
-      this.loadBaseAnalytics();
+      window.app = {};
+      window.app.mainView = this;
+      this.moodTracker = new MoodTracker();
+      this.$('#content').append(this.moodTracker.$el);
+      this.moodTracker.render();
       this.trackerList = new TrackerList();
       this.$('#content').append(this.trackerList.$el);
       this.trackerList.render();
@@ -838,23 +836,21 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.$("#datepicker").datepicker({
         maxDate: "+0D"
       });
-      return this.$("#datepicker").val(this.currentDate.format('LL'), {
+      this.$("#datepicker").val(this.currentDate.format('LL'), {
         trigger: false
       });
+      this.loadNote();
+      return this.moodTracker.reload();
     };
 
     AppView.prototype.onDatePickerChanged = function() {
       this.currentDate = moment(this.$("#datepicker").val());
       this.loadNote();
-      this.loadBaseAnalytics();
-      return this.$("#datepicker").val(this.currentDate.format('LL'), {
-        trigger: false
-      });
+      return this.loadAnalytics();
     };
 
-    AppView.prototype.loadBaseAnalytics = function() {
-      this.loadMood();
-      this.getMoodAnalytics();
+    AppView.prototype.loadAnalytics = function() {
+      this.moodTracker.reload();
       if (this.trackerList != null) {
         this.basicTrackerList.reloadAll();
       }
@@ -863,46 +859,36 @@ window.require.register("views/app_view", function(exports, require, module) {
       }
     };
 
-    AppView.prototype.onGoodMoodClicked = function() {
-      return this.updateMood('good');
+    AppView.prototype.redrawCharts = function() {
+      $('.chart').html(null);
+      $('.y-axis').html(null);
+      this.moodTracker.redraw();
+      this.trackerList.redrawAll();
+      this.basicTrackerList.redrawAll();
+      return true;
     };
 
-    AppView.prototype.onNeutralMoodClicked = function() {
-      return this.updateMood('neutral');
+    AppView.prototype.showTrackers = function() {
+      this.$("#mood").show();
+      this.$("#tracker-list").show();
+      this.$("#basic-tracker-list").show();
+      this.$(".tools").show();
+      return this.$("#zoomtracker").hide();
     };
 
-    AppView.prototype.onBadMoodClicked = function() {
-      return this.updateMood('bad');
+    AppView.prototype.showZoomTracker = function() {
+      this.$("#mood").hide();
+      this.$("#tracker-list").hide();
+      this.$("#basic-tracker-list").hide();
+      this.$(".tools").hide();
+      return this.$("#zoomtracker").show();
     };
 
-    AppView.prototype.updateMood = function(status) {
-      var _this = this;
-      this.$('#current-mood').html('&nbsp;');
-      this.$('#current-mood').spin('tiny');
-      return Mood.updateDay(this.currentDate, status, function(err, mood) {
-        if (err) {
-          _this.$('#current-mood').spin();
-          return alert("An error occured while saving data");
-        } else {
-          _this.$('#current-mood').spin();
-          _this.$('#current-mood').html(status);
-          graphHelper.clear(_this.$('#moods-charts'), _this.$('#moods-y-axis'));
-          return _this.getMoodAnalytics();
-        }
-      });
-    };
-
-    AppView.prototype.loadMood = function() {
-      var _this = this;
-      return Mood.getDay(this.currentDate, function(err, mood) {
-        if (err) {
-          return alert("An error occured while retrieving mood data");
-        } else if (mood == null) {
-          return _this.$('#current-mood').html('Set your mood for current day');
-        } else {
-          return _this.$('#current-mood').html(mood.get('status'));
-        }
-      });
+    AppView.prototype.displayTrackers = function() {
+      this.showTrackers();
+      if (!this.dataLoaded) {
+        return this.loadTrackers();
+      }
     };
 
     AppView.prototype.onDailyNoteChanged = function(event) {
@@ -927,41 +913,6 @@ window.require.register("views/app_view", function(exports, require, module) {
           return _this.$('#dailynote').val(dailynote.get('text'));
         }
       });
-    };
-
-    AppView.prototype.drawMoodGraph = function(data) {
-      var el, width, yEl;
-      width = this.$("#moods").width() - 70;
-      el = this.$("#moods-charts")[0];
-      yEl = this.$("#moods-y-axis")[0];
-      this.data['moods'] = data;
-      return graphHelper.draw(el, yEl, width, 'steelblue', data);
-    };
-
-    AppView.prototype.getMoodAnalytics = function() {
-      var path,
-        _this = this;
-      this.$("#moods-charts").html('');
-      this.$("#moods-y-axis").html('');
-      this.$("#moods").spin('tiny');
-      path = "moods/" + (this.currentDate.format('YYYY-MM-DD'));
-      return request.get(path, function(err, data) {
-        if (err) {
-          return alert("An error occured while retrieving moods data");
-        } else {
-          $("#moods").spin();
-          return _this.drawMoodGraph(data);
-        }
-      });
-    };
-
-    AppView.prototype.redrawCharts = function() {
-      $('.chart').html(null);
-      $('.y-axis').html(null);
-      this.drawMoodGraph();
-      this.trackerList.redrawAll();
-      this.basicTrackerList.redrawAll();
-      return true;
     };
 
     AppView.prototype.onTrackerButtonClicked = function() {
@@ -998,29 +949,6 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
-    AppView.prototype.showTrackers = function() {
-      this.$("#mood").show();
-      this.$("#tracker-list").show();
-      this.$("#basic-tracker-list").show();
-      this.$(".tools").show();
-      return this.$("#zoomtracker").hide();
-    };
-
-    AppView.prototype.showZoomTracker = function() {
-      this.$("#mood").hide();
-      this.$("#tracker-list").hide();
-      this.$("#basic-tracker-list").hide();
-      this.$(".tools").hide();
-      return this.$("#zoomtracker").show();
-    };
-
-    AppView.prototype.displayTrackers = function() {
-      this.showTrackers();
-      if (!this.dataLoaded) {
-        return this.loadTrackers();
-      }
-    };
-
     AppView.prototype.displayZoomTracker = function(callback) {
       var _this = this;
       if (this.dataLoaded) {
@@ -1039,7 +967,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       return this.displayZoomTracker(function() {
         _this.$("#zoomtitle").html(_this.$("#mood h2").html());
         _this.$("#zoomexplaination").html(_this.$("#mood .explaination").html());
-        _this.currentData = _this.data['moods'];
+        _this.currentData = _this.moodTracker.data;
         _this.currentTracker = new Tracker({
           name: 'moods',
           color: 'steelblue'
@@ -1268,6 +1196,121 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
   })(BaseView);
   
 });
+window.require.register("views/mood_tracker", function(exports, require, module) {
+  var BaseView, Mood, Moods, TrackerItem, graph, request, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  BaseView = require('lib/base_view');
+
+  request = require('lib/request');
+
+  graph = require('lib/graph');
+
+  Mood = require('../models/mood');
+
+  Moods = require('../collections/moods');
+
+  module.exports = TrackerItem = (function(_super) {
+    __extends(TrackerItem, _super);
+
+    function TrackerItem() {
+      _ref = TrackerItem.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    TrackerItem.prototype.id = 'moods';
+
+    TrackerItem.prototype.className = 'line';
+
+    TrackerItem.prototype.template = require('./templates/mood');
+
+    TrackerItem.prototype.events = {
+      'click #good-mood-btn': 'onGoodMoodClicked',
+      'click #neutral-mood-btn': 'onNeutralMoodClicked',
+      'click #bad-mood-btn': 'onBadMoodClicked'
+    };
+
+    TrackerItem.prototype.onGoodMoodClicked = function() {
+      return this.updateMood('good');
+    };
+
+    TrackerItem.prototype.onNeutralMoodClicked = function() {
+      return this.updateMood('neutral');
+    };
+
+    TrackerItem.prototype.onBadMoodClicked = function() {
+      return this.updateMood('bad');
+    };
+
+    TrackerItem.prototype.updateMood = function(status) {
+      var day,
+        _this = this;
+      this.$('#current-mood').html('&nbsp;');
+      this.$('#current-mood').spin('tiny');
+      day = window.app.mainView.currentDate;
+      return Mood.updateDay(day, status, function(err, mood) {
+        _this.$('#current-mood').spin();
+        if (err) {
+          return alert("An error occured while saving data");
+        } else {
+          _this.$('#current-mood').html(status);
+          graph.clear(_this.$('#moods-charts'), _this.$('#moods-y-axis'));
+          return _this.loadAnalytics();
+        }
+      });
+    };
+
+    TrackerItem.prototype.reload = function() {
+      var day,
+        _this = this;
+      day = window.app.mainView.currentDate;
+      return Mood.getDay(day, function(err, mood) {
+        if (err) {
+          return alert("An error occured while retrieving mood data");
+        } else if (mood == null) {
+          return _this.$('#current-mood').html('Set your mood for current day');
+        } else {
+          _this.$('#current-mood').html(mood.get('status'));
+          return _this.loadAnalytics();
+        }
+      });
+    };
+
+    TrackerItem.prototype.loadAnalytics = function() {
+      var day, path,
+        _this = this;
+      day = window.app.mainView.currentDate;
+      path = "moods/" + (day.format('YYYY-MM-DD'));
+      this.$("#moods-charts").html('');
+      this.$("#moods-y-axis").html('');
+      this.$("#moods").spin('tiny');
+      return request.get(path, function(err, data) {
+        _this.$("#moods").spin();
+        if (err) {
+          return alert("An error occured while retrieving moods data");
+        } else {
+          _this.data = data;
+          return _this.redraw();
+        }
+      });
+    };
+
+    TrackerItem.prototype.redraw = function() {
+      var el, width, yEl;
+      this.$("#moods-charts").html('');
+      this.$("#moods-y-axis").html('');
+      width = this.$("#moods").width() - 70;
+      el = this.$("#moods-charts")[0];
+      yEl = this.$("#moods-y-axis")[0];
+      return graph.draw(el, yEl, width, 'steelblue', this.data);
+    };
+
+    return TrackerItem;
+
+  })(BaseView);
+  
+});
 window.require.register("views/templates/basic_tracker_list", function(exports, require, module) {
   module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
   attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
@@ -1297,7 +1340,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div><div id="mood" class="line"><div class="mod w33 left"><h2> <a href="#mood">Mood</a></h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
@@ -1308,7 +1351,7 @@ window.require.register("views/templates/mood", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<p><' + (date) + '>- ' + escape((interp = status) == null ? '' : interp) + '</' + (date) + '></p>');
+  buf.push('<div class="mod w33 left"><h2> <a href="#mood">Mood</a></h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div>');
   }
   return buf.join("");
   };
