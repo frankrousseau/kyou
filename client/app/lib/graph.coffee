@@ -31,5 +31,5 @@ module.exports =
         graph
 
     clear: (el, yEl) ->
-        el.html null
-        yEl.html null
+        $(el).html null
+        $(yEl).html null

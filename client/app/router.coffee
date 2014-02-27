@@ -14,21 +14,22 @@ module.exports = class Router extends Backbone.Router
             mainView = new AppView()
             mainView.render()
 
-            window.app = {}
-            window.app.mainView = mainView
-
     main: ->
+        console.log "main"
         @createMainView()
         window.app.mainView.displayTrackers()
 
     basicTracker: (name) ->
+        console.log "basic"
         @createMainView()
         window.app.mainView.displayBasicTracker name
 
     tracker: (name) ->
+        console.log "tracker"
         @createMainView()
         window.app.mainView.displayTracker name
 
     mood: (name) ->
+        console.log "mood"
         @createMainView()
         window.app.mainView.displayMood()

@@ -1,4 +1,4 @@
-request = require '../lib/request'
+eequest = require '../lib/request'
 graphHelper = require '../lib/graph'
 BaseView = require '../lib/base_view'
 
@@ -28,8 +28,9 @@ module.exports = class AppView extends BaseView
         currentDate: @currentDate.format 'MM/DD/YYYY'
 
     afterRender: ->
-        @data = {}
         @colors = {}
+        @data = {}
+        @dataLoaded = false
         $(window).on 'resize',  @redrawCharts
         window.app = {}
         window.app.mainView = @
@@ -50,7 +51,6 @@ module.exports = class AppView extends BaseView
         @$("#datepicker").val @currentDate.format('LL'), trigger: false
 
         @loadNote()
-        @moodTracker.reload()
 
 
     onDatePickerChanged: ->
@@ -68,27 +68,37 @@ module.exports = class AppView extends BaseView
     redrawCharts: =>
         $('.chart').html null
         $('.y-axis').html null
-        @moodTracker.redraw()
-        @trackerList.redrawAll()
-        @basicTrackerList.redrawAll()
+
+        if @$("#zoomtracker").is(":visible")
+            @printZoomGraph @currentData, @currentTracker.get 'color'
+
+        else
+            @moodTracker.redraw()
+            @trackerList.redrawAll()
+            @basicTrackerList.redrawAll()
+
         true
 
     # View management
 
     showTrackers: =>
-        @$("#mood").show()
+        @$("#moods").show()
         @$("#tracker-list").show()
         @$("#basic-tracker-list").show()
         @$(".tools").show()
         @$("#zoomtracker").hide()
 
+        @redrawCharts() if @dataLoaded
+
 
     showZoomTracker: =>
-        @$("#mood").hide()
+        @$("#moods").hide()
         @$("#tracker-list").hide()
         @$("#basic-tracker-list").hide()
         @$(".tools").hide()
         @$("#zoomtracker").show()
+
+        @$("#zoomtimeunit").val 'day'
 
 
     displayTrackers: ->
@@ -135,15 +145,16 @@ module.exports = class AppView extends BaseView
 
     loadTrackers: (callback) ->
         @dataLoaded = false
-        @trackerList.collection.fetch
-            success: =>
-                @basicTrackerList.collection.fetch
-                    success: =>
-                        @dataLoaded = true
-                        callback() if callback?
+        @moodTracker.reload =>
+            @trackerList.collection.fetch
+                success: =>
+                    @basicTrackerList.collection.fetch
+                        success: =>
+                            @dataLoaded = true
+                            callback() if callback?
 
 
-    ## Zoom widgeT
+    ## Zoom widget
 
     displayZoomTracker: (callback) ->
         if @dataLoaded
@@ -156,13 +167,14 @@ module.exports = class AppView extends BaseView
 
     displayMood: ->
         @displayZoomTracker =>
-            @$("#zoomtitle").html @$("#mood h2").html()
-            @$("#zoomexplaination").html @$("#mood .explaination").html()
+            @$("#zoomtitle").html @$("#moods h2").html()
+            @$("#zoomexplaination").html @$("#moods .explaination").html()
 
             @currentData = @moodTracker.data
             @currentTracker = new Tracker
                 name: 'moods'
                 color: 'steelblue'
+
             @printZoomGraph @currentData, 'steelblue'
 
     displayBasicTracker: (slug) ->
@@ -174,9 +186,16 @@ module.exports = class AppView extends BaseView
                 @$("#zoomtitle").html tracker.get 'name'
                 @$("#zoomexplaination").html tracker.get 'description'
 
-                @currentData = @basicTrackerList.views[tracker.cid]?.data
-                @currentTracker = tracker
-                @printZoomGraph @currentData, tracker.get 'color'
+                recWait = =>
+                    data = @basicTrackerList.views[tracker.cid]?.data
+
+                    if data?
+                        @currentData = data
+                        @currentTracker = tracker
+                        @printZoomGraph @currentData, tracker.get 'color'
+                    else
+                        setTimeout recWait, 10
+                recWait()
 
     displayTracker: (id) ->
         @displayZoomTracker =>
@@ -187,10 +206,16 @@ module.exports = class AppView extends BaseView
                 @$("#zoomtitle").html tracker.get 'name'
                 @$("#zoomexplaination").html tracker.get 'description'
 
-                @currentData = @trackerList.views[tracker.cid]?.data
-                @currentTracker = tracker
-                @printZoomGraph @currentData, tracker.get 'color'
+                recWait = =>
+                    data = @trackerList.views[tracker.cid]?.data
 
+                    if data?
+                        @currentData = data
+                        @currentTracker = tracker
+                        @printZoomGraph @currentData, tracker.get 'color'
+                    else
+                        setTimeout recWait, 10
+                recWait()
 
     onTimeUnitChanged: (event) ->
         timeUnit = $("#zoomtimeunit").val()
@@ -235,7 +260,7 @@ module.exports = class AppView extends BaseView
         @printZoomGraph graphDataArray, @currentTracker.get 'color'
 
     printZoomGraph: (data, color) ->
-        width = $(window).width() - 100
+        width = $(window).width() - 140
         el = @$('#zoom-charts')[0]
         yEl = @$('#zoom-y-axis')[0]
 

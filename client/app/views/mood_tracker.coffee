@@ -33,7 +33,7 @@ module.exports = class TrackerItem extends BaseView
                 graph.clear @$('#moods-charts'), @$('#moods-y-axis')
                 @loadAnalytics()
 
-    reload: ->
+    reload: (callback) ->
         day = window.app.mainView.currentDate
         Mood.getDay day, (err, mood) =>
             if err
@@ -42,7 +42,8 @@ module.exports = class TrackerItem extends BaseView
                 @$('#current-mood').html 'Set your mood for current day'
             else
                 @$('#current-mood').html mood.get 'status'
-                @loadAnalytics()
+            @loadAnalytics()
+            callback() if callback?
 
 
     loadAnalytics: ->

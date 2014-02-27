@@ -327,8 +327,8 @@ window.require.register("lib/graph", function(exports, require, module) {
       return graph;
     },
     clear: function(el, yEl) {
-      el.html(null);
-      return yEl.html(null);
+      $(el).html(null);
+      return $(yEl).html(null);
     }
   };
   
@@ -736,28 +736,30 @@ window.require.register("router", function(exports, require, module) {
       var mainView, _ref1;
       if (((_ref1 = window.app) != null ? _ref1.mainView : void 0) == null) {
         mainView = new AppView();
-        mainView.render();
-        window.app = {};
-        return window.app.mainView = mainView;
+        return mainView.render();
       }
     };
 
     Router.prototype.main = function() {
+      console.log("main");
       this.createMainView();
       return window.app.mainView.displayTrackers();
     };
 
     Router.prototype.basicTracker = function(name) {
+      console.log("basic");
       this.createMainView();
       return window.app.mainView.displayBasicTracker(name);
     };
 
     Router.prototype.tracker = function(name) {
+      console.log("tracker");
       this.createMainView();
       return window.app.mainView.displayTracker(name);
     };
 
     Router.prototype.mood = function(name) {
+      console.log("mood");
       this.createMainView();
       return window.app.mainView.displayMood();
     };
@@ -768,12 +770,12 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, BasicTrackerList, DailyNote, MoodTracker, Tracker, TrackerList, graphHelper, request,
+  var AppView, BaseView, BasicTrackerList, DailyNote, MoodTracker, Tracker, TrackerList, eequest, graphHelper,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  request = require('../lib/request');
+  eequest = require('../lib/request');
 
   graphHelper = require('../lib/graph');
 
@@ -819,8 +821,9 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.afterRender = function() {
-      this.data = {};
       this.colors = {};
+      this.data = {};
+      this.dataLoaded = false;
       $(window).on('resize', this.redrawCharts);
       window.app = {};
       window.app.mainView = this;
@@ -839,8 +842,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       this.$("#datepicker").val(this.currentDate.format('LL'), {
         trigger: false
       });
-      this.loadNote();
-      return this.moodTracker.reload();
+      return this.loadNote();
     };
 
     AppView.prototype.onDatePickerChanged = function() {
@@ -862,26 +864,34 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.redrawCharts = function() {
       $('.chart').html(null);
       $('.y-axis').html(null);
-      this.moodTracker.redraw();
-      this.trackerList.redrawAll();
-      this.basicTrackerList.redrawAll();
+      if (this.$("#zoomtracker").is(":visible")) {
+        this.printZoomGraph(this.currentData, this.currentTracker.get('color'));
+      } else {
+        this.moodTracker.redraw();
+        this.trackerList.redrawAll();
+        this.basicTrackerList.redrawAll();
+      }
       return true;
     };
 
     AppView.prototype.showTrackers = function() {
-      this.$("#mood").show();
+      this.$("#moods").show();
       this.$("#tracker-list").show();
       this.$("#basic-tracker-list").show();
       this.$(".tools").show();
-      return this.$("#zoomtracker").hide();
+      this.$("#zoomtracker").hide();
+      if (this.dataLoaded) {
+        return this.redrawCharts();
+      }
     };
 
     AppView.prototype.showZoomTracker = function() {
-      this.$("#mood").hide();
+      this.$("#moods").hide();
       this.$("#tracker-list").hide();
       this.$("#basic-tracker-list").hide();
       this.$(".tools").hide();
-      return this.$("#zoomtracker").show();
+      this.$("#zoomtracker").show();
+      return this.$("#zoomtimeunit").val('day');
     };
 
     AppView.prototype.displayTrackers = function() {
@@ -935,17 +945,19 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.loadTrackers = function(callback) {
       var _this = this;
       this.dataLoaded = false;
-      return this.trackerList.collection.fetch({
-        success: function() {
-          return _this.basicTrackerList.collection.fetch({
-            success: function() {
-              _this.dataLoaded = true;
-              if (callback != null) {
-                return callback();
+      return this.moodTracker.reload(function() {
+        return _this.trackerList.collection.fetch({
+          success: function() {
+            return _this.basicTrackerList.collection.fetch({
+              success: function() {
+                _this.dataLoaded = true;
+                if (callback != null) {
+                  return callback();
+                }
               }
-            }
-          });
-        }
+            });
+          }
+        });
       });
     };
 
@@ -965,8 +977,8 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.displayMood = function() {
       var _this = this;
       return this.displayZoomTracker(function() {
-        _this.$("#zoomtitle").html(_this.$("#mood h2").html());
-        _this.$("#zoomexplaination").html(_this.$("#mood .explaination").html());
+        _this.$("#zoomtitle").html(_this.$("#moods h2").html());
+        _this.$("#zoomexplaination").html(_this.$("#moods .explaination").html());
         _this.currentData = _this.moodTracker.data;
         _this.currentTracker = new Tracker({
           name: 'moods',
@@ -979,7 +991,7 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.displayBasicTracker = function(slug) {
       var _this = this;
       return this.displayZoomTracker(function() {
-        var tracker, _ref;
+        var recWait, tracker;
         tracker = _this.basicTrackerList.collection.findWhere({
           slug: slug
         });
@@ -988,9 +1000,18 @@ window.require.register("views/app_view", function(exports, require, module) {
         } else {
           _this.$("#zoomtitle").html(tracker.get('name'));
           _this.$("#zoomexplaination").html(tracker.get('description'));
-          _this.currentData = (_ref = _this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
-          _this.currentTracker = tracker;
-          return _this.printZoomGraph(_this.currentData, tracker.get('color'));
+          recWait = function() {
+            var data, _ref;
+            data = (_ref = _this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
+            if (data != null) {
+              _this.currentData = data;
+              _this.currentTracker = tracker;
+              return _this.printZoomGraph(_this.currentData, tracker.get('color'));
+            } else {
+              return setTimeout(recWait, 10);
+            }
+          };
+          return recWait();
         }
       });
     };
@@ -998,7 +1019,7 @@ window.require.register("views/app_view", function(exports, require, module) {
     AppView.prototype.displayTracker = function(id) {
       var _this = this;
       return this.displayZoomTracker(function() {
-        var tracker, _ref;
+        var recWait, tracker;
         tracker = _this.trackerList.collection.findWhere({
           id: id
         });
@@ -1007,9 +1028,18 @@ window.require.register("views/app_view", function(exports, require, module) {
         } else {
           _this.$("#zoomtitle").html(tracker.get('name'));
           _this.$("#zoomexplaination").html(tracker.get('description'));
-          _this.currentData = (_ref = _this.trackerList.views[tracker.cid]) != null ? _ref.data : void 0;
-          _this.currentTracker = tracker;
-          return _this.printZoomGraph(_this.currentData, tracker.get('color'));
+          recWait = function() {
+            var data, _ref;
+            data = (_ref = _this.trackerList.views[tracker.cid]) != null ? _ref.data : void 0;
+            if (data != null) {
+              _this.currentData = data;
+              _this.currentTracker = tracker;
+              return _this.printZoomGraph(_this.currentData, tracker.get('color'));
+            } else {
+              return setTimeout(recWait, 10);
+            }
+          };
+          return recWait();
         }
       });
     };
@@ -1065,7 +1095,7 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     AppView.prototype.printZoomGraph = function(data, color) {
       var el, width, yEl;
-      width = $(window).width() - 100;
+      width = $(window).width() - 140;
       el = this.$('#zoom-charts')[0];
       yEl = this.$('#zoom-y-axis')[0];
       graphHelper.clear(el, yEl);
@@ -1261,18 +1291,21 @@ window.require.register("views/mood_tracker", function(exports, require, module)
       });
     };
 
-    TrackerItem.prototype.reload = function() {
+    TrackerItem.prototype.reload = function(callback) {
       var day,
         _this = this;
       day = window.app.mainView.currentDate;
       return Mood.getDay(day, function(err, mood) {
         if (err) {
-          return alert("An error occured while retrieving mood data");
+          alert("An error occured while retrieving mood data");
         } else if (mood == null) {
-          return _this.$('#current-mood').html('Set your mood for current day');
+          _this.$('#current-mood').html('Set your mood for current day');
         } else {
           _this.$('#current-mood').html(mood.get('status'));
-          return _this.loadAnalytics();
+        }
+        _this.loadAnalytics();
+        if (callback != null) {
+          return callback();
         }
       });
     };
