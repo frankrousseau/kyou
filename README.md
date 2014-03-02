@@ -59,12 +59,9 @@ them would be highly appreciated. Of course any idea is welcome!
 * localization/translations
 * allow edition for custom trackers
 * ask for confirmation before deleting custrom trackers
-* add a comparator tool for data 
-* allow to see graph with month and week aggregations
-* allow to set a note on what happened the day you are currently watching
-* add a comparator tool for data 
 * add a goal line on analytics
 * allow user to hide the trackers he doesn't use
+* display daily notes below the tracker zoom widget
 * write tests
 
 ## Press
