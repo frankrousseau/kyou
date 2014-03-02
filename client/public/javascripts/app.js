@@ -755,25 +755,21 @@ window.require.register("router", function(exports, require, module) {
     };
 
     Router.prototype.main = function() {
-      console.log("main");
       this.createMainView();
       return window.app.mainView.displayTrackers();
     };
 
     Router.prototype.basicTracker = function(name) {
-      console.log("basic");
       this.createMainView();
       return window.app.mainView.displayBasicTracker(name);
     };
 
     Router.prototype.tracker = function(name) {
-      console.log("tracker");
       this.createMainView();
       return window.app.mainView.displayTracker(name);
     };
 
     Router.prototype.mood = function(name) {
-      console.log("mood");
       this.createMainView();
       return window.app.mainView.displayMood();
     };
@@ -821,6 +817,7 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     function AppView() {
+      this.onComparisonChanged = __bind(this.onComparisonChanged, this);
       this.showZoomTracker = __bind(this.showZoomTracker, this);
       this.showTrackers = __bind(this.showTrackers, this);
       this.redrawCharts = __bind(this.redrawCharts, this);
@@ -1003,7 +1000,7 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.onComparisonChanged = function() {
-      var color, combo, comparisonData, data, newComparisonData, tracker, val, _ref, _ref1;
+      var color, combo, comparisonData, data, entry, factor, max, maxComparisonData, maxData, newComparisonData, tracker, val, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
       combo = this.$("#zoomcomparison");
       data = this.currentData;
       color = this.currentTracker.get('color');
@@ -1014,6 +1011,7 @@ window.require.register("views/app_view", function(exports, require, module) {
         tracker = this.basicTrackerList.collection.findWhere({
           slug: val.substring(6)
         });
+        color = 'black';
         comparisonData = (_ref = this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
       } else {
         tracker = this.trackerList.collection.findWhere({
@@ -1021,7 +1019,32 @@ window.require.register("views/app_view", function(exports, require, module) {
         });
         comparisonData = (_ref1 = this.trackerList.views[tracker.cid]) != null ? _ref1.data : void 0;
       }
-      newComparisonData = comparisonData;
+      maxData = 0;
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        entry = data[_i];
+        if (entry.y > maxData) {
+          maxData = entry.y;
+        }
+      }
+      maxComparisonData = 0;
+      for (_j = 0, _len1 = comparisonData.length; _j < _len1; _j++) {
+        entry = comparisonData[_j];
+        if (entry.y > maxComparisonData) {
+          maxComparisonData = entry.y;
+        }
+      }
+      factor = maxData / maxComparisonData;
+      newComparisonData = [];
+      for (_k = 0, _len2 = comparisonData.length; _k < _len2; _k++) {
+        entry = comparisonData[_k];
+        if (entry.y > max) {
+          max = entry.y;
+        }
+        newComparisonData.push({
+          x: entry.x,
+          y: entry.y * factor
+        });
+      }
       return this.printZoomGraph(data, color, newComparisonData);
     };
 

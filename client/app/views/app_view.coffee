@@ -172,7 +172,7 @@ module.exports = class AppView extends BaseView
             option += ">#{tracker.get 'name'}</option>"
             combo.append option
 
-    onComparisonChanged: ->
+    onComparisonChanged: =>
         combo = @$("#zoomcomparison")
         data = @currentData
         color = @currentTracker.get 'color'
@@ -184,30 +184,29 @@ module.exports = class AppView extends BaseView
         else if val.indexOf('basic') isnt -1
             tracker = @basicTrackerList.collection.findWhere
                 slug: val.substring(6)
+            color = 'black'
             comparisonData = @basicTrackerList.views[tracker.cid]?.data
         else
             tracker = @trackerList.collection.findWhere id: val
             comparisonData = @trackerList.views[tracker.cid]?.data
 
-        newComparisonData = comparisonData
-
         # Normalize results
-        #maxData = 0
-        #for entry in data
-            #maxData = entry.y if entry.y > maxData
+        maxData = 0
+        for entry in data
+            maxData = entry.y if entry.y > maxData
 
-        #maxComparisonData = 0
-        #for entry in comparisonData
-            #maxComparisonData = entry.y if entry.y > maxComparisonData
+        maxComparisonData = 0
+        for entry in comparisonData
+            maxComparisonData = entry.y if entry.y > maxComparisonData
 
-        #factor = maxData / maxComparisonData
+        factor = maxData / maxComparisonData
 
-        #newComparisonData = []
-        #for entry in comparisonData
-            #max = entry.y if entry.y > max
-            #newComparisonData.push
-                #x: entry.x
-                #y: entry.y * factor
+        newComparisonData = []
+        for entry in comparisonData
+            max = entry.y if entry.y > max
+            newComparisonData.push
+                x: entry.x
+                y: entry.y * factor
 
         @printZoomGraph data, color, newComparisonData
 
