@@ -13,10 +13,13 @@
         .line
             h2#zoomtitle No tracker selected
             p#zoomexplaination.explaination
-            select#zoomtimeunit
-                option(value="day") day
-                option(value="week") week
-                option(value="month") month
+            p
+                select#zoomtimeunit
+                    option(value="day") day
+                    option(value="week") week
+                    option(value="month") month
+            p
+                select#zoomcomparison
         #zoomgraph.graph-container
             #zoom-y-axis.y-axis
             #zoom-charts.chart

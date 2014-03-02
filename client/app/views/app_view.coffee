@@ -19,6 +19,7 @@ module.exports = class AppView extends BaseView
         'blur #dailynote': 'onDailyNoteChanged'
         'click #add-tracker-btn': 'onTrackerButtonClicked'
         'change #zoomtimeunit': 'onTimeUnitChanged'
+        'change #zoomcomparison': 'onComparisonChanged'
 
     constructor: ->
         super
@@ -134,7 +135,7 @@ module.exports = class AppView extends BaseView
 
         if name.length > 0
             @trackerList.collection.create(
-                    name: name,
+                    name: name
                     description: description
                 ,
                     success: ->
@@ -151,7 +152,64 @@ module.exports = class AppView extends BaseView
                     @basicTrackerList.collection.fetch
                         success: =>
                             @dataLoaded = true
+                            @fillComparisonCombo()
                             callback() if callback?
+
+    fillComparisonCombo: ->
+        combo = @$("#zoomcomparison")
+        combo.append "<option value=\"undefined\">Select the tracker to compare</option>"
+        combo.append "<option value=\"moods\">Moods</option>"
+
+        for tracker in @trackerList.collection.models
+            option = "<option value="
+            option += "\"#{tracker.get 'id'}\""
+            option += ">#{tracker.get 'name'}</option>"
+            combo.append option
+
+        for tracker in @basicTrackerList.collection.models
+            option = "<option value="
+            option += "\"basic-#{tracker.get 'slug'}\""
+            option += ">#{tracker.get 'name'}</option>"
+            combo.append option
+
+    onComparisonChanged: ->
+        combo = @$("#zoomcomparison")
+        data = @currentData
+        color = @currentTracker.get 'color'
+
+        # Get Corresponding tracker
+        val = combo.val()
+        if val is 'moods'
+            comparisonData = @moodTracker.data
+        else if val.indexOf('basic') isnt -1
+            tracker = @basicTrackerList.collection.findWhere
+                slug: val.substring(6)
+            comparisonData = @basicTrackerList.views[tracker.cid]?.data
+        else
+            tracker = @trackerList.collection.findWhere id: val
+            comparisonData = @trackerList.views[tracker.cid]?.data
+
+        newComparisonData = comparisonData
+
+        # Normalize results
+        #maxData = 0
+        #for entry in data
+            #maxData = entry.y if entry.y > maxData
+
+        #maxComparisonData = 0
+        #for entry in comparisonData
+            #maxComparisonData = entry.y if entry.y > maxComparisonData
+
+        #factor = maxData / maxComparisonData
+
+        #newComparisonData = []
+        #for entry in comparisonData
+            #max = entry.y if entry.y > max
+            #newComparisonData.push
+                #x: entry.x
+                #y: entry.y * factor
+
+        @printZoomGraph data, color, newComparisonData
 
 
     ## Zoom widget
@@ -259,10 +317,10 @@ module.exports = class AppView extends BaseView
 
         @printZoomGraph graphDataArray, @currentTracker.get 'color'
 
-    printZoomGraph: (data, color) ->
+    printZoomGraph: (data, color, comparisonData) ->
         width = $(window).width() - 140
         el = @$('#zoom-charts')[0]
         yEl = @$('#zoom-y-axis')[0]
 
         graphHelper.clear el, yEl
-        graphHelper.draw el, yEl, width, color, data
+        graphHelper.draw el, yEl, width, color, data, comparisonData

@@ -1,15 +1,28 @@
 
 module.exports =
-    draw: (el, yEl, width, color, @data) ->
+    draw: (el, yEl, width, color, data, comparisonData) ->
+        if comparisonData?
+            series = [
+                    color: color
+                    data: data
+                ,
+                    color: 'red'
+                    data: comparisonData
+            ]
+            renderer = 'line'
+        else
+            series = [
+                color: color
+                data: data
+            ]
+            renderer = 'bar'
+
         graph = new Rickshaw.Graph(
             element: el
             width: width
             height: 300
-            renderer: 'bar'
-            series: [
-                color: color
-                data: data
-            ]
+            renderer: renderer
+            series: series
         )
 
         x_axis = new Rickshaw.Graph.Axis.Time graph: graph

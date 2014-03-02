@@ -290,20 +290,34 @@ window.require.register("lib/base_view", function(exports, require, module) {
 });
 window.require.register("lib/graph", function(exports, require, module) {
   module.exports = {
-    draw: function(el, yEl, width, color, data) {
-      var graph, hoverDetail, x_axis, y_axis;
-      this.data = data;
-      graph = new Rickshaw.Graph({
-        element: el,
-        width: width,
-        height: 300,
-        renderer: 'bar',
-        series: [
+    draw: function(el, yEl, width, color, data, comparisonData) {
+      var graph, hoverDetail, renderer, series, x_axis, y_axis;
+      if (comparisonData != null) {
+        series = [
+          {
+            color: color,
+            data: data
+          }, {
+            color: 'red',
+            data: comparisonData
+          }
+        ];
+        renderer = 'line';
+      } else {
+        series = [
           {
             color: color,
             data: data
           }
-        ]
+        ];
+        renderer = 'bar';
+      }
+      graph = new Rickshaw.Graph({
+        element: el,
+        width: width,
+        height: 300,
+        renderer: renderer,
+        series: series
       });
       x_axis = new Rickshaw.Graph.Axis.Time({
         graph: graph
@@ -802,7 +816,8 @@ window.require.register("views/app_view", function(exports, require, module) {
       'change #datepicker': 'onDatePickerChanged',
       'blur #dailynote': 'onDailyNoteChanged',
       'click #add-tracker-btn': 'onTrackerButtonClicked',
-      'change #zoomtimeunit': 'onTimeUnitChanged'
+      'change #zoomtimeunit': 'onTimeUnitChanged',
+      'change #zoomcomparison': 'onComparisonChanged'
     };
 
     function AppView() {
@@ -951,6 +966,7 @@ window.require.register("views/app_view", function(exports, require, module) {
             return _this.basicTrackerList.collection.fetch({
               success: function() {
                 _this.dataLoaded = true;
+                _this.fillComparisonCombo();
                 if (callback != null) {
                   return callback();
                 }
@@ -959,6 +975,54 @@ window.require.register("views/app_view", function(exports, require, module) {
           }
         });
       });
+    };
+
+    AppView.prototype.fillComparisonCombo = function() {
+      var combo, option, tracker, _i, _j, _len, _len1, _ref, _ref1, _results;
+      combo = this.$("#zoomcomparison");
+      combo.append("<option value=\"undefined\">Select the tracker to compare</option>");
+      combo.append("<option value=\"moods\">Moods</option>");
+      _ref = this.trackerList.collection.models;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        tracker = _ref[_i];
+        option = "<option value=";
+        option += "\"" + (tracker.get('id')) + "\"";
+        option += ">" + (tracker.get('name')) + "</option>";
+        combo.append(option);
+      }
+      _ref1 = this.basicTrackerList.collection.models;
+      _results = [];
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        tracker = _ref1[_j];
+        option = "<option value=";
+        option += "\"basic-" + (tracker.get('slug')) + "\"";
+        option += ">" + (tracker.get('name')) + "</option>";
+        _results.push(combo.append(option));
+      }
+      return _results;
+    };
+
+    AppView.prototype.onComparisonChanged = function() {
+      var color, combo, comparisonData, data, newComparisonData, tracker, val, _ref, _ref1;
+      combo = this.$("#zoomcomparison");
+      data = this.currentData;
+      color = this.currentTracker.get('color');
+      val = combo.val();
+      if (val === 'moods') {
+        comparisonData = this.moodTracker.data;
+      } else if (val.indexOf('basic') !== -1) {
+        tracker = this.basicTrackerList.collection.findWhere({
+          slug: val.substring(6)
+        });
+        comparisonData = (_ref = this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
+      } else {
+        tracker = this.trackerList.collection.findWhere({
+          id: val
+        });
+        comparisonData = (_ref1 = this.trackerList.views[tracker.cid]) != null ? _ref1.data : void 0;
+      }
+      newComparisonData = comparisonData;
+      return this.printZoomGraph(data, color, newComparisonData);
     };
 
     AppView.prototype.displayZoomTracker = function(callback) {
@@ -1093,13 +1157,13 @@ window.require.register("views/app_view", function(exports, require, module) {
       return this.printZoomGraph(graphDataArray, this.currentTracker.get('color'));
     };
 
-    AppView.prototype.printZoomGraph = function(data, color) {
+    AppView.prototype.printZoomGraph = function(data, color, comparisonData) {
       var el, width, yEl;
       width = $(window).width() - 140;
       el = this.$('#zoom-charts')[0];
       yEl = this.$('#zoom-y-axis')[0];
       graphHelper.clear(el, yEl);
-      return graphHelper.draw(el, yEl, width, color, data);
+      return graphHelper.draw(el, yEl, width, color, data, comparisonData);
     };
 
     return AppView;
@@ -1373,7 +1437,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></p><p><select id="zoomcomparison"></select></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
