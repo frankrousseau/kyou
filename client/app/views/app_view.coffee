@@ -18,7 +18,8 @@ module.exports = class AppView extends BaseView
         'change #datepicker': 'onDatePickerChanged'
         'blur #dailynote': 'onDailyNoteChanged'
         'click #add-tracker-btn': 'onTrackerButtonClicked'
-        'change #zoomtimeunit': 'onTimeUnitChanged'
+        'change #zoomtimeunit': 'onComparisonChanged'
+        'change #zoomstyle': 'onComparisonChanged'
         'change #zoomcomparison': 'onComparisonChanged'
 
     constructor: ->
@@ -71,7 +72,7 @@ module.exports = class AppView extends BaseView
         $('.y-axis').html null
 
         if @$("#zoomtracker").is(":visible")
-            @printZoomGraph @currentData, @currentTracker.get 'color'
+            @onComparisonChanged()
 
         else
             @moodTracker.redraw()
@@ -172,44 +173,6 @@ module.exports = class AppView extends BaseView
             option += ">#{tracker.get 'name'}</option>"
             combo.append option
 
-    onComparisonChanged: =>
-        combo = @$("#zoomcomparison")
-        data = @currentData
-        color = @currentTracker.get 'color'
-
-        # Get Corresponding tracker
-        val = combo.val()
-        if val is 'moods'
-            comparisonData = @moodTracker.data
-        else if val.indexOf('basic') isnt -1
-            tracker = @basicTrackerList.collection.findWhere
-                slug: val.substring(6)
-            color = 'black'
-            comparisonData = @basicTrackerList.views[tracker.cid]?.data
-        else
-            tracker = @trackerList.collection.findWhere id: val
-            comparisonData = @trackerList.views[tracker.cid]?.data
-
-        # Normalize results
-        maxData = 0
-        for entry in data
-            maxData = entry.y if entry.y > maxData
-
-        maxComparisonData = 0
-        for entry in comparisonData
-            maxComparisonData = entry.y if entry.y > maxComparisonData
-
-        factor = maxData / maxComparisonData
-
-        newComparisonData = []
-        for entry in comparisonData
-            max = entry.y if entry.y > max
-            newComparisonData.push
-                x: entry.x
-                y: entry.y * factor
-
-        @printZoomGraph data, color, newComparisonData
-
 
     ## Zoom widget
 
@@ -274,52 +237,114 @@ module.exports = class AppView extends BaseView
                         setTimeout recWait, 10
                 recWait()
 
-    onTimeUnitChanged: (event) ->
-        timeUnit = $("#zoomtimeunit").val()
+    getWeekData: (data) ->
+        graphData = {}
 
-        if timeUnit is 'day'
-            graphDataArray = @currentData
+        for entry in data
+            date = moment new Date(entry.x * 1000)
+            date = date.day 1
+            epoch = date.unix()
+
+            if graphData[epoch]?
+                graphData[epoch] += entry.y
+            else
+                graphData[epoch] = entry.y
+
+        graphDataArray = []
+        for epoch, value of graphData
+            graphDataArray.push
+                x: parseInt(epoch)
+                y: value
+
+        return graphDataArray
+
+    getMonthData: (data) ->
+        graphData = {}
+
+        for entry in @currentData
+            date = moment new Date(entry.x * 1000)
+            date = date.date 1
+            epoch = date.unix()
+
+            if graphData[epoch]?
+                graphData[epoch] += entry.y
+            else
+                graphData[epoch] = entry.y
+
+        graphDataArray = []
+        for epoch, value of graphData
+            graphDataArray.push
+                x: parseInt(epoch)
+                y: value
+
+        return graphDataArray
+
+    normalizeComparisonData: (data, comparisonData) ->
+        maxData = 0
+        for entry in data
+            maxData = entry.y if entry.y > maxData
+
+        maxComparisonData = 0
+        for entry in comparisonData
+            maxComparisonData = entry.y if entry.y > maxComparisonData
+
+        factor = maxData / maxComparisonData
+
+        newComparisonData = []
+        for entry in comparisonData
+            max = entry.y if entry.y > max
+            newComparisonData.push
+                x: entry.x
+                y: entry.y * factor
+
+        return newComparisonData
+
+    onComparisonChanged: =>
+        combo = @$("#zoomcomparison")
+        timeUnit = $("#zoomtimeunit").val()
+        graphStyle = $("#zoomstyle").val()
+        data = @currentData
+        color = @currentTracker.get 'color'
+
+        # Get Corresponding tracker
+        val = combo.val()
+
+        # Define comparison
+        if val is 'moods'
+            comparisonData = @moodTracker.data
+
+        else if val.indexOf('basic') isnt -1
+            tracker = @basicTrackerList.collection.findWhere
+                slug: val.substring(6)
+            color = 'black'
+            comparisonData = @basicTrackerList.views[tracker.cid]?.data
+
+        else if val isnt "undefined"
+            tracker = @trackerList.collection.findWhere id: val
+            comparisonData = @trackerList.views[tracker.cid]?.data
 
         else
-            data = @currentData
-            graphData = {}
+            comparisonData = null
 
-            if timeUnit is 'week'
-                data = {}
-                for entry in @currentData
-                    date = moment new Date(entry.x * 1000)
-                    date = date.day 1
-                    epoch = date.unix()
+        # Define timeUnit
+        if timeUnit is 'week'
+            data = @getWeekData data
+            comparisonData = @getWeekData comparisonData if comparisonData?
 
-                    if graphData[epoch]?
-                        graphData[epoch] += entry.y
-                    else
-                        graphData[epoch] = entry.y
+        else if timeUnit is 'month'
+            data = @getMonthData data
+            comparisonData = @getMonthData comparisonData if comparisonData?
 
-            else if timeUnit is 'month'
-                data = {}
-                for entry in @currentData
-                    date = moment new Date(entry.x * 1000)
-                    date = date.date 1
-                    epoch = date.unix()
+        # Normalize data
+        if comparisonData?
+            comparisonData = @normalizeComparisonData data, comparisonData
 
-                    if graphData[epoch]?
-                        graphData[epoch] += entry.y
-                    else
-                        graphData[epoch] = entry.y
+        @printZoomGraph data, color, graphStyle, comparisonData
 
-            graphDataArray = []
-            for epoch, value of graphData
-                graphDataArray.push
-                    x: parseInt(epoch)
-                    y: value
-
-        @printZoomGraph graphDataArray, @currentTracker.get 'color'
-
-    printZoomGraph: (data, color, comparisonData) ->
+    printZoomGraph: (data, color, graphStyle, comparisonData) ->
         width = $(window).width() - 140
         el = @$('#zoom-charts')[0]
         yEl = @$('#zoom-y-axis')[0]
 
         graphHelper.clear el, yEl
-        graphHelper.draw el, yEl, width, color, data, comparisonData
+        graphHelper.draw el, yEl, width, color, data, graphStyle, comparisonData

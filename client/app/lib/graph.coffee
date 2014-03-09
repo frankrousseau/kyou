@@ -1,6 +1,8 @@
 
 module.exports =
-    draw: (el, yEl, width, color, data, comparisonData) ->
+    draw: (el, yEl, width, color, data, graphStyle, comparisonData) ->
+        graphStyle = "bar" unless graphStyle?
+
         if comparisonData?
             series = [
                     color: color
@@ -9,13 +11,13 @@ module.exports =
                     color: 'red'
                     data: comparisonData
             ]
-            renderer = 'line'
+            renderer = graphStyle
         else
             series = [
                 color: color
                 data: data
             ]
-            renderer = 'bar'
+            renderer = graphStyle
 
         graph = new Rickshaw.Graph(
             element: el

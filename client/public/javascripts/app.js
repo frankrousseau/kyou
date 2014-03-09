@@ -290,8 +290,11 @@ window.require.register("lib/base_view", function(exports, require, module) {
 });
 window.require.register("lib/graph", function(exports, require, module) {
   module.exports = {
-    draw: function(el, yEl, width, color, data, comparisonData) {
+    draw: function(el, yEl, width, color, data, graphStyle, comparisonData) {
       var graph, hoverDetail, renderer, series, x_axis, y_axis;
+      if (graphStyle == null) {
+        graphStyle = "bar";
+      }
       if (comparisonData != null) {
         series = [
           {
@@ -302,7 +305,7 @@ window.require.register("lib/graph", function(exports, require, module) {
             data: comparisonData
           }
         ];
-        renderer = 'line';
+        renderer = graphStyle;
       } else {
         series = [
           {
@@ -310,7 +313,7 @@ window.require.register("lib/graph", function(exports, require, module) {
             data: data
           }
         ];
-        renderer = 'bar';
+        renderer = graphStyle;
       }
       graph = new Rickshaw.Graph({
         element: el,
@@ -812,7 +815,8 @@ window.require.register("views/app_view", function(exports, require, module) {
       'change #datepicker': 'onDatePickerChanged',
       'blur #dailynote': 'onDailyNoteChanged',
       'click #add-tracker-btn': 'onTrackerButtonClicked',
-      'change #zoomtimeunit': 'onTimeUnitChanged',
+      'change #zoomtimeunit': 'onComparisonChanged',
+      'change #zoomstyle': 'onComparisonChanged',
       'change #zoomcomparison': 'onComparisonChanged'
     };
 
@@ -877,7 +881,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       $('.chart').html(null);
       $('.y-axis').html(null);
       if (this.$("#zoomtracker").is(":visible")) {
-        this.printZoomGraph(this.currentData, this.currentTracker.get('color'));
+        this.onComparisonChanged();
       } else {
         this.moodTracker.redraw();
         this.trackerList.redrawAll();
@@ -999,55 +1003,6 @@ window.require.register("views/app_view", function(exports, require, module) {
       return _results;
     };
 
-    AppView.prototype.onComparisonChanged = function() {
-      var color, combo, comparisonData, data, entry, factor, max, maxComparisonData, maxData, newComparisonData, tracker, val, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
-      combo = this.$("#zoomcomparison");
-      data = this.currentData;
-      color = this.currentTracker.get('color');
-      val = combo.val();
-      if (val === 'moods') {
-        comparisonData = this.moodTracker.data;
-      } else if (val.indexOf('basic') !== -1) {
-        tracker = this.basicTrackerList.collection.findWhere({
-          slug: val.substring(6)
-        });
-        color = 'black';
-        comparisonData = (_ref = this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
-      } else {
-        tracker = this.trackerList.collection.findWhere({
-          id: val
-        });
-        comparisonData = (_ref1 = this.trackerList.views[tracker.cid]) != null ? _ref1.data : void 0;
-      }
-      maxData = 0;
-      for (_i = 0, _len = data.length; _i < _len; _i++) {
-        entry = data[_i];
-        if (entry.y > maxData) {
-          maxData = entry.y;
-        }
-      }
-      maxComparisonData = 0;
-      for (_j = 0, _len1 = comparisonData.length; _j < _len1; _j++) {
-        entry = comparisonData[_j];
-        if (entry.y > maxComparisonData) {
-          maxComparisonData = entry.y;
-        }
-      }
-      factor = maxData / maxComparisonData;
-      newComparisonData = [];
-      for (_k = 0, _len2 = comparisonData.length; _k < _len2; _k++) {
-        entry = comparisonData[_k];
-        if (entry.y > max) {
-          max = entry.y;
-        }
-        newComparisonData.push({
-          x: entry.x,
-          y: entry.y * factor
-        });
-      }
-      return this.printZoomGraph(data, color, newComparisonData);
-    };
-
     AppView.prototype.displayZoomTracker = function(callback) {
       var _this = this;
       if (this.dataLoaded) {
@@ -1131,62 +1086,136 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
-    AppView.prototype.onTimeUnitChanged = function(event) {
-      var data, date, entry, epoch, graphData, graphDataArray, timeUnit, value, _i, _j, _len, _len1, _ref, _ref1;
-      timeUnit = $("#zoomtimeunit").val();
-      if (timeUnit === 'day') {
-        graphDataArray = this.currentData;
-      } else {
-        data = this.currentData;
-        graphData = {};
-        if (timeUnit === 'week') {
-          data = {};
-          _ref = this.currentData;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            entry = _ref[_i];
-            date = moment(new Date(entry.x * 1000));
-            date = date.day(1);
-            epoch = date.unix();
-            if (graphData[epoch] != null) {
-              graphData[epoch] += entry.y;
-            } else {
-              graphData[epoch] = entry.y;
-            }
-          }
-        } else if (timeUnit === 'month') {
-          data = {};
-          _ref1 = this.currentData;
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            entry = _ref1[_j];
-            date = moment(new Date(entry.x * 1000));
-            date = date.date(1);
-            epoch = date.unix();
-            if (graphData[epoch] != null) {
-              graphData[epoch] += entry.y;
-            } else {
-              graphData[epoch] = entry.y;
-            }
-          }
-        }
-        graphDataArray = [];
-        for (epoch in graphData) {
-          value = graphData[epoch];
-          graphDataArray.push({
-            x: parseInt(epoch),
-            y: value
-          });
+    AppView.prototype.getWeekData = function(data) {
+      var date, entry, epoch, graphData, graphDataArray, value, _i, _len;
+      graphData = {};
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        entry = data[_i];
+        date = moment(new Date(entry.x * 1000));
+        date = date.day(1);
+        epoch = date.unix();
+        if (graphData[epoch] != null) {
+          graphData[epoch] += entry.y;
+        } else {
+          graphData[epoch] = entry.y;
         }
       }
-      return this.printZoomGraph(graphDataArray, this.currentTracker.get('color'));
+      graphDataArray = [];
+      for (epoch in graphData) {
+        value = graphData[epoch];
+        graphDataArray.push({
+          x: parseInt(epoch),
+          y: value
+        });
+      }
+      return graphDataArray;
     };
 
-    AppView.prototype.printZoomGraph = function(data, color, comparisonData) {
+    AppView.prototype.getMonthData = function(data) {
+      var date, entry, epoch, graphData, graphDataArray, value, _i, _len, _ref;
+      graphData = {};
+      _ref = this.currentData;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        entry = _ref[_i];
+        date = moment(new Date(entry.x * 1000));
+        date = date.date(1);
+        epoch = date.unix();
+        if (graphData[epoch] != null) {
+          graphData[epoch] += entry.y;
+        } else {
+          graphData[epoch] = entry.y;
+        }
+      }
+      graphDataArray = [];
+      for (epoch in graphData) {
+        value = graphData[epoch];
+        graphDataArray.push({
+          x: parseInt(epoch),
+          y: value
+        });
+      }
+      return graphDataArray;
+    };
+
+    AppView.prototype.normalizeComparisonData = function(data, comparisonData) {
+      var entry, factor, max, maxComparisonData, maxData, newComparisonData, _i, _j, _k, _len, _len1, _len2;
+      maxData = 0;
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        entry = data[_i];
+        if (entry.y > maxData) {
+          maxData = entry.y;
+        }
+      }
+      maxComparisonData = 0;
+      for (_j = 0, _len1 = comparisonData.length; _j < _len1; _j++) {
+        entry = comparisonData[_j];
+        if (entry.y > maxComparisonData) {
+          maxComparisonData = entry.y;
+        }
+      }
+      factor = maxData / maxComparisonData;
+      newComparisonData = [];
+      for (_k = 0, _len2 = comparisonData.length; _k < _len2; _k++) {
+        entry = comparisonData[_k];
+        if (entry.y > max) {
+          max = entry.y;
+        }
+        newComparisonData.push({
+          x: entry.x,
+          y: entry.y * factor
+        });
+      }
+      return newComparisonData;
+    };
+
+    AppView.prototype.onComparisonChanged = function() {
+      var color, combo, comparisonData, data, graphStyle, timeUnit, tracker, val, _ref, _ref1;
+      combo = this.$("#zoomcomparison");
+      timeUnit = $("#zoomtimeunit").val();
+      graphStyle = $("#zoomstyle").val();
+      data = this.currentData;
+      color = this.currentTracker.get('color');
+      val = combo.val();
+      if (val === 'moods') {
+        comparisonData = this.moodTracker.data;
+      } else if (val.indexOf('basic') !== -1) {
+        tracker = this.basicTrackerList.collection.findWhere({
+          slug: val.substring(6)
+        });
+        color = 'black';
+        comparisonData = (_ref = this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
+      } else if (val !== "undefined") {
+        tracker = this.trackerList.collection.findWhere({
+          id: val
+        });
+        comparisonData = (_ref1 = this.trackerList.views[tracker.cid]) != null ? _ref1.data : void 0;
+      } else {
+        comparisonData = null;
+      }
+      if (timeUnit === 'week') {
+        data = this.getWeekData(data);
+        if (comparisonData != null) {
+          comparisonData = this.getWeekData(comparisonData);
+        }
+      } else if (timeUnit === 'month') {
+        data = this.getMonthData(data);
+        if (comparisonData != null) {
+          comparisonData = this.getMonthData(comparisonData);
+        }
+      }
+      if (comparisonData != null) {
+        comparisonData = this.normalizeComparisonData(data, comparisonData);
+      }
+      return this.printZoomGraph(data, color, graphStyle, comparisonData);
+    };
+
+    AppView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData) {
       var el, width, yEl;
       width = $(window).width() - 140;
       el = this.$('#zoom-charts')[0];
       yEl = this.$('#zoom-y-axis')[0];
       graphHelper.clear(el, yEl);
-      return graphHelper.draw(el, yEl, width, color, data, comparisonData);
+      return graphHelper.draw(el, yEl, width, color, data, graphStyle, comparisonData);
     };
 
     return AppView;
@@ -1460,7 +1489,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></p><p><select id="zoomcomparison"></select></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option></select></p><p><select id="zoomcomparison"></select></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
