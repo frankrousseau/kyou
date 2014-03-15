@@ -935,7 +935,18 @@ window.require.register("views/app_view", function(exports, require, module) {
       return this.moodTracker.reload(function() {
         return _this.trackerList.reloadAll(function() {
           return _this.basicTrackerList.reloadAll(function() {
+            var tracker, trackerView;
             if (_this.$("#zoomtracker").is(":visible")) {
+              if (_this.currentTracker === _this.moodTracker) {
+                _this.currentData = _this.moodTracker.data;
+              } else {
+                tracker = _this.currentTracker;
+                trackerView = _this.basicTrackerList.views[tracker.cid];
+                if (trackerView == null) {
+                  trackerView = _this.trackerList.views[tracker.cid];
+                }
+                _this.currentData = trackerView != null ? trackerView.data : void 0;
+              }
               return _this.onComparisonChanged();
             }
           });
@@ -1150,7 +1161,7 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.onComparisonChanged = function() {
-      var comparisonData, data, graphStyle, timeUnit, tracker, val, _ref, _ref1;
+      var color, comparisonData, data, graphStyle, timeUnit, tracker, val, _ref, _ref1;
       val = this.$("#zoomcomparison").val();
       timeUnit = $("#zoomtimeunit").val();
       graphStyle = $("#zoomstyle").val();
@@ -1183,8 +1194,11 @@ window.require.register("views/app_view", function(exports, require, module) {
       }
       if (comparisonData != null) {
         comparisonData = graphHelper.normalizeComparisonData(data, comparisonData);
+        color = 'black';
+      } else {
+        color = this.currentTracker.get('color');
       }
-      return this.printZoomGraph(data, 'black', graphStyle, comparisonData);
+      return this.printZoomGraph(data, color, graphStyle, comparisonData);
     };
 
     AppView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData) {

@@ -65,6 +65,14 @@ module.exports = class AppView extends BaseView
             @trackerList.reloadAll =>
                 @basicTrackerList.reloadAll =>
                     if @$("#zoomtracker").is(":visible")
+                        if @currentTracker is @moodTracker
+                            @currentData = @moodTracker.data
+                        else
+                            tracker = @currentTracker
+                            trackerView = @basicTrackerList.views[tracker.cid]
+                            unless trackerView?
+                                trackerView = @trackerList.views[tracker.cid]
+                            @currentData = trackerView?.data
                         @onComparisonChanged()
 
 
@@ -272,8 +280,11 @@ module.exports = class AppView extends BaseView
         if comparisonData?
             comparisonData = graphHelper.normalizeComparisonData(
                 data, comparisonData)
+            color = 'black'
+        else
+            color = @currentTracker.get 'color'
 
-        @printZoomGraph data, 'black', graphStyle, comparisonData
+        @printZoomGraph data, color, graphStyle, comparisonData
 
     printZoomGraph: (data, color, graphStyle='line', comparisonData) ->
         width = $(window).width() - 140
