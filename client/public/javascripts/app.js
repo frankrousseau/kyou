@@ -353,6 +353,85 @@ window.require.register("lib/graph", function(exports, require, module) {
     clear: function(el, yEl) {
       $(el).html(null);
       return $(yEl).html(null);
+    },
+    getWeekData: function(data) {
+      var date, entry, epoch, graphData, graphDataArray, value, _i, _len;
+      graphData = {};
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        entry = data[_i];
+        date = moment(new Date(entry.x * 1000));
+        date = date.day(1);
+        epoch = date.unix();
+        if (graphData[epoch] != null) {
+          graphData[epoch] += entry.y;
+        } else {
+          graphData[epoch] = entry.y;
+        }
+      }
+      graphDataArray = [];
+      for (epoch in graphData) {
+        value = graphData[epoch];
+        graphDataArray.push({
+          x: parseInt(epoch),
+          y: value
+        });
+      }
+      return graphDataArray;
+    },
+    getMonthData: function(data) {
+      var date, entry, epoch, graphData, graphDataArray, value, _i, _len, _ref;
+      graphData = {};
+      _ref = this.currentData;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        entry = _ref[_i];
+        date = moment(new Date(entry.x * 1000));
+        date = date.date(1);
+        epoch = date.unix();
+        if (graphData[epoch] != null) {
+          graphData[epoch] += entry.y;
+        } else {
+          graphData[epoch] = entry.y;
+        }
+      }
+      graphDataArray = [];
+      for (epoch in graphData) {
+        value = graphData[epoch];
+        graphDataArray.push({
+          x: parseInt(epoch),
+          y: value
+        });
+      }
+      return graphDataArray;
+    },
+    normalizeComparisonData: function(data, comparisonData) {
+      var entry, factor, max, maxComparisonData, maxData, newComparisonData, _i, _j, _k, _len, _len1, _len2;
+      maxData = 0;
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        entry = data[_i];
+        if (entry.y > maxData) {
+          maxData = entry.y;
+        }
+      }
+      maxComparisonData = 0;
+      for (_j = 0, _len1 = comparisonData.length; _j < _len1; _j++) {
+        entry = comparisonData[_j];
+        if (entry.y > maxComparisonData) {
+          maxComparisonData = entry.y;
+        }
+      }
+      factor = maxData / maxComparisonData;
+      newComparisonData = [];
+      for (_k = 0, _len2 = comparisonData.length; _k < _len2; _k++) {
+        entry = comparisonData[_k];
+        if (entry.y > max) {
+          max = entry.y;
+        }
+        newComparisonData.push({
+          x: entry.x,
+          y: entry.y * factor
+        });
+      }
+      return newComparisonData;
     }
   };
   
@@ -768,12 +847,12 @@ window.require.register("router", function(exports, require, module) {
   
 });
 window.require.register("views/app_view", function(exports, require, module) {
-  var AppView, BaseView, BasicTrackerList, DailyNote, MoodTracker, Tracker, TrackerList, eequest, graphHelper,
+  var AppView, BaseView, BasicTrackerList, DailyNote, MoodTracker, Tracker, TrackerList, graphHelper, request,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  eequest = require('../lib/request');
+  request = require('../lib/request');
 
   graphHelper = require('../lib/graph');
 
@@ -807,9 +886,9 @@ window.require.register("views/app_view", function(exports, require, module) {
 
     function AppView() {
       this.onComparisonChanged = __bind(this.onComparisonChanged, this);
+      this.redrawCharts = __bind(this.redrawCharts, this);
       this.showZoomTracker = __bind(this.showZoomTracker, this);
       this.showTrackers = __bind(this.showTrackers, this);
-      this.redrawCharts = __bind(this.redrawCharts, this);
       this.getRenderData = __bind(this.getRenderData, this);
       AppView.__super__.constructor.apply(this, arguments);
       this.currentDate = moment();
@@ -864,19 +943,6 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
-    AppView.prototype.redrawCharts = function() {
-      $('.chart').html(null);
-      $('.y-axis').html(null);
-      if (this.$("#zoomtracker").is(":visible")) {
-        this.onComparisonChanged();
-      } else {
-        this.moodTracker.redraw();
-        this.trackerList.redrawAll();
-        this.basicTrackerList.redrawAll();
-      }
-      return true;
-    };
-
     AppView.prototype.showTrackers = function() {
       this.$("#moods").show();
       this.$("#tracker-list").show();
@@ -902,6 +968,19 @@ window.require.register("views/app_view", function(exports, require, module) {
       if (!this.dataLoaded) {
         return this.loadTrackers();
       }
+    };
+
+    AppView.prototype.redrawCharts = function() {
+      $('.chart').html(null);
+      $('.y-axis').html(null);
+      if (this.$("#zoomtracker").is(":visible")) {
+        this.onComparisonChanged();
+      } else {
+        this.moodTracker.redraw();
+        this.trackerList.redrawAll();
+        this.basicTrackerList.redrawAll();
+      }
+      return true;
     };
 
     AppView.prototype.onDailyNoteChanged = function(event) {
@@ -1070,88 +1149,6 @@ window.require.register("views/app_view", function(exports, require, module) {
       });
     };
 
-    AppView.prototype.getWeekData = function(data) {
-      var date, entry, epoch, graphData, graphDataArray, value, _i, _len;
-      graphData = {};
-      for (_i = 0, _len = data.length; _i < _len; _i++) {
-        entry = data[_i];
-        date = moment(new Date(enTry.x * 1000));
-        date = date.day(1);
-        epoch = date.unix();
-        if (graphData[epoch] != null) {
-          graphData[epoch] += entry.y;
-        } else {
-          graphData[epoch] = entry.y;
-        }
-      }
-      graphDataArray = [];
-      for (epoch in graphData) {
-        value = graphData[epoch];
-        graphDataArray.push({
-          x: parseInt(epoch),
-          y: value
-        });
-      }
-      return graphDataArray;
-    };
-
-    AppView.prototype.getMonthData = function(data) {
-      var date, entry, epoch, graphData, graphDataArray, value, _i, _len, _ref;
-      graphData = {};
-      _ref = this.currentData;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        entry = _ref[_i];
-        date = moment(new Date(entry.x * 1000));
-        date = date.date(1);
-        epoch = date.unix();
-        if (graphData[epoch] != null) {
-          graphData[epoch] += entry.y;
-        } else {
-          graphData[epoch] = entry.y;
-        }
-      }
-      graphDataArray = [];
-      for (epoch in graphData) {
-        value = graphData[epoch];
-        graphDataArray.push({
-          x: parseInt(epoch),
-          y: value
-        });
-      }
-      return graphDataArray;
-    };
-
-    AppView.prototype.normalizeComparisonData = function(data, comparisonData) {
-      var entry, factor, max, maxComparisonData, maxData, newComparisonData, _i, _j, _k, _len, _len1, _len2;
-      maxData = 0;
-      for (_i = 0, _len = data.length; _i < _len; _i++) {
-        entry = data[_i];
-        if (entry.y > maxData) {
-          maxData = entry.y;
-        }
-      }
-      maxComparisonData = 0;
-      for (_j = 0, _len1 = comparisonData.length; _j < _len1; _j++) {
-        entry = comparisonData[_j];
-        if (entry.y > maxComparisonData) {
-          maxComparisonData = entry.y;
-        }
-      }
-      factor = maxData / maxComparisonData;
-      newComparisonData = [];
-      for (_k = 0, _len2 = comparisonData.length; _k < _len2; _k++) {
-        entry = comparisonData[_k];
-        if (entry.y > max) {
-          max = entry.y;
-        }
-        newComparisonData.push({
-          x: entry.x,
-          y: entry.y * factor
-        });
-      }
-      return newComparisonData;
-    };
-
     AppView.prototype.onComparisonChanged = function() {
       var comparisonData, data, graphStyle, timeUnit, tracker, val, _ref, _ref1;
       val = this.$("#zoomcomparison").val();
@@ -1174,24 +1171,27 @@ window.require.register("views/app_view", function(exports, require, module) {
         comparisonData = null;
       }
       if (timeUnit === 'week') {
-        data = this.getWeekData(data);
+        data = graphHelper.getWeekData(data);
         if (comparisonData != null) {
-          comparisonData = this.getWeekData(comparisonData);
+          comparisonData = graphHelper.getWeekData(comparisonData);
         }
       } else if (timeUnit === 'month') {
-        data = this.getMonthData(data);
+        data = graphHelper.getMonthData(data);
         if (comparisonData != null) {
-          comparisonData = this.getMonthData(comparisonData);
+          comparisonData = graphHelper.getMonthData(comparisonData);
         }
       }
       if (comparisonData != null) {
-        comparisonData = this.normalizeComparisonData(data, comparisonData);
+        comparisonData = graphHelper.normalizeComparisonData(data, comparisonData);
       }
       return this.printZoomGraph(data, 'black', graphStyle, comparisonData);
     };
 
     AppView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData) {
       var el, width, yEl;
+      if (graphStyle == null) {
+        graphStyle = 'line';
+      }
       width = $(window).width() - 140;
       el = this.$('#zoom-charts')[0];
       yEl = this.$('#zoom-y-axis')[0];

@@ -1,4 +1,3 @@
-
 module.exports =
 
     # Draw a graph following the Risckshaw lib conventions.
@@ -57,3 +56,65 @@ module.exports =
     clear: (el, yEl) ->
         $(el).html null
         $(yEl).html null
+
+    getWeekData: (data) ->
+        graphData = {}
+
+        for entry in data
+            date = moment new Date(entry.x * 1000)
+            date = date.day 1
+            epoch = date.unix()
+
+            if graphData[epoch]?
+                graphData[epoch] += entry.y
+            else
+                graphData[epoch] = entry.y
+
+        graphDataArray = []
+        for epoch, value of graphData
+            graphDataArray.push
+                x: parseInt(epoch)
+                y: value
+
+        return graphDataArray
+
+    getMonthData: (data) ->
+        graphData = {}
+
+        for entry in @currentData
+            date = moment new Date(entry.x * 1000)
+            date = date.date 1
+            epoch = date.unix()
+
+            if graphData[epoch]?
+                graphData[epoch] += entry.y
+            else
+                graphData[epoch] = entry.y
+
+        graphDataArray = []
+        for epoch, value of graphData
+            graphDataArray.push
+                x: parseInt(epoch)
+                y: value
+
+        return graphDataArray
+
+    normalizeComparisonData: (data, comparisonData) ->
+        maxData = 0
+        for entry in data
+            maxData = entry.y if entry.y > maxData
+
+        maxComparisonData = 0
+        for entry in comparisonData
+            maxComparisonData = entry.y if entry.y > maxComparisonData
+
+        factor = maxData / maxComparisonData
+
+        newComparisonData = []
+        for entry in comparisonData
+            max = entry.y if entry.y > max
+            newComparisonData.push
+                x: entry.x
+                y: entry.y * factor
+
+        return newComparisonData

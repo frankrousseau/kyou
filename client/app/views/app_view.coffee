@@ -1,4 +1,4 @@
-eequest = require '../lib/request'
+request = require '../lib/request'
 graphHelper = require '../lib/graph'
 BaseView = require '../lib/base_view'
 
@@ -33,7 +33,9 @@ module.exports = class AppView extends BaseView
         @colors = {}
         @data = {}
         @dataLoaded = false
+
         $(window).on 'resize',  @redrawCharts
+
         window.app = {}
         window.app.mainView = @
 
@@ -66,20 +68,6 @@ module.exports = class AppView extends BaseView
                         @onComparisonChanged()
 
 
-    redrawCharts: =>
-        $('.chart').html null
-        $('.y-axis').html null
-
-        if @$("#zoomtracker").is(":visible")
-            @onComparisonChanged()
-
-        else
-            @moodTracker.redraw()
-            @trackerList.redrawAll()
-            @basicTrackerList.redrawAll()
-
-        true
-
     # View management
 
     showTrackers: =>
@@ -106,6 +94,20 @@ module.exports = class AppView extends BaseView
         @showTrackers()
         @loadTrackers() unless @dataLoaded
 
+
+    redrawCharts: =>
+        $('.chart').html null
+        $('.y-axis').html null
+
+        if @$("#zoomtracker").is(":visible")
+            @onComparisonChanged()
+
+        else
+            @moodTracker.redraw()
+            @trackerList.redrawAll()
+            @basicTrackerList.redrawAll()
+
+        true
 
 
     ## Note Widget
@@ -155,6 +157,8 @@ module.exports = class AppView extends BaseView
                             @fillComparisonCombo()
                             callback() if callback?
 
+    ## Zoom widget
+
     fillComparisonCombo: ->
         combo = @$("#zoomcomparison")
         combo.append "<option value=\"undefined\">Select the tracker to compare</option>"
@@ -172,8 +176,6 @@ module.exports = class AppView extends BaseView
             option += ">#{tracker.get 'name'}</option>"
             combo.append option
 
-
-    ## Zoom widget
 
     displayZoomTracker: (callback) ->
         if @dataLoaded
@@ -234,68 +236,6 @@ module.exports = class AppView extends BaseView
                         setTimeout recWait, 10
                 recWait()
 
-    getWeekData: (data) ->
-        graphData = {}
-
-        for entry in data
-            date = moment new Date(enTry.x * 1000)
-            date = date.day 1
-            epoch = date.unix()
-
-            if graphData[epoch]?
-                graphData[epoch] += entry.y
-            else
-                graphData[epoch] = entry.y
-
-        graphDataArray = []
-        for epoch, value of graphData
-            graphDataArray.push
-                x: parseInt(epoch)
-                y: value
-
-        return graphDataArray
-
-    getMonthData: (data) ->
-        graphData = {}
-
-        for entry in @currentData
-            date = moment new Date(entry.x * 1000)
-            date = date.date 1
-            epoch = date.unix()
-
-            if graphData[epoch]?
-                graphData[epoch] += entry.y
-            else
-                graphData[epoch] = entry.y
-
-        graphDataArray = []
-        for epoch, value of graphData
-            graphDataArray.push
-                x: parseInt(epoch)
-                y: value
-
-        return graphDataArray
-
-    normalizeComparisonData: (data, comparisonData) ->
-        maxData = 0
-        for entry in data
-            maxData = entry.y if entry.y > maxData
-
-        maxComparisonData = 0
-        for entry in comparisonData
-            maxComparisonData = entry.y if entry.y > maxComparisonData
-
-        factor = maxData / maxComparisonData
-
-        newComparisonData = []
-        for entry in comparisonData
-            max = entry.y if entry.y > max
-            newComparisonData.push
-                x: entry.x
-                y: entry.y * factor
-
-        return newComparisonData
-
     onComparisonChanged: =>
         val = @$("#zoomcomparison").val()
         timeUnit = $("#zoomtimeunit").val()
@@ -320,23 +260,26 @@ module.exports = class AppView extends BaseView
 
         # Define timeUnit
         if timeUnit is 'week'
-            data = @getWeekData data
-            comparisonData = @getWeekData comparisonData if comparisonData?
-
+            data = graphHelper.getWeekData data
+            if comparisonData?
+                comparisonData = graphHelper.getWeekData comparisonData
         else if timeUnit is 'month'
-            data = @getMonthData data
-            comparisonData = @getMonthData comparisonData if comparisonData?
+            data = graphHelper.getMonthData data
+            if comparisonData?
+                comparisonData = graphHelper.getMonthData comparisonData
 
         # Normalize data
         if comparisonData?
-            comparisonData = @normalizeComparisonData data, comparisonData
+            comparisonData = graphHelper.normalizeComparisonData(
+                data, comparisonData)
 
         @printZoomGraph data, 'black', graphStyle, comparisonData
 
-    printZoomGraph: (data, color, graphStyle, comparisonData) ->
+    printZoomGraph: (data, color, graphStyle='line', comparisonData) ->
         width = $(window).width() - 140
         el = @$('#zoom-charts')[0]
         yEl = @$('#zoom-y-axis')[0]
 
         graphHelper.clear el, yEl
-        graphHelper.draw el, yEl, width, color, data, graphStyle, comparisonData
+        graphHelper.draw(
+            el, yEl, width, color, data, graphStyle, comparisonData)
