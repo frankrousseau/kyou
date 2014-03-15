@@ -3,12 +3,18 @@ slugify = require 'cozy-slug'
 
 Tracker = require '../models/tracker'
 TrackerAmount = require '../models/trackeramount'
-normalizeResults = require '../lib/normalizer'
+normalizer = require '../lib/normalizer'
 trackerUtils = require '../lib/trackers'
 
 
 # Return number of tasks completed for every day
 module.exports =
+
+    # Transform data given in rul in a data without hours
+    loadDay: (req, res, next, day) ->
+        req.day = moment req.params.day
+        req.day.hours 0, 0, 0, 0
+        next()
 
     # Load tracker before processing request.
     loadTracker: (req, res, next, trackerId) ->
@@ -49,7 +55,7 @@ module.exports =
         res.send error: 'not implemented yet', 500
 
 
-    # Destroy given user custom tracker.
+    # Destroy given user custom tracker with value linked to it.
     destroy: (req, res, next) ->
         TrackerAmount.destroyAll req.tracker, (err) ->
             if err then next err
@@ -61,18 +67,14 @@ module.exports =
 
     # Get value for given day and given custom tracker.
     day: (req, res, next) ->
-        day = moment req.params.day
-        day.hours 0, 0, 0, 0
-        req.tracker.getAmount day, (err, trackerAmount) ->
+        req.tracker.getAmount req.day, (err, trackerAmount) ->
             if err then next err
             else if trackerAmount? then res.send trackerAmount
             else res.send {}
 
     # Set value for given day and given custom tracker.
     updateDayValue: (req, res, next) ->
-        day = moment req.params.day
-        day.hours 0, 0, 0, 0
-        req.tracker.getAmount day, (err, trackerAmount) ->
+        req.tracker.getAmount req.day, (err, trackerAmount) ->
             if err then next err
             else if trackerAmount?
                 trackerAmount.amount = req.body.amount
@@ -82,7 +84,7 @@ module.exports =
             else
                 data =
                     amount: req.body.amount
-                    date: day
+                    date: req.day
                     tracker: req.tracker.id
                 TrackerAmount.create data, (err, trackerAmount) ->
                     if err then next err
@@ -91,18 +93,14 @@ module.exports =
     # Return 6 month of data for given custom tracker.
     amounts: (req, res, next) ->
         id = req.tracker.id
-        day = moment req.params.day
+        day = moment req.day
         params = startkey: [id], endkey: [id + "0"], descending: false
         TrackerAmount.rawRequest 'nbByDay', params, (err, rows) ->
             if err then next err
             else
-                results = []
                 tmpRows = []
                 for row in rows
                     tmpRows.push key: row['key'][1], value: row['value']
 
-                data = normalizeResults tmpRows, day
-                for date, value of data
-                    dateEpoch = new Date(date).getTime() / 1000
-                    results.push x: dateEpoch, y: value
-                res.send results, 200
+                data = normalizer.normalize tmpRows, day
+                res.send normalizer.toClientFormat data

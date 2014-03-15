@@ -4,9 +4,9 @@ moment = require 'moment'
 
 # Return the note of the day
 module.exports.day = (req, res, next) ->
-    day = moment req.params.day
-    day.hours 0, 0, 0, 0
-    DailyNote.getDailyNote day, (err, dailynote) ->
+    console.log req.day
+
+    DailyNote.getDailyNote req.day, (err, dailynote) ->
         if err then next err
         else if dailynote? then res.send dailynote
         else res.send {}
@@ -14,9 +14,7 @@ module.exports.day = (req, res, next) ->
 
 # Update note of the day if it exists or create it either.
 module.exports.updateDay = (req, res, next) ->
-    day = moment req.params.day
-    day.hours 0, 0, 0, 0
-    DailyNote.getDailyNote day, (err, dailynote) ->
+    DailyNote.getDailyNote req.day, (err, dailynote) ->
         if err then next err
         else if dailynote?
             dailynote.text = req.body.text
@@ -26,7 +24,7 @@ module.exports.updateDay = (req, res, next) ->
         else
             data =
                 text: req.body.text
-                date: day
+                date: req.day
             DailyNote.create data, (err, dailynote) ->
                 if err then next err
                 else res.send dailynote

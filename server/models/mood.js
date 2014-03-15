@@ -15,7 +15,7 @@ module.exports = Mood = americano.getModel('Mood', {
 });
 
 Mood.getMood = function(day, callback) {
-  day = moment(day, 'YYYY-MM-DD').format('YYYY-MM-DD');
+  day = day.format('YYYY-MM-DD');
   return Mood.request('byDay', {
     key: day
   }, function(err, moods) {

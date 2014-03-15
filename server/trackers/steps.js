@@ -5,7 +5,7 @@ americano = require('americano-cozy');
 
 module.exports = {
   name: "Steps - Jawbone",
-  color: "#27AE61",
+  color: "#D35400",
   description: "Number of steps you walked every day. Data should be imported from Jawbone\nKonnector.",
   model: americano.getModel('JawboneMove', {
     date: Date

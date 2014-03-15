@@ -6,10 +6,8 @@ DailyNote = require('../models/dailynote');
 moment = require('moment');
 
 module.exports.day = function(req, res, next) {
-  var day;
-  day = moment(req.params.day);
-  day.hours(0, 0, 0, 0);
-  return DailyNote.getDailyNote(day, function(err, dailynote) {
+  console.log(req.day);
+  return DailyNote.getDailyNote(req.day, function(err, dailynote) {
     if (err) {
       return next(err);
     } else if (dailynote != null) {
@@ -21,10 +19,7 @@ module.exports.day = function(req, res, next) {
 };
 
 module.exports.updateDay = function(req, res, next) {
-  var day;
-  day = moment(req.params.day);
-  day.hours(0, 0, 0, 0);
-  return DailyNote.getDailyNote(day, function(err, dailynote) {
+  return DailyNote.getDailyNote(req.day, function(err, dailynote) {
     var data;
     if (err) {
       return next(err);
@@ -40,7 +35,7 @@ module.exports.updateDay = function(req, res, next) {
     } else {
       data = {
         text: req.body.text,
-        date: day
+        date: req.day
       };
       return DailyNote.create(data, function(err, dailynote) {
         if (err) {

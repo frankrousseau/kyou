@@ -8,7 +8,7 @@ module.exports = DailyNote = americano.getModel 'DailyNote',
 # Get note text for given day.
 # Return null if there is no value for given day.
 DailyNote.getDailyNote = (day, callback) ->
-    day = moment(day, 'YYYY-MM-DD').format 'YYYY-MM-DD'
+    day = day.format 'YYYY-MM-DD'
 
     DailyNote.request 'byDay', key: day, (err, dailynotes) ->
         if err

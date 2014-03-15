@@ -11,6 +11,9 @@ module.exports = {
   'trackerId': {
     param: trackers.loadTracker
   },
+  'day': {
+    param: trackers.loadDay
+  },
   'moods/:day': {
     get: moods.all
   },

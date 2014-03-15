@@ -8,7 +8,7 @@ module.exports = Mood = americano.getModel 'Mood',
 # Get Mood value for given day.
 # Return null if there is no value for given day.
 Mood.getMood = (day, callback) ->
-    day = moment(day, 'YYYY-MM-DD').format 'YYYY-MM-DD'
+    day = day.format 'YYYY-MM-DD'
 
     Mood.request 'byDay', key: day, (err, moods) ->
         if err

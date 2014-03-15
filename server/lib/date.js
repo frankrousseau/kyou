@@ -15,22 +15,3 @@ module.exports.getDateString = getDateString = function(date) {
   dateString = yyyy + '-' + mm + '-' + dd;
   return dateString;
 };
-
-module.exports.getTodayModel = function(err, models, callback) {
-  var date, model, now;
-  if (err) {
-    return callback(err);
-  } else if (models.length !== 0) {
-    model = models[0];
-    now = getDateString(new Date);
-    date = getDateString(model.date);
-    if (now === date) {
-      model.id = model._id;
-      return callback(null, model);
-    } else {
-      return callback();
-    }
-  } else {
-    return callback();
-  }
-};
