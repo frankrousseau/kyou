@@ -1,7 +1,7 @@
 module.exports =
 
     # Draw a graph following the Risckshaw lib conventions.
-    draw: (el, yEl, width, color, data, graphStyle, comparisonData) ->
+    draw: (el, yEl, width, color, data, graphStyle, comparisonData, time) ->
         graphStyle = "bar" unless graphStyle?
 
         # Build graph options depending of if there is something to compare.
@@ -32,7 +32,10 @@ module.exports =
         )
 
         # Add axis
-        x_axis = new Rickshaw.Graph.Axis.Time graph: graph
+        if not time? or time
+            x_axis = new Rickshaw.Graph.Axis.Time graph: graph
+        else
+            x_axis = new Rickshaw.Graph.Axis.X graph: graph
         y_axis = new Rickshaw.Graph.Axis.Y
              graph: graph
              orientation: 'left'
@@ -118,3 +121,25 @@ module.exports =
                 y: entry.y * factor
 
         return newComparisonData
+
+    mixData: (data, comparisonData) ->
+
+        dataHash = {}
+        for entry in data
+            dataHash[entry.x] = entry.y
+
+        newData = []
+        for entry in comparisonData
+            newData.push
+                x: entry.y
+                y: dataHash[entry.x]
+
+        newData = _.sortBy newData, (entry) -> entry.x
+
+        newData
+
+
+
+
+
+

@@ -249,6 +249,7 @@ module.exports = class AppView extends BaseView
         timeUnit = $("#zoomtimeunit").val()
         graphStyle = $("#zoomstyle").val()
         data = @currentData
+        time = true
 
         # Define comparison
         if val is 'moods'
@@ -271,10 +272,18 @@ module.exports = class AppView extends BaseView
             data = graphHelper.getWeekData data
             if comparisonData?
                 comparisonData = graphHelper.getWeekData comparisonData
+
         else if timeUnit is 'month'
             data = graphHelper.getMonthData data
             if comparisonData?
                 comparisonData = graphHelper.getMonthData comparisonData
+
+        else if graphStyle is 'correlation' and comparisonData?
+            data = graphHelper.mixData data, comparisonData
+
+            comparisonData = null
+            graphStyle = 'scatterplot'
+            time = false
 
         # Normalize data
         if comparisonData?
@@ -284,13 +293,13 @@ module.exports = class AppView extends BaseView
         else
             color = @currentTracker.get 'color'
 
-        @printZoomGraph data, color, graphStyle, comparisonData
+        @printZoomGraph data, color, graphStyle, comparisonData, time
 
-    printZoomGraph: (data, color, graphStyle='line', comparisonData) ->
+    printZoomGraph: (data, color, graphStyle='line', comparisonData, time) ->
         width = $(window).width() - 140
         el = @$('#zoom-charts')[0]
         yEl = @$('#zoom-y-axis')[0]
 
         graphHelper.clear el, yEl
         graphHelper.draw(
-            el, yEl, width, color, data, graphStyle, comparisonData)
+            el, yEl, width, color, data, graphStyle, comparisonData, time)

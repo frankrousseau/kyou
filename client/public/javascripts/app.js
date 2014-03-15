@@ -296,7 +296,7 @@ window.require.register("lib/base_view", function(exports, require, module) {
 });
 window.require.register("lib/graph", function(exports, require, module) {
   module.exports = {
-    draw: function(el, yEl, width, color, data, graphStyle, comparisonData) {
+    draw: function(el, yEl, width, color, data, graphStyle, comparisonData, time) {
       var graph, hoverDetail, renderer, series, x_axis, y_axis;
       if (graphStyle == null) {
         graphStyle = "bar";
@@ -329,9 +329,15 @@ window.require.register("lib/graph", function(exports, require, module) {
         series: series,
         interpolation: 'linear'
       });
-      x_axis = new Rickshaw.Graph.Axis.Time({
-        graph: graph
-      });
+      if ((time == null) || time) {
+        x_axis = new Rickshaw.Graph.Axis.Time({
+          graph: graph
+        });
+      } else {
+        x_axis = new Rickshaw.Graph.Axis.X({
+          graph: graph
+        });
+      }
       y_axis = new Rickshaw.Graph.Axis.Y({
         graph: graph,
         orientation: 'left',
@@ -432,6 +438,26 @@ window.require.register("lib/graph", function(exports, require, module) {
         });
       }
       return newComparisonData;
+    },
+    mixData: function(data, comparisonData) {
+      var dataHash, entry, newData, _i, _j, _len, _len1;
+      dataHash = {};
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        entry = data[_i];
+        dataHash[entry.x] = entry.y;
+      }
+      newData = [];
+      for (_j = 0, _len1 = comparisonData.length; _j < _len1; _j++) {
+        entry = comparisonData[_j];
+        newData.push({
+          x: entry.y,
+          y: dataHash[entry.x]
+        });
+      }
+      newData = _.sortBy(newData, function(entry) {
+        return entry.x;
+      });
+      return newData;
     }
   };
   
@@ -1161,11 +1187,12 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.onComparisonChanged = function() {
-      var color, comparisonData, data, graphStyle, timeUnit, tracker, val, _ref, _ref1;
+      var color, comparisonData, data, graphStyle, time, timeUnit, tracker, val, _ref, _ref1;
       val = this.$("#zoomcomparison").val();
       timeUnit = $("#zoomtimeunit").val();
       graphStyle = $("#zoomstyle").val();
       data = this.currentData;
+      time = true;
       if (val === 'moods') {
         comparisonData = this.moodTracker.data;
       } else if (val.indexOf('basic') !== -1) {
@@ -1191,6 +1218,11 @@ window.require.register("views/app_view", function(exports, require, module) {
         if (comparisonData != null) {
           comparisonData = graphHelper.getMonthData(comparisonData);
         }
+      } else if (graphStyle === 'correlation' && (comparisonData != null)) {
+        data = graphHelper.mixData(data, comparisonData);
+        comparisonData = null;
+        graphStyle = 'scatterplot';
+        time = false;
       }
       if (comparisonData != null) {
         comparisonData = graphHelper.normalizeComparisonData(data, comparisonData);
@@ -1198,10 +1230,10 @@ window.require.register("views/app_view", function(exports, require, module) {
       } else {
         color = this.currentTracker.get('color');
       }
-      return this.printZoomGraph(data, color, graphStyle, comparisonData);
+      return this.printZoomGraph(data, color, graphStyle, comparisonData, time);
     };
 
-    AppView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData) {
+    AppView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData, time) {
       var el, width, yEl;
       if (graphStyle == null) {
         graphStyle = 'line';
@@ -1210,7 +1242,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       el = this.$('#zoom-charts')[0];
       yEl = this.$('#zoom-y-axis')[0];
       graphHelper.clear(el, yEl);
-      return graphHelper.draw(el, yEl, width, color, data, graphStyle, comparisonData);
+      return graphHelper.draw(el, yEl, width, color, data, graphStyle, comparisonData, time);
     };
 
     return AppView;
@@ -1502,7 +1534,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
