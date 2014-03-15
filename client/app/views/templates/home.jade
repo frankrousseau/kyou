@@ -20,12 +20,13 @@
                     option(value="month") month
                 span &nbsp;
                 select#zoomstyle
-                    option(value="bar") bars
                     option(value="line") lines
+                    option(value="bar") bars
                     option(value="scatterplot") points
                     option(value="lineplot") lines + points
             p
                 select#zoomcomparison
+                span.smaller.em &nbsp;(Compared tracker is in red).
         #zoomgraph.graph-container
             #zoom-y-axis.y-axis
             #zoom-charts.chart

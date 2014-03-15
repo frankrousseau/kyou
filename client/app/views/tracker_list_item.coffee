@@ -22,7 +22,7 @@ module.exports = class TrackerItem extends BaseView
                 error: ->
                     alert 'something went wrong while removing tracker.'
 
-    afterRender: =>
+    afterRender: (callback) =>
         day = window.app.mainView.currentDate
         getData = =>
             @model.getDay day, (err, amount) =>
@@ -33,7 +33,8 @@ module.exports = class TrackerItem extends BaseView
                         'Set value for current day')
                 else
                     @$('.current-amount').html amount.get 'amount'
-                @getAnalytics()
+
+                @getAnalytics callback
 
         if @model.id?
             getData()
@@ -109,7 +110,7 @@ module.exports = class TrackerItem extends BaseView
                     @redrawGraph()
 
 
-    getAnalytics: ->
+    getAnalytics: (callback) ->
         @$(".graph-container").spin 'tiny'
         day = window.app.mainView.currentDate.format "YYYY-MM-DD"
         request.get "trackers/#{@model.get 'id'}/amounts/#{day}", (err, data) =>
@@ -119,6 +120,7 @@ module.exports = class TrackerItem extends BaseView
                 @$(".graph-container").spin()
                 @data = data
                 @drawCharts()
+                callback() if callback?
 
     redrawGraph: ->
         @drawCharts()

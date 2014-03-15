@@ -80,61 +80,67 @@
 })();
 
 window.require.register("application", function(exports, require, module) {
+  var initSpinner;
+
+  initSpinner = function() {
+    return $.fn.spin = function(opts, color) {
+      var presets;
+      presets = {
+        tiny: {
+          lines: 8,
+          length: 2,
+          width: 2,
+          radius: 3
+        },
+        small: {
+          lines: 8,
+          length: 1,
+          width: 2,
+          radius: 5
+        },
+        large: {
+          lines: 10,
+          length: 8,
+          width: 4,
+          radius: 8
+        }
+      };
+      if (Spinner) {
+        return this.each(function() {
+          var $this, spinner;
+          $this = $(this);
+          spinner = $this.data("spinner");
+          if (spinner != null) {
+            spinner.stop();
+            return $this.data("spinner", null);
+          } else if (opts !== false) {
+            if (typeof opts === "string") {
+              if (opts in presets) {
+                opts = presets[opts];
+              } else {
+                opts = {};
+              }
+              if (color) {
+                opts.color = color;
+              }
+            }
+            spinner = new Spinner($.extend({
+              color: $this.css("color")
+            }, opts));
+            spinner.spin(this);
+            return $this.data("spinner", spinner);
+          }
+        });
+      } else {
+        return console.log('Spinner class is not available');
+      }
+    };
+  };
+
   module.exports = {
     initialize: function() {
       var Router;
-      $.fn.spin = function(opts, color) {
-        var presets;
-        presets = {
-          tiny: {
-            lines: 8,
-            length: 2,
-            width: 2,
-            radius: 3
-          },
-          small: {
-            lines: 8,
-            length: 1,
-            width: 2,
-            radius: 5
-          },
-          large: {
-            lines: 10,
-            length: 8,
-            width: 4,
-            radius: 8
-          }
-        };
-        if (Spinner) {
-          return this.each(function() {
-            var $this, spinner;
-            $this = $(this);
-            spinner = $this.data("spinner");
-            if (spinner != null) {
-              spinner.stop();
-              return $this.data("spinner", null);
-            } else if (opts !== false) {
-              if (typeof opts === "string") {
-                if (opts in presets) {
-                  opts = presets[opts];
-                } else {
-                  opts = {};
-                }
-                if (color) {
-                  opts.color = color;
-                }
-              }
-              spinner = new Spinner($.extend({
-                color: $this.css("color")
-              }, opts));
-              spinner.spin(this);
-              return $this.data("spinner", spinner);
-            }
-          });
-        } else {
-          return console.log('Spinner class is not available');
-        }
-      };
+      initSpinner();
       Router = require('router');
       this.router = new Router();
       Backbone.history.start();
@@ -650,28 +656,6 @@ window.require.register("models/mood", function(exports, require, module) {
   })(Model);
   
 });
-window.require.register("models/moods", function(exports, require, module) {
-  var MoodsCollection, _ref,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  module.exports = MoodsCollection = (function(_super) {
-    __extends(MoodsCollection, _super);
-
-    function MoodsCollection() {
-      _ref = MoodsCollection.__super__.constructor.apply(this, arguments);
-      return _ref;
-    }
-
-    MoodsCollection.prototype.model = require('../models/mood');
-
-    MoodsCollection.prototype.url = 'moods/';
-
-    return MoodsCollection;
-
-  })(Backbone.Collection);
-  
-});
 window.require.register("models/tracker", function(exports, require, module) {
   var TrackerModel, request, _ref,
     __hasProp = {}.hasOwnProperty,
@@ -862,19 +846,21 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.onDatePickerChanged = function() {
+      var _this = this;
       this.currentDate = moment(this.$("#datepicker").val());
+      this.$("#datepicker").val(this.currentDate.format('LL'), {
+        trigger: false
+      });
       this.loadNote();
-      return this.loadAnalytics();
-    };
-
-    AppView.prototype.loadAnalytics = function() {
-      this.moodTracker.reload();
-      if (this.trackerList != null) {
-        this.basicTrackerList.reloadAll();
-      }
-      if (this.trackerList != null) {
-        return this.trackerList.reloadAll();
-      }
+      return this.moodTracker.reload(function() {
+        return _this.trackerList.reloadAll(function() {
+          return _this.basicTrackerList.reloadAll(function() {
+            if (_this.$("#zoomtracker").is(":visible")) {
+              return _this.onComparisonChanged();
+            }
+          });
+        });
+      });
     };
 
     AppView.prototype.redrawCharts = function() {
@@ -1022,10 +1008,7 @@ window.require.register("views/app_view", function(exports, require, module) {
         _this.$("#zoomtitle").html(_this.$("#moods h2").html());
         _this.$("#zoomexplaination").html(_this.$("#moods .explaination").html());
         _this.currentData = _this.moodTracker.data;
-        _this.currentTracker = new Tracker({
-          name: 'moods',
-          color: 'steelblue'
-        });
+        _this.currentTracker = _this.moodTracker;
         return _this.printZoomGraph(_this.currentData, 'steelblue');
       });
     };
@@ -1091,7 +1074,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       graphData = {};
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         entry = data[_i];
-        date = moment(new Date(entry.x * 1000));
+        date = moment(new Date(enTry.x * 1000));
         date = date.day(1);
         epoch = date.unix();
         if (graphData[epoch] != null) {
@@ -1169,20 +1152,17 @@ window.require.register("views/app_view", function(exports, require, module) {
     };
 
     AppView.prototype.onComparisonChanged = function() {
-      var color, combo, comparisonData, data, graphStyle, timeUnit, tracker, val, _ref, _ref1;
-      combo = this.$("#zoomcomparison");
+      var comparisonData, data, graphStyle, timeUnit, tracker, val, _ref, _ref1;
+      val = this.$("#zoomcomparison").val();
       timeUnit = $("#zoomtimeunit").val();
       graphStyle = $("#zoomstyle").val();
       data = this.currentData;
-      color = this.currentTracker.get('color');
-      val = combo.val();
       if (val === 'moods') {
         comparisonData = this.moodTracker.data;
       } else if (val.indexOf('basic') !== -1) {
         tracker = this.basicTrackerList.collection.findWhere({
           slug: val.substring(6)
         });
-        color = 'black';
         comparisonData = (_ref = this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
       } else if (val !== "undefined") {
         tracker = this.trackerList.collection.findWhere({
@@ -1206,7 +1186,7 @@ window.require.register("views/app_view", function(exports, require, module) {
       if (comparisonData != null) {
         comparisonData = this.normalizeComparisonData(data, comparisonData);
       }
-      return this.printZoomGraph(data, color, graphStyle, comparisonData);
+      return this.printZoomGraph(data, 'black', graphStyle, comparisonData);
     };
 
     AppView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData) {
@@ -1224,7 +1204,7 @@ window.require.register("views/app_view", function(exports, require, module) {
   
 });
 window.require.register("views/basic_tracker_list", function(exports, require, module) {
-  var BasicTrackerCollection, TrackerList, ViewCollection, _ref,
+  var BasicTrackerCollection, BasicTrackerList, ViewCollection, _ref,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1232,23 +1212,23 @@ window.require.register("views/basic_tracker_list", function(exports, require, m
 
   BasicTrackerCollection = require('collections/basic_trackers');
 
-  module.exports = TrackerList = (function(_super) {
-    __extends(TrackerList, _super);
+  module.exports = BasicTrackerList = (function(_super) {
+    __extends(BasicTrackerList, _super);
 
-    function TrackerList() {
-      _ref = TrackerList.__super__.constructor.apply(this, arguments);
+    function BasicTrackerList() {
+      _ref = BasicTrackerList.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
-    TrackerList.prototype.id = 'basic-tracker-list';
+    BasicTrackerList.prototype.id = 'basic-tracker-list';
 
-    TrackerList.prototype.itemView = require('views/basic_tracker_list_item');
+    BasicTrackerList.prototype.itemView = require('views/basic_tracker_list_item');
 
-    TrackerList.prototype.template = require('views/templates/basic_tracker_list');
+    BasicTrackerList.prototype.template = require('views/templates/basic_tracker_list');
 
-    TrackerList.prototype.collection = new BasicTrackerCollection();
+    BasicTrackerList.prototype.collection = new BasicTrackerCollection();
 
-    TrackerList.prototype.redrawAll = function() {
+    BasicTrackerList.prototype.redrawAll = function() {
       var id, view, _ref1, _results;
       _ref1 = this.views;
       _results = [];
@@ -1259,20 +1239,35 @@ window.require.register("views/basic_tracker_list", function(exports, require, m
       return _results;
     };
 
-    TrackerList.prototype.reloadAll = function() {
-      var id, view, _ref1, _results;
+    BasicTrackerList.prototype.reloadAll = function(callback) {
+      var id, length, nbLoaded, view, _ref1, _ref2, _results,
+        _this = this;
       this.$(".tracker .chart").html('');
       this.$(".tracker .y-axis").html('');
+      nbLoaded = 0;
+      length = 0;
       _ref1 = this.views;
-      _results = [];
       for (id in _ref1) {
         view = _ref1[id];
-        _results.push(view.afterRender());
+        length++;
+      }
+      _ref2 = this.views;
+      _results = [];
+      for (id in _ref2) {
+        view = _ref2[id];
+        _results.push(view.afterRender(function() {
+          nbLoaded++;
+          if (nbLoaded === length) {
+            if (callback != null) {
+              return callback();
+            }
+          }
+        }));
       }
       return _results;
     };
 
-    return TrackerList;
+    return BasicTrackerList;
 
   })(ViewCollection);
   
@@ -1302,24 +1297,27 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
 
     BasicTrackerItem.prototype.template = require('views/templates/basic_tracker_list_item');
 
-    BasicTrackerItem.prototype.afterRender = function() {
+    BasicTrackerItem.prototype.afterRender = function(callback) {
       var day;
       day = window.app.mainView.currentDate;
-      return this.getAnalytics();
+      return this.getAnalytics(callback);
     };
 
-    BasicTrackerItem.prototype.getAnalytics = function() {
+    BasicTrackerItem.prototype.getAnalytics = function(callback) {
       var day,
         _this = this;
-      this.$(".graph-container").spin('tiny');
-      day = window.app.mainView.currentDate.format("YYYY-MM-DD");
-      return request.get(this.model.get('path'), function(err, data) {
+      this.$('.graph-container').spin('tiny');
+      day = window.app.mainView.currentDate.format('YYYY-MM-DD');
+      return request.get(this.model.get('path') + '/' + day, function(err, data) {
         if (err) {
-          return alert("An error occured while retrieving data");
+          alert('An error occured while retrieving data');
         } else {
-          _this.$(".graph-container").spin();
+          _this.$('.graph-container').spin();
           _this.data = data;
-          return _this.drawCharts();
+          _this.drawCharts();
+        }
+        if (callback != null) {
+          return callback();
         }
       });
     };
@@ -1330,7 +1328,7 @@ window.require.register("views/basic_tracker_list_item", function(exports, requi
 
     BasicTrackerItem.prototype.drawCharts = function() {
       var color, el, width, yEl;
-      width = this.$(".graph-container").width() - 70;
+      width = this.$('.graph-container').width() - 70;
       el = this.$('.chart')[0];
       yEl = this.$('.y-axis')[0];
       color = this.model.get('color');
@@ -1489,7 +1487,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option></select></p><p><select id="zoomcomparison"></select></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+  buf.push('<div id="content" class="pa2 trackers"><div class="line mb0"><img src="icons/main_icon.png" style="height: 50px" class="mt3 ml1 right"/><h1 class="right"> <a href="http://frankrousseau.github.io/kyou/" target="_blank">Kantify YOU</a></h1></div><div class="line mb0"><input id="datepicker"/></div><div class="line pl2"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
   }
   return buf.join("");
   };
@@ -1564,15 +1562,30 @@ window.require.register("views/tracker_list", function(exports, require, module)
       return _results;
     };
 
-    TrackerList.prototype.reloadAll = function() {
-      var id, view, _ref1, _results;
+    TrackerList.prototype.reloadAll = function(callback) {
+      var id, length, nbLoaded, view, _ref1, _ref2, _results,
+        _this = this;
       this.$(".tracker .chart").html('');
       this.$(".tracker .y-axis").html('');
+      nbLoaded = 0;
+      length = 0;
       _ref1 = this.views;
-      _results = [];
       for (id in _ref1) {
         view = _ref1[id];
-        _results.push(view.afterRender());
+        length++;
+      }
+      _ref2 = this.views;
+      _results = [];
+      for (id in _ref2) {
+        view = _ref2[id];
+        _results.push(view.afterRender(function() {
+          nbLoaded++;
+          if (nbLoaded === length) {
+            if (callback != null) {
+              return callback();
+            }
+          }
+        }));
       }
       return _results;
     };
@@ -1631,7 +1644,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       }
     };
 
-    TrackerItem.prototype.afterRender = function() {
+    TrackerItem.prototype.afterRender = function(callback) {
       var day, getData,
         _this = this;
       day = window.app.mainView.currentDate;
@@ -1644,7 +1657,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
           } else {
             _this.$('.current-amount').html(amount.get('amount'));
           }
-          return _this.getAnalytics();
+          return _this.getAnalytics(callback);
         });
       };
       if (this.model.id != null) {
@@ -1747,7 +1760,7 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
       });
     };
 
-    TrackerItem.prototype.getAnalytics = function() {
+    TrackerItem.prototype.getAnalytics = function(callback) {
       var day,
         _this = this;
       this.$(".graph-container").spin('tiny');
@@ -1758,7 +1771,10 @@ window.require.register("views/tracker_list_item", function(exports, require, mo
         } else {
           _this.$(".graph-container").spin();
           _this.data = data;
-          return _this.drawCharts();
+          _this.drawCharts();
+          if (callback != null) {
+            return callback();
+          }
         }
       });
     };

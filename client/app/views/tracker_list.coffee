@@ -10,7 +10,18 @@ module.exports = class TrackerList extends ViewCollection
     redrawAll: ->
         view.redrawGraph() for id, view of @views
 
-    reloadAll: ->
+    reloadAll: (callback) ->
         @$(".tracker .chart").html ''
         @$(".tracker .y-axis").html ''
-        view.afterRender() for id, view of @views
+
+        nbLoaded = 0
+        length = 0
+
+        for id, view of @views
+            length++
+
+        for id, view of @views
+            view.afterRender =>
+                nbLoaded++
+                if nbLoaded is length
+                    callback() if callback?

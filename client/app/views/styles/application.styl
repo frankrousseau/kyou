@@ -2,17 +2,14 @@
 @import 'nib'
 
 @import '_base'
-@import '_ui'
-
-// Import your styles here
-
 @import '_states'
-@import '_layout'
 @import '_responsive'
 
 #content
     padding: 0 20px
 
+
+// Date selector
 #datepicker
     font-family: title
     font-size: 24px
@@ -24,49 +21,7 @@
 #datepicker:hover
     color: red
 
-#current-mood
-#current-coffeecup
-.current-amount
-    font-family: title
-    font-size: 20px
-    margin-left: 2px
-
-.current-amount
-    margin-bottom: 10px
-
-.explaination
-    font-family: main
-    font-size: 20px
-
-.graph-container
-    margin-top: 10px
-    min-height: 300px
-    position: relative
-
-.chart
-    position: relative
-    left: 40px
-
-.y-axis
-    position: absolute
-    top: 0
-    bottom: 0
-    width: 40px
-
-.tools
-     padding: 30px
-     border-top: 1px solid #AAA 
-
-     .line
-         margin-bottom: 0px
-
-.remove-btn
-    padding: 0 5px 
-
-.tracker-increment
-    display: inline-block
-    width: 60px
-
+// Note widget
 #dailynote
     margin: 0
     border: 0
@@ -85,6 +40,58 @@
     background: white
     box-shadow: 0
 
+// Zoom widget
 #zoomtracker
     padding-left: 20px
     width: 96%
+
+// Tracker widget
+#current-mood
+#current-coffeecup
+.current-amount
+    font-family: title
+    font-size: 20px
+    margin-left: 2px
+
+.current-amount
+    margin-bottom: 10px
+
+.explaination
+    font-family: main
+    font-size: 20px
+
+.tracker-increment
+    display: inline-block
+    width: 60px
+
+.remove-btn
+    padding: 0 5px 
+
+// New tracker widget
+.tools
+     padding: 30px
+     border-top: 1px solid #AAA 
+
+     .line
+         margin-bottom: 0px
+
+// Graph widget
+.graph-container
+    margin-top: 10px
+    min-height: 300px
+    position: relative
+
+.chart
+    position: relative
+    left: 40px
+
+.y-axis
+    position: absolute
+    top: 0
+    bottom: 0
+    width: 40px
+
+// Quick fix to display x axis labels of Risckshaw graphes below the x axis
+.rickshaw_graph .x_tick .title
+    bottom: -14px;
+    left: -18px

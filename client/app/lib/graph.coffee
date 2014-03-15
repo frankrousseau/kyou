@@ -1,8 +1,11 @@
 
 module.exports =
+
+    # Draw a graph following the Risckshaw lib conventions.
     draw: (el, yEl, width, color, data, graphStyle, comparisonData) ->
         graphStyle = "bar" unless graphStyle?
 
+        # Build graph options depending of if there is something to compare.
         if comparisonData?
             series = [
                     color: color
@@ -19,6 +22,7 @@ module.exports =
             ]
             renderer = graphStyle
 
+        # Build rickshaw object
         graph = new Rickshaw.Graph(
             element: el
             width: width
@@ -27,6 +31,7 @@ module.exports =
             series: series
         )
 
+        # Add axis
         x_axis = new Rickshaw.Graph.Axis.Time graph: graph
         y_axis = new Rickshaw.Graph.Axis.Y
              graph: graph
@@ -34,8 +39,10 @@ module.exports =
              tickFormat: Rickshaw.Fixtures.Number.formatKMBT
              element: yEl
 
+        # Render Graph
         graph.render()
 
+        # Add fancy stuff
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
             xFormatter: (x) ->
@@ -45,6 +52,7 @@ module.exports =
 
         graph
 
+    # Graph cleaning based on given elements.
     clear: (el, yEl) ->
         $(el).html null
         $(yEl).html null

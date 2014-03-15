@@ -69,4 +69,3 @@ module.exports = class TrackerItem extends BaseView
         el = @$("#moods-charts")[0]
         yEl = @$("#moods-y-axis")[0]
         graph.draw el, yEl, width, 'steelblue', @data
-

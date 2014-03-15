@@ -57,14 +57,13 @@ module.exports = class AppView extends BaseView
 
     onDatePickerChanged: ->
         @currentDate = moment @$("#datepicker").val()
+        @$("#datepicker").val @currentDate.format('LL'), trigger: false
         @loadNote()
-        @loadAnalytics()
-
-
-    loadAnalytics: ->
-        @moodTracker.reload()
-        @basicTrackerList.reloadAll() if @trackerList?
-        @trackerList.reloadAll() if @trackerList?
+        @moodTracker.reload =>
+            @trackerList.reloadAll =>
+                @basicTrackerList.reloadAll =>
+                    if @$("#zoomtracker").is(":visible")
+                        @onComparisonChanged()
 
 
     redrawCharts: =>
@@ -191,9 +190,7 @@ module.exports = class AppView extends BaseView
             @$("#zoomexplaination").html @$("#moods .explaination").html()
 
             @currentData = @moodTracker.data
-            @currentTracker = new Tracker
-                name: 'moods'
-                color: 'steelblue'
+            @currentTracker = @moodTracker
 
             @printZoomGraph @currentData, 'steelblue'
 
@@ -241,7 +238,7 @@ module.exports = class AppView extends BaseView
         graphData = {}
 
         for entry in data
-            date = moment new Date(entry.x * 1000)
+            date = moment new Date(enTry.x * 1000)
             date = date.day 1
             epoch = date.unix()
 
@@ -300,14 +297,10 @@ module.exports = class AppView extends BaseView
         return newComparisonData
 
     onComparisonChanged: =>
-        combo = @$("#zoomcomparison")
+        val = @$("#zoomcomparison").val()
         timeUnit = $("#zoomtimeunit").val()
         graphStyle = $("#zoomstyle").val()
         data = @currentData
-        color = @currentTracker.get 'color'
-
-        # Get Corresponding tracker
-        val = combo.val()
 
         # Define comparison
         if val is 'moods'
@@ -316,7 +309,6 @@ module.exports = class AppView extends BaseView
         else if val.indexOf('basic') isnt -1
             tracker = @basicTrackerList.collection.findWhere
                 slug: val.substring(6)
-            color = 'black'
             comparisonData = @basicTrackerList.views[tracker.cid]?.data
 
         else if val isnt "undefined"
@@ -339,7 +331,7 @@ module.exports = class AppView extends BaseView
         if comparisonData?
             comparisonData = @normalizeComparisonData data, comparisonData
 
-        @printZoomGraph data, color, graphStyle, comparisonData
+        @printZoomGraph data, 'black', graphStyle, comparisonData
 
     printZoomGraph: (data, color, graphStyle, comparisonData) ->
         width = $(window).width() - 140

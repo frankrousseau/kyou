@@ -7,26 +7,27 @@ module.exports = class BasicTrackerItem extends BaseView
     className: 'tracker line'
     template: require 'views/templates/basic_tracker_list_item'
 
-    afterRender: =>
+    afterRender: (callback) =>
         day = window.app.mainView.currentDate
-        @getAnalytics()
+        @getAnalytics callback
 
-    getAnalytics: ->
-        @$(".graph-container").spin 'tiny'
-        day = window.app.mainView.currentDate.format "YYYY-MM-DD"
-        request.get @model.get('path'), (err, data) =>
+    getAnalytics: (callback) ->
+        @$('.graph-container').spin 'tiny'
+        day = window.app.mainView.currentDate.format 'YYYY-MM-DD'
+        request.get @model.get('path') + '/' + day, (err, data) =>
             if err
-                alert "An error occured while retrieving data"
+                alert 'An error occured while retrieving data'
             else
-                @$(".graph-container").spin()
+                @$('.graph-container').spin()
                 @data = data
                 @drawCharts()
+            callback() if callback?
 
     redrawGraph: ->
         @drawCharts()
 
     drawCharts: ->
-        width = @$(".graph-container").width() - 70
+        width = @$('.graph-container').width() - 70
         el = @$('.chart')[0]
         yEl = @$('.y-axis')[0]
         color = @model.get 'color'
