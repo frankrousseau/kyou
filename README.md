@@ -66,6 +66,26 @@ them would be highly appreciated. Of course any idea is welcome!
 * allow to import CSV data into a custom tracker
 * write tests
 
+### Coding trackers
+
+To add a tracker of your own, add a plugin to this
+[folder](https://github.com/frankrousseau/kyou/tree/master/server/trackers).
+Adding a tracker requires one coffeescript file, with the following fields:
+
+* a name
+* a color
+* description
+* Cozy model from where the data comes from
+* A Data System request to describe the process required to build the data.
+
+See existing trackers for example.
+
+### Coding connector to outside services
+
+See the [Konnectors](https://github.com/frankrousseau/konnectors) project.
+This project allows to build easily connectors to other web services for your
+Cozy.
+
 ## Press
 
 [Wired](http://www.wired.com/wiredenterprise/2013/09/cozy-cloud/), 
