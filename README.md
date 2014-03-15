@@ -62,6 +62,8 @@ them would be highly appreciated. Of course any idea is welcome!
 * add a goal line on analytics
 * allow user to hide the trackers he doesn't use
 * display daily notes below the tracker zoom widget
+* allow to export any tracker to a CSV file
+* allow to import CSV data into a custom tracker
 * write tests
 
 ## Press
