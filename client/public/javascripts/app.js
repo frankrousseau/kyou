@@ -326,7 +326,8 @@ window.require.register("lib/graph", function(exports, require, module) {
         width: width,
         height: 300,
         renderer: renderer,
-        series: series
+        series: series,
+        interpolation: 'linear'
       });
       x_axis = new Rickshaw.Graph.Axis.Time({
         graph: graph

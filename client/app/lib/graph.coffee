@@ -29,6 +29,7 @@ module.exports =
             height: 300
             renderer: renderer
             series: series
+            interpolation: 'linear'
         )
 
         # Add axis
