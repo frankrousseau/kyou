@@ -385,11 +385,10 @@ window.require.register("lib/graph", function(exports, require, module) {
       return graphDataArray;
     },
     getMonthData: function(data) {
-      var date, entry, epoch, graphData, graphDataArray, value, _i, _len, _ref;
+      var date, entry, epoch, graphData, graphDataArray, value, _i, _len;
       graphData = {};
-      _ref = this.currentData;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        entry = _ref[_i];
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        entry = data[_i];
         date = moment(new Date(entry.x * 1000));
         date = date.date(1);
         epoch = date.unix();
@@ -407,6 +406,9 @@ window.require.register("lib/graph", function(exports, require, module) {
           y: value
         });
       }
+      graphDataArray = _.sortBy(graphDataArray, function(entry) {
+        return entry.x;
+      });
       return graphDataArray;
     },
     normalizeComparisonData: function(data, comparisonData) {
@@ -1218,7 +1220,8 @@ window.require.register("views/app_view", function(exports, require, module) {
         if (comparisonData != null) {
           comparisonData = graphHelper.getMonthData(comparisonData);
         }
-      } else if (graphStyle === 'correlation' && (comparisonData != null)) {
+      }
+      if (graphStyle === 'correlation' && (comparisonData != null)) {
         data = graphHelper.mixData(data, comparisonData);
         comparisonData = null;
         graphStyle = 'scatterplot';
@@ -1226,7 +1229,11 @@ window.require.register("views/app_view", function(exports, require, module) {
       }
       if (comparisonData != null) {
         comparisonData = graphHelper.normalizeComparisonData(data, comparisonData);
+      }
+      if (comparisonData != null) {
         color = 'black';
+      } else if (this.currentTracker === this.moodTracker) {
+        color = 'steelblue';
       } else {
         color = this.currentTracker.get('color');
       }

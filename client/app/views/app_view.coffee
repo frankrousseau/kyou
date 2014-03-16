@@ -278,7 +278,7 @@ module.exports = class AppView extends BaseView
             if comparisonData?
                 comparisonData = graphHelper.getMonthData comparisonData
 
-        else if graphStyle is 'correlation' and comparisonData?
+        if graphStyle is 'correlation' and comparisonData?
             data = graphHelper.mixData data, comparisonData
 
             comparisonData = null
@@ -289,7 +289,12 @@ module.exports = class AppView extends BaseView
         if comparisonData?
             comparisonData = graphHelper.normalizeComparisonData(
                 data, comparisonData)
+
+        # Chose color
+        if comparisonData?
             color = 'black'
+        else if @currentTracker is @moodTracker
+            color = 'steelblue'
         else
             color = @currentTracker.get 'color'
 

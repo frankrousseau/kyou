@@ -84,7 +84,7 @@ module.exports =
     getMonthData: (data) ->
         graphData = {}
 
-        for entry in @currentData
+        for entry in data
             date = moment new Date(entry.x * 1000)
             date = date.date 1
             epoch = date.unix()
@@ -99,6 +99,8 @@ module.exports =
             graphDataArray.push
                 x: parseInt(epoch)
                 y: value
+
+        graphDataArray = _.sortBy graphDataArray, (entry) -> entry.x
 
         return graphDataArray
 
