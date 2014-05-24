@@ -4,6 +4,7 @@ BaseView = require '../lib/base_view'
 
 Tracker = require '../models/tracker'
 DailyNote = require '../models/dailynote'
+DailyNotes = require '../collections/dailynotes'
 
 MoodTracker = require './mood_tracker'
 TrackerList = require './tracker_list'
@@ -135,6 +136,10 @@ module.exports = class AppView extends BaseView
                 @$('#dailynote').val null
             else
                 @$('#dailynote').val dailynote.get 'text'
+
+        @notes = new DailyNotes
+        @notes.fetch
+            success: -> console.log 'cool'
 
 
     ## Tracker creation widget
@@ -306,5 +311,19 @@ module.exports = class AppView extends BaseView
         yEl = @$('#zoom-y-axis')[0]
 
         graphHelper.clear el, yEl
-        graphHelper.draw(
+        graph = graphHelper.draw(
             el, yEl, width, color, data, graphStyle, comparisonData, time)
+
+        timelineEl = @$('#timeline')[0]
+        console.log timelineEl
+
+        element: @$('#timeline').html(null)
+        annotator = new Rickshaw.Graph.Annotate
+            graph: graph
+            element: @$('#timeline')[0]
+
+        for note in @notes.models
+            date = moment(note.get 'date').valueOf() / 1000
+            annotator.add date, note.get 'text'
+
+        annotator.update()

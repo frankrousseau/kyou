@@ -6,7 +6,6 @@ DailyNote = require('../models/dailynote');
 moment = require('moment');
 
 module.exports.day = function(req, res, next) {
-  console.log(req.day);
   return DailyNote.getDailyNote(req.day, function(err, dailynote) {
     if (err) {
       return next(err);
@@ -44,6 +43,16 @@ module.exports.updateDay = function(req, res, next) {
           return res.send(dailynote);
         }
       });
+    }
+  });
+};
+
+module.exports.all = function(req, res, next) {
+  return DailyNote.request('byDay', function(err, dailynotes) {
+    if (err) {
+      return next(err);
+    } else {
+      return res.send(dailynotes);
     }
   });
 };

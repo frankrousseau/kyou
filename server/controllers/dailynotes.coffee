@@ -4,8 +4,6 @@ moment = require 'moment'
 
 # Return the note of the day
 module.exports.day = (req, res, next) ->
-    console.log req.day
-
     DailyNote.getDailyNote req.day, (err, dailynote) ->
         if err then next err
         else if dailynote? then res.send dailynote
@@ -28,3 +26,9 @@ module.exports.updateDay = (req, res, next) ->
             DailyNote.create data, (err, dailynote) ->
                 if err then next err
                 else res.send dailynote
+
+# Send all notes
+module.exports.all = (req, res, next) ->
+    DailyNote.request 'byDay', (err, dailynotes) ->
+        if err then next err
+        else res.send dailynotes

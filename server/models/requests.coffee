@@ -14,6 +14,7 @@ module.exports =
 
     tracker:
         all: americano.defaultRequests.all
+        byName: (doc) -> emit doc.name, doc
 
     trackeramount:
         nbByDay: (doc) ->

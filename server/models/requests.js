@@ -25,7 +25,10 @@ module.exports = {
     }
   },
   tracker: {
-    all: americano.defaultRequests.all
+    all: americano.defaultRequests.all,
+    byName: function(doc) {
+      return emit(doc.name, doc);
+    }
   },
   trackeramount: {
     nbByDay: function(doc) {

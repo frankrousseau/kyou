@@ -38,7 +38,7 @@ module.exports =
 
     # Return all user custom trackers.
     all: (req, res, next) ->
-        Tracker.all (err, trackers) ->
+        Tracker.request 'byName', (err, trackers) ->
             if err then next err
             else
                 res.send trackers

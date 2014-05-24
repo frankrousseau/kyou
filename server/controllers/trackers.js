@@ -48,7 +48,7 @@ module.exports = {
     return res.send(trackers);
   },
   all: function(req, res, next) {
-    return Tracker.all(function(err, trackers) {
+    return Tracker.request('byName', function(err, trackers) {
       if (err) {
         return next(err);
       } else {

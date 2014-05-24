@@ -42,5 +42,8 @@ module.exports = {
   'dailynotes/:day': {
     get: dailynotes.day,
     put: dailynotes.updateDay
+  },
+  'dailynotes/': {
+    get: dailynotes.all
   }
 };
