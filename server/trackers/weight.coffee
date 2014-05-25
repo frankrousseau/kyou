@@ -1,8 +1,8 @@
 americano = require 'americano-cozy'
 
 module.exports =
-    name: "Weight- Withings"
-    color: "#96A6A6"
+    name: "Weight - Withings"
+    color: "#2F5DAB"
     description: """
 Your weight in grams."""
     model: americano.getModel 'WithingsScaleMeasure', date: Date
