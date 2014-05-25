@@ -79,6 +79,9 @@
     },
     "DailyNote": {
       "description": "Small note to add details that can't be measured."
+    },
+    "WithingsScaleMeasure": {
+      "description": "Weight data measure with SMB from Withings."
     }
   }
 }
