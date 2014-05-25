@@ -66,9 +66,15 @@ module.exports = {
     });
   },
   update: function(req, res, next) {
-    return res.send({
-      error: 'not implemented yet'
-    }, 500);
+    return req.tracker.updateAttributes(req.body, function(err) {
+      if (err) {
+        return next(err);
+      } else {
+        return res.send({
+          success: true
+        });
+      }
+    });
   },
   destroy: function(req, res, next) {
     return TrackerAmount.destroyAll(req.tracker, function(err) {

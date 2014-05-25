@@ -52,7 +52,10 @@ module.exports =
 
     # Update given user custom tracker.
     update: (req, res, next) ->
-        res.send error: 'not implemented yet', 500
+        req.tracker.updateAttributes req.body, (err) ->
+            if err then next err
+            else
+                res.send success: true
 
 
     # Destroy given user custom tracker with value linked to it.

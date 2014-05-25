@@ -13,6 +13,7 @@ module.exports = class Router extends Backbone.Router
         unless window.app?.mainView?
             mainView = new AppView()
             mainView.render()
+            window.app.router = @
 
     main: ->
         @createMainView()

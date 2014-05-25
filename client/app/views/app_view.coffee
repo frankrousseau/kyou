@@ -18,10 +18,13 @@ module.exports = class AppView extends BaseView
     events:
         'change #datepicker': 'onDatePickerChanged'
         'blur #dailynote': 'onDailyNoteChanged'
-        'click #add-tracker-btn': 'onTrackerButtonClicked'
+        'blur input.zoomtitle': 'onCurrentTrackerChanged'
+        'blur textarea.zoomexplaination': 'onCurrentTrackerChanged'
         'change #zoomtimeunit': 'onComparisonChanged'
         'change #zoomstyle': 'onComparisonChanged'
         'change #zoomcomparison': 'onComparisonChanged'
+        'click #add-tracker-btn': 'onTrackerButtonClicked'
+        'click #remove-btn': 'onRemoveButtonClicked'
 
     constructor: ->
         super
@@ -84,6 +87,7 @@ module.exports = class AppView extends BaseView
         @$("#tracker-list").show()
         @$("#basic-tracker-list").show()
         @$(".tools").show()
+        @$("#dailynote").show()
         @$("#zoomtracker").hide()
 
         @redrawCharts() if @dataLoaded
@@ -94,6 +98,7 @@ module.exports = class AppView extends BaseView
         @$("#tracker-list").hide()
         @$("#basic-tracker-list").hide()
         @$(".tools").hide()
+        @$("#dailynote").hide()
         @$("#zoomtracker").show()
 
         @$("#zoomtimeunit").val 'day'
@@ -201,8 +206,13 @@ module.exports = class AppView extends BaseView
 
     displayMood: ->
         @displayZoomTracker =>
-            @$("#zoomtitle").html @$("#moods h2").html()
-            @$("#zoomexplaination").html @$("#moods .explaination").html()
+            @$("#remove-btn").hide()
+            @$("h2.zoomtitle").html @$("#moods h2").html()
+            @$("p.zoomexplaination").html @$("#moods .explaination").html()
+            @$("h2.zoomtitle").show()
+            @$("p.zoomexplaination").show()
+            @$("input.zoomtitle").hide()
+            @$("textarea.zoomexplaination").hide()
 
             @currentData = @moodTracker.data
             @currentTracker = @moodTracker
@@ -211,12 +221,17 @@ module.exports = class AppView extends BaseView
 
     displayBasicTracker: (slug) ->
         @displayZoomTracker =>
+            @$("#remove-btn").hide()
             tracker = @basicTrackerList.collection.findWhere slug: slug
             unless tracker?
                 alert "Tracker does not exist"
             else
-                @$("#zoomtitle").html tracker.get 'name'
-                @$("#zoomexplaination").html tracker.get 'description'
+                @$("h2.zoomtitle").html tracker.get 'name'
+                @$("p.zoomexplaination").html tracker.get 'description'
+                @$("h2.zoomtitle").show()
+                @$("p.zoomexplaination").show()
+                @$("input.zoomtitle").hide()
+                @$("textarea.zoomexplaination").hide()
 
                 recWait = =>
                     data = @basicTrackerList.views[tracker.cid]?.data
@@ -231,12 +246,17 @@ module.exports = class AppView extends BaseView
 
     displayTracker: (id) ->
         @displayZoomTracker =>
+            @$("#remove-btn").show()
             tracker = @trackerList.collection.findWhere id: id
             unless tracker?
                 alert "Tracker does not exist"
             else
-                @$("#zoomtitle").html tracker.get 'name'
-                @$("#zoomexplaination").html tracker.get 'description'
+                @$("input.zoomtitle").val tracker.get 'name'
+                @$("textarea.zoomexplaination").val tracker.get 'description'
+                @$("h2.zoomtitle").hide()
+                @$("p.zoomexplaination").hide()
+                @$("input.zoomtitle").show()
+                @$("textarea.zoomexplaination").show()
 
                 recWait = =>
                     data = @trackerList.views[tracker.cid]?.data
@@ -248,6 +268,25 @@ module.exports = class AppView extends BaseView
                     else
                         setTimeout recWait, 10
                 recWait()
+
+
+    onRemoveButtonClicked: =>
+        answer = confirm "Are you sure that you want to delete this tracker?"
+        if answer
+            tracker = @currentTracker
+            view = @trackerList.views[tracker.cid]
+            tracker.destroy
+                success: =>
+                    view.remove()
+                    window.app.router.navigate '#', trigger: true
+                error: ->
+                    alert 'something went wrong while removing tracker.'
+
+
+    onCurrentTrackerChanged: =>
+        @currentTracker.set 'name', @$('input.zoomtitle').val()
+        @currentTracker.set 'description', @$('textarea.zoomexplaination').val()
+        @currentTracker.save()
 
     onComparisonChanged: =>
         val = @$("#zoomcomparison").val()

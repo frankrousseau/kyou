@@ -8,19 +8,9 @@ module.exports = class TrackerItem extends BaseView
     template: require 'views/templates/tracker_list_item'
 
     events:
-        'click .remove-btn': 'onRemoveClicked'
         'click .up-btn': 'onUpClicked'
         'click .down-btn': 'onDownClicked'
         'keyup .tracker-increment': 'onCurrentAmountKeyup'
-
-    onRemoveClicked: =>
-        answer = confirm "Are you sure that you want to delete this tracker?"
-        if answer
-            @model.destroy
-                success: =>
-                    @remove()
-                error: ->
-                    alert 'something went wrong while removing tracker.'
 
     afterRender: (callback) =>
         day = window.app.mainView.currentDate

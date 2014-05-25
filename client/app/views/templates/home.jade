@@ -11,9 +11,13 @@
         textarea#dailynote(placeholder="add a note for today")
 
     .line#zoomtracker
-        .line
-            h2#zoomtitle No tracker selected
-            p#zoomexplaination.explaination
+        .line.graph-section
+            h2.zoomtitle No tracker selected
+            p.zoomexplaination.explaination
+            p.zoom-editable
+                input.zoomtitle No tracker selected
+            p.zoom-editable
+                textarea.zoomexplaination.explaination
             p
                 select#zoomtimeunit
                     option(value="day") day
@@ -35,6 +39,8 @@
             #timeline.rickshaw_annotation_timeline
         .line.txt-center.pt2
             a(href="#") go back to tracker list
+        p
+            button#remove-btn.smaller remove tracker
 
 .tools.line
     #add-tracker-widget

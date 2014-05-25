@@ -2292,6 +2292,7 @@ textarea:focus {
   border-color: #db512e;
   -webkit-box-shadow: 0;
   box-shadow: 0;
+  background: #fff;
 }
 .txt-center {
   text-align: center;
@@ -2453,7 +2454,24 @@ cursor not-allowed {
 .current-amount {
   margin-bottom: 10px;
 }
-.explaination {
+.zoom-editable {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.zoomtitle {
+  font-size: 22px;
+  font-weight: bold;
+  font-family: title;
+}
+.zoomtitle,
+.zoomexplaination {
+  margin-top: 4px;
+  margin-bottom: 0px;
+  background: transparent;
+  border-color: transparent;
+}
+.explaination,
+.zoomexplaination {
   font-family: main;
   font-size: 20px;
 }
@@ -2461,7 +2479,7 @@ cursor not-allowed {
   display: inline-block;
   width: 60px;
 }
-.remove-btn {
+#remove-btn {
   padding: 0 5px;
 }
 .tools {

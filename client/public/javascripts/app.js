@@ -154,6 +154,7 @@ module.exports = {
     initSpinner();
     Router = require('router');
     this.router = new Router();
+    console.log(this);
     Backbone.history.start();
     if (typeof Object.freeze === 'function') {
       return Object.freeze(this);
@@ -894,7 +895,8 @@ module.exports = Router = (function(_super) {
     var mainView, _ref1;
     if (((_ref1 = window.app) != null ? _ref1.mainView : void 0) == null) {
       mainView = new AppView();
-      return mainView.render();
+      mainView.render();
+      return window.app.router = this;
     }
   };
 
@@ -958,14 +960,19 @@ module.exports = AppView = (function(_super) {
   AppView.prototype.events = {
     'change #datepicker': 'onDatePickerChanged',
     'blur #dailynote': 'onDailyNoteChanged',
-    'click #add-tracker-btn': 'onTrackerButtonClicked',
+    'blur input.zoomtitle': 'onCurrentTrackerChanged',
+    'blur textarea.zoomexplaination': 'onCurrentTrackerChanged',
     'change #zoomtimeunit': 'onComparisonChanged',
     'change #zoomstyle': 'onComparisonChanged',
-    'change #zoomcomparison': 'onComparisonChanged'
+    'change #zoomcomparison': 'onComparisonChanged',
+    'click #add-tracker-btn': 'onTrackerButtonClicked',
+    'click #remove-btn': 'onRemoveButtonClicked'
   };
 
   function AppView() {
     this.onComparisonChanged = __bind(this.onComparisonChanged, this);
+    this.onCurrentTrackerChanged = __bind(this.onCurrentTrackerChanged, this);
+    this.onRemoveButtonClicked = __bind(this.onRemoveButtonClicked, this);
     this.redrawCharts = __bind(this.redrawCharts, this);
     this.showZoomTracker = __bind(this.showZoomTracker, this);
     this.showTrackers = __bind(this.showTrackers, this);
@@ -1039,6 +1046,7 @@ module.exports = AppView = (function(_super) {
     this.$("#tracker-list").show();
     this.$("#basic-tracker-list").show();
     this.$(".tools").show();
+    this.$("#dailynote").show();
     this.$("#zoomtracker").hide();
     if (this.dataLoaded) {
       return this.redrawCharts();
@@ -1050,6 +1058,7 @@ module.exports = AppView = (function(_super) {
     this.$("#tracker-list").hide();
     this.$("#basic-tracker-list").hide();
     this.$(".tools").hide();
+    this.$("#dailynote").hide();
     this.$("#zoomtracker").show();
     return this.$("#zoomtimeunit").val('day');
   };
@@ -1182,8 +1191,13 @@ module.exports = AppView = (function(_super) {
   AppView.prototype.displayMood = function() {
     var _this = this;
     return this.displayZoomTracker(function() {
-      _this.$("#zoomtitle").html(_this.$("#moods h2").html());
-      _this.$("#zoomexplaination").html(_this.$("#moods .explaination").html());
+      _this.$("#remove-btn").hide();
+      _this.$("h2.zoomtitle").html(_this.$("#moods h2").html());
+      _this.$("p.zoomexplaination").html(_this.$("#moods .explaination").html());
+      _this.$("h2.zoomtitle").show();
+      _this.$("p.zoomexplaination").show();
+      _this.$("input.zoomtitle").hide();
+      _this.$("textarea.zoomexplaination").hide();
       _this.currentData = _this.moodTracker.data;
       _this.currentTracker = _this.moodTracker;
       return _this.printZoomGraph(_this.currentData, 'steelblue');
@@ -1194,14 +1208,19 @@ module.exports = AppView = (function(_super) {
     var _this = this;
     return this.displayZoomTracker(function() {
       var recWait, tracker;
+      _this.$("#remove-btn").hide();
       tracker = _this.basicTrackerList.collection.findWhere({
         slug: slug
       });
       if (tracker == null) {
         return alert("Tracker does not exist");
       } else {
-        _this.$("#zoomtitle").html(tracker.get('name'));
-        _this.$("#zoomexplaination").html(tracker.get('description'));
+        _this.$("h2.zoomtitle").html(tracker.get('name'));
+        _this.$("p.zoomexplaination").html(tracker.get('description'));
+        _this.$("h2.zoomtitle").show();
+        _this.$("p.zoomexplaination").show();
+        _this.$("input.zoomtitle").hide();
+        _this.$("textarea.zoomexplaination").hide();
         recWait = function() {
           var data, _ref;
           data = (_ref = _this.basicTrackerList.views[tracker.cid]) != null ? _ref.data : void 0;
@@ -1222,14 +1241,19 @@ module.exports = AppView = (function(_super) {
     var _this = this;
     return this.displayZoomTracker(function() {
       var recWait, tracker;
+      _this.$("#remove-btn").show();
       tracker = _this.trackerList.collection.findWhere({
         id: id
       });
       if (tracker == null) {
         return alert("Tracker does not exist");
       } else {
-        _this.$("#zoomtitle").html(tracker.get('name'));
-        _this.$("#zoomexplaination").html(tracker.get('description'));
+        _this.$("input.zoomtitle").val(tracker.get('name'));
+        _this.$("textarea.zoomexplaination").val(tracker.get('description'));
+        _this.$("h2.zoomtitle").hide();
+        _this.$("p.zoomexplaination").hide();
+        _this.$("input.zoomtitle").show();
+        _this.$("textarea.zoomexplaination").show();
         recWait = function() {
           var data, _ref;
           data = (_ref = _this.trackerList.views[tracker.cid]) != null ? _ref.data : void 0;
@@ -1244,6 +1268,33 @@ module.exports = AppView = (function(_super) {
         return recWait();
       }
     });
+  };
+
+  AppView.prototype.onRemoveButtonClicked = function() {
+    var answer, tracker, view,
+      _this = this;
+    answer = confirm("Are you sure that you want to delete this tracker?");
+    if (answer) {
+      tracker = this.currentTracker;
+      view = this.trackerList.views[tracker.cid];
+      return tracker.destroy({
+        success: function() {
+          view.remove();
+          return window.app.router.navigate('#', {
+            trigger: true
+          });
+        },
+        error: function() {
+          return alert('something went wrong while removing tracker.');
+        }
+      });
+    }
+  };
+
+  AppView.prototype.onCurrentTrackerChanged = function() {
+    this.currentTracker.set('name', this.$('input.zoomtitle').val());
+    this.currentTracker.set('description', this.$('textarea.zoomexplaination').val());
+    return this.currentTracker.save();
   };
 
   AppView.prototype.onComparisonChanged = function() {
@@ -1621,7 +1672,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div id="menu" class="clearfix"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"> <input id="datepicker"/></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line"><h2 id="zoomtitle">No tracker selected</h2><p id="zoomexplaination" class="explaination"></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+buf.push('<div id="menu" class="clearfix"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"> <input id="datepicker"/></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
 }
 return buf.join("");
 };
@@ -1658,7 +1709,7 @@ with (locals || {}) {
 var interp;
 buf.push('<div class="mod w33 left"><h2> <a');
 buf.push(attrs({ 'href':("#trackers/" + (model.id) + "") }, {"href":true}));
-buf.push('>' + escape((interp = model.name) == null ? '' : interp) + '</a></h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">Set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><input value="1" class="tracker-increment"/><p><button class="smaller remove-btn">remove tracker</button></p></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
+buf.push('>' + escape((interp = model.name) == null ? '' : interp) + '</a></h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><div class="current-amount">Set value for today</div><button class="up-btn">+ </button><button class="down-btn">-</button><input value="1" class="tracker-increment"/></div><div class="mod w66 left"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
 }
 return buf.join("");
 };
@@ -1751,7 +1802,6 @@ module.exports = TrackerItem = (function(_super) {
 
   function TrackerItem() {
     this.afterRender = __bind(this.afterRender, this);
-    this.onRemoveClicked = __bind(this.onRemoveClicked, this);
     _ref = TrackerItem.__super__.constructor.apply(this, arguments);
     return _ref;
   }
@@ -1761,26 +1811,9 @@ module.exports = TrackerItem = (function(_super) {
   TrackerItem.prototype.template = require('views/templates/tracker_list_item');
 
   TrackerItem.prototype.events = {
-    'click .remove-btn': 'onRemoveClicked',
     'click .up-btn': 'onUpClicked',
     'click .down-btn': 'onDownClicked',
     'keyup .tracker-increment': 'onCurrentAmountKeyup'
-  };
-
-  TrackerItem.prototype.onRemoveClicked = function() {
-    var answer,
-      _this = this;
-    answer = confirm("Are you sure that you want to delete this tracker?");
-    if (answer) {
-      return this.model.destroy({
-        success: function() {
-          return _this.remove();
-        },
-        error: function() {
-          return alert('something went wrong while removing tracker.');
-        }
-      });
-    }
   };
 
   TrackerItem.prototype.afterRender = function(callback) {
