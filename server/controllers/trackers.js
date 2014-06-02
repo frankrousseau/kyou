@@ -160,5 +160,14 @@ module.exports = {
         return res.send(normalizer.toClientFormat(data));
       }
     });
+  },
+  rawData: function(req, res, next) {
+    return req.tracker.getAmounts(function(err, trackerAmounts) {
+      if (err) {
+        return next(err);
+      } else {
+        return res.send(trackerAmounts);
+      }
+    });
   }
 };

@@ -18,3 +18,7 @@ Tracker::getAmount = (day, callback) ->
             callback null, trackerAmounts[0]
         else
             callback()
+
+Tracker::getAmounts = (callback) ->
+    params = startKey: [@id, null], endKey: [@id, '0']
+    TrackerAmount.request 'byDay', params, callback

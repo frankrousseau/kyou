@@ -19,6 +19,8 @@ module.exports =
     'trackers/:trackerId':
         put: trackers.update
         del: trackers.destroy
+    'trackers/:trackerId/raw-data':
+        get: trackers.rawData
     'trackers/:trackerId/day/:day':
         get: trackers.day
         put: trackers.updateDayValue

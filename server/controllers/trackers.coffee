@@ -107,3 +107,11 @@ module.exports =
 
                 data = normalizer.normalize tmpRows, day
                 res.send normalizer.toClientFormat data
+
+    # Returns all stored data
+    rawData: (req, res, next) ->
+        req.tracker.getAmounts (err, trackerAmounts) ->
+            if err then next err
+            else res.send trackerAmounts
+
+
