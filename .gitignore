@@ -1,3 +1,4 @@
+*.map
 lib-cov
 *.seed
 *.log
