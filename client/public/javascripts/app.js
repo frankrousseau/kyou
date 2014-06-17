@@ -1057,7 +1057,7 @@ module.exports = AppView = (function(_super) {
     this.$("#datepicker").datepicker({
       maxDate: "+0D"
     });
-    this.$("#datepicker").val(this.currentDate.format('LL'), {
+    this.$("#datepicker").val(this.currentDate.format('LL (dddd)'), {
       trigger: false
     });
     return this.loadNote();
@@ -1066,7 +1066,7 @@ module.exports = AppView = (function(_super) {
   AppView.prototype.onDatePickerChanged = function() {
     var _this = this;
     this.currentDate = moment(this.$("#datepicker").val());
-    this.$("#datepicker").val(this.currentDate.format('LL'), {
+    this.$("#datepicker").val(this.currentDate.format('LL (dddd)'), {
       trigger: false
     });
     this.loadNote();

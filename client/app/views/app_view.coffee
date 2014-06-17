@@ -63,14 +63,14 @@ module.exports = class AppView extends BaseView
         @basicTrackerList.render()
 
         @$("#datepicker").datepicker maxDate: "+0D"
-        @$("#datepicker").val @currentDate.format('LL'), trigger: false
+        @$("#datepicker").val @currentDate.format('LL (dddd)'), trigger: false
 
         @loadNote()
 
 
     onDatePickerChanged: ->
         @currentDate = moment @$("#datepicker").val()
-        @$("#datepicker").val @currentDate.format('LL'), trigger: false
+        @$("#datepicker").val @currentDate.format('LL (dddd)'), trigger: false
         @loadNote()
         @moodTracker.reload =>
             @trackerList.reloadAll =>
