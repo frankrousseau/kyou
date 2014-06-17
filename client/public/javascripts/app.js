@@ -233,6 +233,27 @@ module.exports = Moods = (function(_super) {
 
 });
 
+;require.register("collections/tracker_amounts", function(exports, require, module) {
+var TrackersCollection, _ref,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+module.exports = TrackersCollection = (function(_super) {
+  __extends(TrackersCollection, _super);
+
+  function TrackersCollection() {
+    _ref = TrackersCollection.__super__.constructor.apply(this, arguments);
+    return _ref;
+  }
+
+  TrackersCollection.prototype.model = require('../models/tracker_amount');
+
+  return TrackersCollection;
+
+})(Backbone.Collection);
+
+});
+
 ;require.register("collections/trackers", function(exports, require, module) {
 var TrackersCollection, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -868,6 +889,29 @@ module.exports = TrackerModel = (function(_super) {
 
 });
 
+;require.register("models/tracker_amount", function(exports, require, module) {
+var TrackerModel, request,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+request = require('lib/request');
+
+module.exports = TrackerModel = (function(_super) {
+  __extends(TrackerModel, _super);
+
+  function TrackerModel(data) {
+    var date;
+    TrackerModel.__super__.constructor.apply(this, arguments);
+    date = this.get('date');
+    this.set('displayDate', moment(date).format('YYYY MM DD'));
+  }
+
+  return TrackerModel;
+
+})(Backbone.Model);
+
+});
+
 ;require.register("router", function(exports, require, module) {
 var AppView, Router, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -927,7 +971,7 @@ module.exports = Router = (function(_super) {
 });
 
 ;require.register("views/app_view", function(exports, require, module) {
-var AppView, BaseView, BasicTrackerList, DailyNote, DailyNotes, MoodTracker, Tracker, TrackerList, graphHelper, request,
+var AppView, BaseView, BasicTrackerList, DailyNote, DailyNotes, MoodTracker, RawDataTable, Tracker, TrackerList, graphHelper, request,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -950,6 +994,8 @@ TrackerList = require('./tracker_list');
 
 BasicTrackerList = require('./basic_tracker_list');
 
+RawDataTable = require('./raw_data_table');
+
 module.exports = AppView = (function(_super) {
   __extends(AppView, _super);
 
@@ -966,12 +1012,14 @@ module.exports = AppView = (function(_super) {
     'change #zoomstyle': 'onComparisonChanged',
     'change #zoomcomparison': 'onComparisonChanged',
     'click #add-tracker-btn': 'onTrackerButtonClicked',
-    'click #remove-btn': 'onRemoveButtonClicked'
+    'click #remove-btn': 'onRemoveButtonClicked',
+    'click #show-data-btn': 'onShowDataClicked'
   };
 
   function AppView() {
     this.onComparisonChanged = __bind(this.onComparisonChanged, this);
     this.onCurrentTrackerChanged = __bind(this.onCurrentTrackerChanged, this);
+    this.onShowDataClicked = __bind(this.onShowDataClicked, this);
     this.onRemoveButtonClicked = __bind(this.onRemoveButtonClicked, this);
     this.redrawCharts = __bind(this.redrawCharts, this);
     this.showZoomTracker = __bind(this.showZoomTracker, this);
@@ -994,6 +1042,9 @@ module.exports = AppView = (function(_super) {
     $(window).on('resize', this.redrawCharts);
     window.app = {};
     window.app.mainView = this;
+    this.rawDataTable = new RawDataTable();
+    this.rawDataTable.render();
+    this.$('#raw-data').append(this.rawDataTable.$el);
     this.moodTracker = new MoodTracker();
     this.$('#content').append(this.moodTracker.$el);
     this.moodTracker.render();
@@ -1289,6 +1340,11 @@ module.exports = AppView = (function(_super) {
         }
       });
     }
+  };
+
+  AppView.prototype.onShowDataClicked = function() {
+    this.rawDataTable.show();
+    return this.rawDataTable.load(this.currentTracker);
   };
 
   AppView.prototype.onCurrentTrackerChanged = function() {
@@ -1641,6 +1697,53 @@ module.exports = TrackerItem = (function(_super) {
 
 });
 
+;require.register("views/raw_data_table", function(exports, require, module) {
+var RawDataTable, TrackerAmountCollection, ViewCollection, _ref,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+ViewCollection = require('lib/view_collection');
+
+TrackerAmountCollection = require('collections/tracker_amounts');
+
+module.exports = RawDataTable = (function(_super) {
+  __extends(RawDataTable, _super);
+
+  function RawDataTable() {
+    _ref = RawDataTable.__super__.constructor.apply(this, arguments);
+    return _ref;
+  }
+
+  RawDataTable.prototype.id = 'raw-data-table';
+
+  RawDataTable.prototype.itemView = require('views/tracker_amount_item');
+
+  RawDataTable.prototype.template = require('views/templates/tracker_amount_list');
+
+  RawDataTable.prototype.collection = new TrackerAmountCollection();
+
+  RawDataTable.prototype.tagName = 'table';
+
+  RawDataTable.prototype.className = 'table';
+
+  RawDataTable.prototype.show = function() {
+    return this.$el.show();
+  };
+
+  RawDataTable.prototype.load = function(tracker) {
+    if (tracker != null) {
+      this.tracker = tracker;
+      this.collection.url = "trackers/" + (tracker.get('id')) + "/raw-data";
+      return this.collection.fetch();
+    }
+  };
+
+  return RawDataTable;
+
+})(ViewCollection);
+
+});
+
 ;require.register("views/templates/basic_tracker_list", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
@@ -1672,7 +1775,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div id="menu" class="clearfix"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"> <input id="datepicker"/></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+buf.push('<div id="menu" class="clearfix"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"> <input id="datepicker"/></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p><p><button id="show-data-btn">show data</button></p><div id="raw-data"></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
 }
 return buf.join("");
 };
@@ -1685,6 +1788,30 @@ var buf = [];
 with (locals || {}) {
 var interp;
 buf.push('<div class="mod w33 left"><h2> <a href="#mood">Mood</a></h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p id="current-mood">loading...</p><button id="good-mood-btn">good</button><button id="neutral-mood-btn">neutral</button><button id="bad-mood-btn">bad</button></div><div class="mod w66 left"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div>');
+}
+return buf.join("");
+};
+});
+
+;require.register("views/templates/tracker_amount_item", function(exports, require, module) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+var buf = [];
+with (locals || {}) {
+var interp;
+buf.push('<tr><td class="amount-date">' + escape((interp = model.displayDate) == null ? '' : interp) + '</td><td class="amount-amount">' + escape((interp = model.amount) == null ? '' : interp) + '</td><td class="amount-delete"><button>x</button></td></tr>');
+}
+return buf.join("");
+};
+});
+
+;require.register("views/templates/tracker_amount_list", function(exports, require, module) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+var buf = [];
+with (locals || {}) {
+var interp;
+buf.push('<table id="raw-data-table"></table>');
 }
 return buf.join("");
 };
@@ -1713,6 +1840,51 @@ buf.push('>' + escape((interp = model.name) == null ? '' : interp) + '</a></h2><
 }
 return buf.join("");
 };
+});
+
+;require.register("views/tracker_amount_item", function(exports, require, module) {
+var BaseView, TrackerAmountItem, request, _ref,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+BaseView = require('lib/base_view');
+
+request = require('../lib/request');
+
+module.exports = TrackerAmountItem = (function(_super) {
+  __extends(TrackerAmountItem, _super);
+
+  function TrackerAmountItem() {
+    this.afterRender = __bind(this.afterRender, this);
+    _ref = TrackerAmountItem.__super__.constructor.apply(this, arguments);
+    return _ref;
+  }
+
+  TrackerAmountItem.prototype.className = 'tracker-amount';
+
+  TrackerAmountItem.prototype.template = require('views/templates/tracker_amount_item');
+
+  TrackerAmountItem.prototype.events = {
+    'click .amount-delete button': 'onDeleteClicked'
+  };
+
+  TrackerAmountItem.prototype.afterRender = function(callback) {};
+
+  TrackerAmountItem.prototype.onDeleteClicked = function() {
+    this.$el.addClass('deleted');
+    this.model.state = 'deleted';
+    return request.del("trackers/" + (this.model.get('tracker')) + "/raw-data/" + (this.model.get('id')), function(err) {
+      if (err) {
+        return alert('An error occured while deleting selected amount');
+      }
+    });
+  };
+
+  return TrackerAmountItem;
+
+})(BaseView);
+
 });
 
 ;require.register("views/tracker_list", function(exports, require, module) {

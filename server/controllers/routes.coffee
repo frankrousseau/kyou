@@ -4,6 +4,7 @@ trackers = require './trackers'
 
 module.exports =
     'trackerId': param: trackers.loadTracker
+    'trackerAmountId': param: trackers.loadTrackerAmount
     'day': param: trackers.loadDay
 
     'moods/:day':
@@ -21,6 +22,8 @@ module.exports =
         del: trackers.destroy
     'trackers/:trackerId/raw-data':
         get: trackers.rawData
+    'trackers/:trackerId/raw-data/:trackerAmountId':
+        del: trackers.rawDataDelete
     'trackers/:trackerId/day/:day':
         get: trackers.day
         put: trackers.updateDayValue

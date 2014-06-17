@@ -10,6 +10,8 @@ MoodTracker = require './mood_tracker'
 TrackerList = require './tracker_list'
 BasicTrackerList = require './basic_tracker_list'
 
+RawDataTable = require './raw_data_table'
+
 module.exports = class AppView extends BaseView
 
     el: 'body.application'
@@ -25,6 +27,7 @@ module.exports = class AppView extends BaseView
         'change #zoomcomparison': 'onComparisonChanged'
         'click #add-tracker-btn': 'onTrackerButtonClicked'
         'click #remove-btn': 'onRemoveButtonClicked'
+        'click #show-data-btn': 'onShowDataClicked'
 
     constructor: ->
         super
@@ -42,6 +45,10 @@ module.exports = class AppView extends BaseView
 
         window.app = {}
         window.app.mainView = @
+
+        @rawDataTable = new RawDataTable()
+        @rawDataTable.render()
+        @$('#raw-data').append @rawDataTable.$el
 
         @moodTracker = new MoodTracker()
         @$('#content').append @moodTracker.$el
@@ -282,6 +289,9 @@ module.exports = class AppView extends BaseView
                 error: ->
                     alert 'something went wrong while removing tracker.'
 
+    onShowDataClicked: =>
+        @rawDataTable.show()
+        @rawDataTable.load @currentTracker
 
     onCurrentTrackerChanged: =>
         @currentTracker.set 'name', @$('input.zoomtitle').val()

@@ -2504,6 +2504,24 @@ cursor not-allowed {
   bottom: 0;
   width: 40px;
 }
+.tracker-amount {
+  font-family: main;
+}
+.tracker-amount .amount-date {
+  width: 100px;
+}
+.tracker-amount .amount-amount {
+  width: 50px;
+}
+.tracker-amount .amount-delete button {
+  padding: 4px;
+}
+.tracker-amount.deleted {
+  text-decoration: line-through;
+}
+.tracker-amount.deleted .amount-delete button {
+  display: none;
+}
 .rickshaw_graph .x_tick .title {
   bottom: -14px;
   left: -18px;

@@ -36,6 +36,23 @@ module.exports = {
       }
     });
   },
+  loadTrackerAmount: function(req, res, next, trackerAmountId) {
+    return TrackerAmount.request('all', {
+      key: trackerAmountId
+    }, function(err, amounts) {
+      if (err) {
+        return next(err);
+      } else if (amounts.length === 0) {
+        console.log('AmounT not found');
+        return res.send({
+          error: 'not found'
+        }, 404);
+      } else {
+        req.amount = amounts[0];
+        return next();
+      }
+    });
+  },
   allBasicTrackers: function(req, res, next) {
     var tracker, trackers, _i, _len;
     trackers = trackerUtils.getTrackers();
@@ -167,6 +184,17 @@ module.exports = {
         return next(err);
       } else {
         return res.send(trackerAmounts);
+      }
+    });
+  },
+  rawDataDelete: function(req, res, next) {
+    return req.amount.destroy(function(err) {
+      if (err) {
+        return next(err);
+      } else {
+        return res.send({
+          success: true
+        }, 204);
       }
     });
   }

@@ -27,6 +27,17 @@ module.exports =
                 req.tracker = trackers[0]
                 next()
 
+    # Load tracker before processing request.
+    loadTrackerAmount: (req, res, next, trackerAmountId) ->
+        TrackerAmount.request 'all', key: trackerAmountId, (err, amounts) ->
+            if err then next err
+            else if amounts.length is 0
+                console.log 'AmounT not found'
+                res.send error: 'not found', 404
+            else
+                req.amount = amounts[0]
+                next()
+
     # Get all trackers described in the KYou code, from the trackers folder.
     allBasicTrackers: (req, res, next) ->
         trackers = trackerUtils.getTrackers()
@@ -114,4 +125,8 @@ module.exports =
             if err then next err
             else res.send trackerAmounts
 
-
+    # Delete given raw data
+    rawDataDelete: (req, res, next) ->
+        req.amount.destroy (err) ->
+            if err then next err
+            else res.send success: true, 204

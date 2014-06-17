@@ -11,6 +11,9 @@ module.exports = {
   'trackerId': {
     param: trackers.loadTracker
   },
+  'trackerAmountId': {
+    param: trackers.loadTrackerAmount
+  },
   'day': {
     param: trackers.loadDay
   },
@@ -34,6 +37,9 @@ module.exports = {
   },
   'trackers/:trackerId/raw-data': {
     get: trackers.rawData
+  },
+  'trackers/:trackerId/raw-data/:trackerAmountId': {
+    del: trackers.rawDataDelete
   },
   'trackers/:trackerId/day/:day': {
     get: trackers.day,

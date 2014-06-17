@@ -31,6 +31,7 @@ module.exports = {
     }
   },
   trackeramount: {
+    all: americano.defaultRequests.all,
     nbByDay: function(doc) {
       return emit([doc.tracker, doc.date.substring(0, 10)], doc.amount);
     },
