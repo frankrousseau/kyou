@@ -109,6 +109,7 @@ module.exports = class AppView extends BaseView
         @$("#zoomtracker").show()
 
         @$("#zoomtimeunit").val 'day'
+        @rawDataTable.collection.reset()
 
 
     displayTrackers: ->
@@ -151,7 +152,7 @@ module.exports = class AppView extends BaseView
 
         @notes = new DailyNotes
         @notes.fetch
-            success: -> console.log 'cool'
+            success: -> console.log 'daily notes fetched'
 
 
     ## Tracker creation widget

@@ -31,8 +31,8 @@ Tracker.prototype.getAmount = function(day, callback) {
 Tracker.prototype.getAmounts = function(callback) {
   var params;
   params = {
-    startKey: [this.id, null],
-    endKey: [this.id, '0']
+    startkey: [this.id, null],
+    endkey: [this.id + 'z', '0']
   };
   return TrackerAmount.request('byDay', params, callback);
 };

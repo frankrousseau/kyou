@@ -1111,7 +1111,8 @@ module.exports = AppView = (function(_super) {
     this.$(".tools").hide();
     this.$("#dailynote").hide();
     this.$("#zoomtracker").show();
-    return this.$("#zoomtimeunit").val('day');
+    this.$("#zoomtimeunit").val('day');
+    return this.rawDataTable.collection.reset();
   };
 
   AppView.prototype.displayTrackers = function() {
@@ -1159,7 +1160,7 @@ module.exports = AppView = (function(_super) {
     this.notes = new DailyNotes;
     return this.notes.fetch({
       success: function() {
-        return console.log('cool');
+        return console.log('daily notes fetched');
       }
     });
   };
