@@ -6,7 +6,7 @@ module.exports =
     description: """
 Number of minutes you sleep every day. Data should be imported from Jawbone
 Konnector."""
-    model: americano.getModel 'JawboneSleep', date: Date
+    model: americano.getModel 'Sleep', date: Date
     request:
         map: (doc) ->
             emit doc.date.substring(0,10), (doc.sleepDuration / 60)

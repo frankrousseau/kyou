@@ -56,10 +56,10 @@
     "RescueTimeActivity": {
       "description": "Track time spent on productive apps/websites."
     },
-    "JawboneMove": {
+    "Steps": {
       "description": "Track steps count from Jawbone data."
     },
-    "JawboneSleep": {
+    "Sleep": {
       "description": "Track sleep duration from Jawbone data."
     },
     "TwitterTweet": {
