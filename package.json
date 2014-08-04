@@ -68,9 +68,6 @@
     "Mood": {
       "description": "Track your mood on a daily basis."
     },
-    "CoffeeCup": {
-      "description": "Track the amount of coffeecup you drink every day."
-    },
     "Tracker": {
       "description": "Custom tracker you create."
     },
