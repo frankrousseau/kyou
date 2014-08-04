@@ -1,7 +1,7 @@
 americano = require 'americano-cozy'
 
 module.exports =
-    name: "Steps - Jawbone"
+    name: "Steps"
     color: "#D35400"
     description: """
 Number of steps you walked every day. Data should be imported from Jawbone

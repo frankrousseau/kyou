@@ -1,7 +1,7 @@
 americano = require 'americano-cozy'
 
 module.exports =
-    name: "Sleep Duration - Jawbone"
+    name: "Sleep Duration"
     color: "#3A539B"
     description: """
 Number of minutes you sleep every day. Data should be imported from Jawbone
