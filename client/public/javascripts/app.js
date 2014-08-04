@@ -164,7 +164,7 @@ module.exports = {
 
 });
 
-;require.register("collections/basic_trackers", function(exports, require, module) {
+require.register("collections/basic_trackers", function(exports, require, module) {
 var TrackersCollection, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -187,7 +187,7 @@ module.exports = TrackersCollection = (function(_super) {
 
 });
 
-;require.register("collections/dailynotes", function(exports, require, module) {
+require.register("collections/dailynotes", function(exports, require, module) {
 var DailyNotes, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -210,7 +210,7 @@ module.exports = DailyNotes = (function(_super) {
 
 });
 
-;require.register("collections/moods", function(exports, require, module) {
+require.register("collections/moods", function(exports, require, module) {
 var Moods, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -233,7 +233,7 @@ module.exports = Moods = (function(_super) {
 
 });
 
-;require.register("collections/tracker_amounts", function(exports, require, module) {
+require.register("collections/tracker_amounts", function(exports, require, module) {
 var TrackersCollection, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -254,7 +254,7 @@ module.exports = TrackersCollection = (function(_super) {
 
 });
 
-;require.register("collections/trackers", function(exports, require, module) {
+require.register("collections/trackers", function(exports, require, module) {
 var TrackersCollection, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -277,7 +277,7 @@ module.exports = TrackersCollection = (function(_super) {
 
 });
 
-;require.register("initialize", function(exports, require, module) {
+require.register("initialize", function(exports, require, module) {
 var app;
 
 app = require('application');
@@ -289,7 +289,7 @@ $(function() {
 
 });
 
-;require.register("lib/app_helpers", function(exports, require, module) {
+require.register("lib/app_helpers", function(exports, require, module) {
 (function() {
   return (function() {
     var console, dummy, method, methods, _results;
@@ -309,7 +309,7 @@ $(function() {
 
 });
 
-;require.register("lib/base_view", function(exports, require, module) {
+require.register("lib/base_view", function(exports, require, module) {
 var BaseView, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -357,7 +357,7 @@ module.exports = BaseView = (function(_super) {
 
 });
 
-;require.register("lib/graph", function(exports, require, module) {
+require.register("lib/graph", function(exports, require, module) {
 module.exports = {
   draw: function(el, yEl, width, color, data, graphStyle, comparisonData, time) {
     var graph, hoverDetail, renderer, series, x_axis, y_axis;
@@ -528,7 +528,7 @@ module.exports = {
 
 });
 
-;require.register("lib/model", function(exports, require, module) {
+require.register("lib/model", function(exports, require, module) {
 var Model, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -566,7 +566,7 @@ module.exports = Model = (function(_super) {
 
 });
 
-;require.register("lib/request", function(exports, require, module) {
+require.register("lib/request", function(exports, require, module) {
 exports.request = function(type, url, data, callback) {
   return $.ajax({
     type: type,
@@ -607,7 +607,7 @@ exports.del = function(url, callback) {
 
 });
 
-;require.register("lib/view_collection", function(exports, require, module) {
+require.register("lib/view_collection", function(exports, require, module) {
 var BaseView, ViewCollection, _ref,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -717,7 +717,7 @@ module.exports = ViewCollection = (function(_super) {
 
 });
 
-;require.register("models/basic_tracker", function(exports, require, module) {
+require.register("models/basic_tracker", function(exports, require, module) {
 var TrackerModel, request, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -740,7 +740,7 @@ module.exports = TrackerModel = (function(_super) {
 
 });
 
-;require.register("models/dailynote", function(exports, require, module) {
+require.register("models/dailynote", function(exports, require, module) {
 var DailyNote, Model, request, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -787,7 +787,7 @@ module.exports = DailyNote = (function(_super) {
 
 });
 
-;require.register("models/mood", function(exports, require, module) {
+require.register("models/mood", function(exports, require, module) {
 var Model, Mood, request, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -834,7 +834,7 @@ module.exports = Mood = (function(_super) {
 
 });
 
-;require.register("models/tracker", function(exports, require, module) {
+require.register("models/tracker", function(exports, require, module) {
 var TrackerModel, request, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -889,7 +889,7 @@ module.exports = TrackerModel = (function(_super) {
 
 });
 
-;require.register("models/tracker_amount", function(exports, require, module) {
+require.register("models/tracker_amount", function(exports, require, module) {
 var TrackerModel, request,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -912,7 +912,7 @@ module.exports = TrackerModel = (function(_super) {
 
 });
 
-;require.register("router", function(exports, require, module) {
+require.register("router", function(exports, require, module) {
 var AppView, Router, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -970,7 +970,7 @@ module.exports = Router = (function(_super) {
 
 });
 
-;require.register("views/app_view", function(exports, require, module) {
+require.register("views/app_view", function(exports, require, module) {
 var AppView, BaseView, BasicTrackerList, DailyNote, DailyNotes, MoodTracker, RawDataTable, Tracker, TrackerList, graphHelper, request,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -1440,7 +1440,7 @@ module.exports = AppView = (function(_super) {
 
 });
 
-;require.register("views/basic_tracker_list", function(exports, require, module) {
+require.register("views/basic_tracker_list", function(exports, require, module) {
 var BasicTrackerCollection, BasicTrackerList, ViewCollection, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1510,7 +1510,7 @@ module.exports = BasicTrackerList = (function(_super) {
 
 });
 
-;require.register("views/basic_tracker_list_item", function(exports, require, module) {
+require.register("views/basic_tracker_list_item", function(exports, require, module) {
 var BaseView, BasicTrackerItem, graph, request, _ref,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -1579,7 +1579,7 @@ module.exports = BasicTrackerItem = (function(_super) {
 
 });
 
-;require.register("views/mood_tracker", function(exports, require, module) {
+require.register("views/mood_tracker", function(exports, require, module) {
 var BaseView, Mood, Moods, TrackerItem, graph, request, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1698,7 +1698,7 @@ module.exports = TrackerItem = (function(_super) {
 
 });
 
-;require.register("views/raw_data_table", function(exports, require, module) {
+require.register("views/raw_data_table", function(exports, require, module) {
 var RawDataTable, TrackerAmountCollection, ViewCollection, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1745,7 +1745,7 @@ module.exports = RawDataTable = (function(_super) {
 
 });
 
-;require.register("views/templates/basic_tracker_list", function(exports, require, module) {
+require.register("views/templates/basic_tracker_list", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
@@ -1756,7 +1756,7 @@ return buf.join("");
 };
 });
 
-;require.register("views/templates/basic_tracker_list_item", function(exports, require, module) {
+require.register("views/templates/basic_tracker_list_item", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
@@ -1770,19 +1770,19 @@ return buf.join("");
 };
 });
 
-;require.register("views/templates/home", function(exports, require, module) {
+require.register("views/templates/home", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div id="menu" class="clearfix"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"> <input id="datepicker"/></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p><p><button id="show-data-btn">show data</button></p><div id="raw-data"></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+buf.push('<div id="menu"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"><input id="datepicker"/></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p><p><button id="show-data-btn">show data</button></p><div id="raw-data"></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
 }
 return buf.join("");
 };
 });
 
-;require.register("views/templates/mood", function(exports, require, module) {
+require.register("views/templates/mood", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
@@ -1794,7 +1794,7 @@ return buf.join("");
 };
 });
 
-;require.register("views/templates/tracker_amount_item", function(exports, require, module) {
+require.register("views/templates/tracker_amount_item", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
@@ -1806,7 +1806,7 @@ return buf.join("");
 };
 });
 
-;require.register("views/templates/tracker_amount_list", function(exports, require, module) {
+require.register("views/templates/tracker_amount_list", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
@@ -1818,7 +1818,7 @@ return buf.join("");
 };
 });
 
-;require.register("views/templates/tracker_list", function(exports, require, module) {
+require.register("views/templates/tracker_list", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
@@ -1829,7 +1829,7 @@ return buf.join("");
 };
 });
 
-;require.register("views/templates/tracker_list_item", function(exports, require, module) {
+require.register("views/templates/tracker_list_item", function(exports, require, module) {
 module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
@@ -1843,7 +1843,7 @@ return buf.join("");
 };
 });
 
-;require.register("views/tracker_amount_item", function(exports, require, module) {
+require.register("views/tracker_amount_item", function(exports, require, module) {
 var BaseView, TrackerAmountItem, request, _ref,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -1888,7 +1888,7 @@ module.exports = TrackerAmountItem = (function(_super) {
 
 });
 
-;require.register("views/tracker_list", function(exports, require, module) {
+require.register("views/tracker_list", function(exports, require, module) {
 var TrackerCollection, TrackerList, ViewCollection, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1958,7 +1958,7 @@ module.exports = TrackerList = (function(_super) {
 
 });
 
-;require.register("views/tracker_list_item", function(exports, require, module) {
+require.register("views/tracker_list_item", function(exports, require, module) {
 var BaseView, TrackerItem, graph, request, _ref,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -2143,5 +2143,5 @@ module.exports = TrackerItem = (function(_super) {
 
 });
 
-;
+
 //# sourceMappingURL=app.js.map
