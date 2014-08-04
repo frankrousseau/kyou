@@ -7,7 +7,7 @@ module.exports = {
   name: "Steps - Jawbone",
   color: "#D35400",
   description: "Number of steps you walked every day. Data should be imported from Jawbone\nKonnector.",
-  model: americano.getModel('JawboneMove', {
+  model: americano.getModel('Steps', {
     date: Date
   }),
   request: {
