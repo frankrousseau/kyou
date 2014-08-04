@@ -82,7 +82,7 @@
     },
     "HeartBeat": {
       "description": "Weight data measure with SMB from Withings."
-    }
+    },
     "BloodPressure": {
       "description": "Weight data measure with SMB from Withings."
     }
