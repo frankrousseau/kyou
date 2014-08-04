@@ -198,7 +198,7 @@ module.exports = {
         for (_i = 0, _len = trackerAmounts.length; _i < _len; _i++) {
           amount = trackerAmounts[_i];
           date = moment(amount.date).format('YYYY-MM-DD');
-          data += "" + date + "," + amount.amount;
+          data += "" + date + "," + amount.amount + "\n";
         }
         res.setHeader('content-type', 'application/csv');
         contentHeader = "inline; filename=" + req.tracker.name + ".csv";

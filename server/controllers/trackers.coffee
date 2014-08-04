@@ -137,7 +137,7 @@ module.exports =
                 # Data
                 for amount in trackerAmounts
                     date = moment(amount.date).format 'YYYY-MM-DD'
-                    data += "#{date},#{amount.amount}"
+                    data += "#{date},#{amount.amount}\n"
 
                 # Request headers
                 res.setHeader 'content-type', 'application/csv'
