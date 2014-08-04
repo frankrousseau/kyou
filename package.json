@@ -81,10 +81,10 @@
       "description": "Weight data measure with SMB from Withings."
     },
     "HeartBeat": {
-      "description": "Weight data measure with SMB from Withings."
+      "description": "Heart beat data measure from Withings objects."
     },
     "BloodPressure": {
-      "description": "Weight data measure with SMB from Withings."
+      "description": "Blood pressure data measure from Withings objects."
     }
   }
 }
