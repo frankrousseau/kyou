@@ -54,18 +54,15 @@ track your specific stuff.
 Here are the next things I have in mind and not started yet. Your participation
 to them would be highly appreciated. Of course any idea is welcome!
 
-* allow to export any tracker to a CSV file
 * allow to import CSV data into a custom tracker
-* add a goal line on analytics
+* allow to see raw data for mood and basic tracker 
 * send daily reminders to fill custom trackers
+* allow to add a goal line
+* send weekly report on goal achievements
 * allow user to hide the trackers he doesn't use
-* understand why responsive doesn't work on mobile.
 * localization/translations
 * write tests
 * mobile app
-* send weekly report on goal achievements
-* predictions through machine learning
-* display fun aggregation like monthly average
 
 ### Coding trackers
 
