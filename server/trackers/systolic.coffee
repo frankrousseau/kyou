@@ -1,7 +1,7 @@
 americano = require 'americano-cozy'
 
 module.exports =
-    name: "Blood Pressure (systolic)"
+    name: "Blood Pressure - systolic"
     color: "#2FAD5B"
     description: """
 Your systolic blood pressure."""

@@ -4,7 +4,7 @@ var americano;
 americano = require('americano-cozy');
 
 module.exports = {
-  name: "Blood Pressure (diastolic)",
+  name: "Blood Pressure - diastolic",
   color: "#2FAD5B",
   description: "Your diastolic blood pressure.",
   model: americano.getModel('BloodPressure', {
