@@ -221,6 +221,7 @@ module.exports = class AppView extends BaseView
             @$("p.zoomexplaination").show()
             @$("input.zoomtitle").hide()
             @$("textarea.zoomexplaination").hide()
+            @$("#show-data-section").hide()
 
             @currentData = @moodTracker.data
             @currentTracker = @moodTracker
@@ -240,6 +241,7 @@ module.exports = class AppView extends BaseView
                 @$("p.zoomexplaination").show()
                 @$("input.zoomtitle").hide()
                 @$("textarea.zoomexplaination").hide()
+                @$("#show-data-section").hide()
 
                 recWait = =>
                     data = @basicTrackerList.views[tracker.cid]?.data
@@ -265,6 +267,8 @@ module.exports = class AppView extends BaseView
                 @$("p.zoomexplaination").hide()
                 @$("input.zoomtitle").show()
                 @$("textarea.zoomexplaination").show()
+                @$("#show-data-section").show()
+                @$("#show-data-csv").attr 'href', "trackers/#{id}/csv"
 
                 recWait = =>
                     data = @trackerList.views[tracker.cid]?.data

@@ -119,11 +119,33 @@ module.exports =
                 data = normalizer.normalize tmpRows, day
                 res.send normalizer.toClientFormat data
 
-    # Returns all stored data
+    # Returns all stored data for a given tracker.
     rawData: (req, res, next) ->
         req.tracker.getAmounts (err, trackerAmounts) ->
             if err then next err
             else res.send trackerAmounts
+
+    # Returns all stored data for a given tracker as a CSV file.
+    rawDataCsv: (req, res, next) ->
+        req.tracker.getAmounts (err, trackerAmounts) ->
+            if err then next err
+            else
+                # CSV Headers
+                data = "#{req.tracker.name},\n"
+                data = 'date,amount\n'
+
+                # Data
+                for amount in trackerAmounts
+                    date = moment(amount.date).format 'YYYY-MM-DD'
+                    data += "#{date},#{amount.amount}"
+
+                # Request headers
+                res.setHeader 'content-type', 'application/csv'
+                contentHeader = "inline; filename=#{req.tracker.name}.csv"
+                res.setHeader 'Content-Disposition', contentHeader
+                res.setHeader 'Content-Length', data.length
+
+                res.send data
 
     # Delete given raw data
     rawDataDelete: (req, res, next) ->

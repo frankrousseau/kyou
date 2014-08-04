@@ -35,6 +35,9 @@ module.exports = {
     put: trackers.update,
     del: trackers.destroy
   },
+  'trackers/:trackerId/csv': {
+    get: trackers.rawDataCsv
+  },
   'trackers/:trackerId/raw-data': {
     get: trackers.rawData
   },

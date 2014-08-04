@@ -187,6 +187,27 @@ module.exports = {
       }
     });
   },
+  rawDataCsv: function(req, res, next) {
+    return req.tracker.getAmounts(function(err, trackerAmounts) {
+      var amount, contentHeader, data, date, _i, _len;
+      if (err) {
+        return next(err);
+      } else {
+        data = "" + req.tracker.name + ",\n";
+        data = 'date,amount\n';
+        for (_i = 0, _len = trackerAmounts.length; _i < _len; _i++) {
+          amount = trackerAmounts[_i];
+          date = moment(amount.date).format('YYYY-MM-DD');
+          data += "" + date + "," + amount.amount;
+        }
+        res.setHeader('content-type', 'application/csv');
+        contentHeader = "inline; filename=" + req.tracker.name + ".csv";
+        res.setHeader('Content-Disposition', contentHeader);
+        res.setHeader('Content-Length', data.length);
+        return res.send(data);
+      }
+    });
+  },
   rawDataDelete: function(req, res, next) {
     return req.amount.destroy(function(err) {
       if (err) {
