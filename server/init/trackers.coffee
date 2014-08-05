@@ -21,7 +21,7 @@ module.exports = (app) ->
             options = group: true
             options.startKey = req.day if req.day?
 
-            tracker.model.rawRequest 'nbByDay', options, (err, rows) ->
+            tracker.model.rawRequest tracker.requestName, options, (err, rows) ->
                 if err then next err
                 else
                     data = normalizer.normalize rows, req.day
@@ -36,10 +36,11 @@ module.exports = (app) ->
             log.info "configure tracker #{tracker.name}"
             slug = slugify tracker.name
             path = "/basic-trackers/#{slug}"
+            tracker.requestName ?= 'nbByDay'
             app.get "#{path}/:day", getController tracker
             log.info 'Tracker controller added.'
 
-            tracker.model.defineRequest 'nbByDay', tracker.request, (err) ->
+            tracker.model.defineRequest tracker.requestName, tracker.request, (err) ->
                 if err
                     log.error 'Tracker request creation failed.'
                     recConfig()

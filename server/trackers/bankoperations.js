@@ -10,6 +10,7 @@ module.exports = {
   model: americano.getModel('bankoperation', {
     date: Date
   }),
+  requestName: 'allOpsByDay',
   request: {
     map: function(doc) {
       var sign;

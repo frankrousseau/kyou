@@ -6,6 +6,7 @@ module.exports =
     description: """
 Sum of every bank operations (all accounts)."""
     model: americano.getModel 'bankoperation', date: Date
+    requestName: 'allOpsByDay'
     request:
         map: (doc) ->
             sign = 1

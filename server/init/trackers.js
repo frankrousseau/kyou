@@ -29,7 +29,7 @@ module.exports = function(app) {
       if (req.day != null) {
         options.startKey = req.day;
       }
-      return tracker.model.rawRequest('nbByDay', options, function(err, rows) {
+      return tracker.model.rawRequest(tracker.requestName, options, function(err, rows) {
         var data;
         if (err) {
           return next(err);
@@ -47,9 +47,12 @@ module.exports = function(app) {
       log.info("configure tracker " + tracker.name);
       slug = slugify(tracker.name);
       path = "/basic-trackers/" + slug;
+      if (tracker.requestName == null) {
+        tracker.requestName = 'nbByDay';
+      }
       app.get("" + path + "/:day", getController(tracker));
       log.info('Tracker controller added.');
-      return tracker.model.defineRequest('nbByDay', tracker.request, function(err) {
+      return tracker.model.defineRequest(tracker.requestName, tracker.request, function(err) {
         if (err) {
           log.error('Tracker request creation failed.');
           return recConfig();
