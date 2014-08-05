@@ -369,7 +369,6 @@ module.exports = class AppView extends BaseView
             el, yEl, width, color, data, graphStyle, comparisonData, time)
 
         timelineEl = @$('#timeline')[0]
-        console.log timelineEl
 
         element: @$('#timeline').html(null)
         annotator = new Rickshaw.Graph.Annotate
@@ -381,3 +380,10 @@ module.exports = class AppView extends BaseView
             annotator.add date, note.get 'text'
 
         annotator.update()
+
+        average = 0
+        for amount in comparisonData
+            average += amount
+        average = average / comparisonData.length
+
+        @$("#average-value").html average

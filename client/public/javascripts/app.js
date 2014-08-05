@@ -1412,7 +1412,7 @@ module.exports = AppView = (function(_super) {
   };
 
   AppView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData, time) {
-    var annotator, date, el, graph, note, timelineEl, width, yEl, _i, _len, _ref;
+    var amount, annotator, average, date, el, graph, note, timelineEl, width, yEl, _i, _j, _len, _len1, _ref;
     if (graphStyle == null) {
       graphStyle = 'line';
     }
@@ -1422,7 +1422,6 @@ module.exports = AppView = (function(_super) {
     graphHelper.clear(el, yEl);
     graph = graphHelper.draw(el, yEl, width, color, data, graphStyle, comparisonData, time);
     timelineEl = this.$('#timeline')[0];
-    console.log(timelineEl);
     ({
       element: this.$('#timeline').html(null)
     });
@@ -1436,7 +1435,14 @@ module.exports = AppView = (function(_super) {
       date = moment(note.get('date')).valueOf() / 1000;
       annotator.add(date, note.get('text'));
     }
-    return annotator.update();
+    annotator.update();
+    average = 0;
+    for (_j = 0, _len1 = comparisonData.length; _j < _len1; _j++) {
+      amount = comparisonData[_j];
+      average += amount;
+    }
+    average = average / comparisonData.length;
+    return this.$("#average-value").html(average);
   };
 
   return AppView;
@@ -1781,7 +1787,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div id="menu"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"><input id="datepicker"/></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+buf.push('<div id="menu"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"><input id="datepicker"/></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select><span>&nbsp;</span><span>(average:&nbsp;</span><span id="average-value"></span><span>)</span></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
 }
 return buf.join("");
 };
