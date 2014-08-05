@@ -390,7 +390,8 @@ module.exports = {
       height: 300,
       renderer: renderer,
       series: series,
-      interpolation: 'linear'
+      interpolation: 'linear',
+      min: 'auto'
     });
     if ((time == null) || time) {
       x_axis = new Rickshaw.Graph.Axis.Time({

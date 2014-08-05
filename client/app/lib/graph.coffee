@@ -29,6 +29,7 @@ module.exports =
             renderer: renderer
             series: series
             interpolation: 'linear'
+            min: 'auto'
         )
 
         # Add axis
@@ -45,12 +46,12 @@ module.exports =
         # Render Graph
         graph.render()
 
-        # Add fancy stuff
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
             xFormatter: (x) ->
                 moment(x * 1000).format 'MM/DD/YY'
             formatter: (series, x, y) ->
+        # Add fancy stuff
                 Math.floor y
 
         graph
