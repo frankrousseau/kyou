@@ -53,7 +53,6 @@ module.exports =
         # Routing management
         Router = require 'router'
         @router = new Router()
-        console.log @
         Backbone.history.start()
 
         # Makes this object immuable.

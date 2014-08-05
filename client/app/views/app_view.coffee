@@ -151,8 +151,7 @@ module.exports = class AppView extends BaseView
                 @$('#dailynote').val dailynote.get 'text'
 
         @notes = new DailyNotes
-        @notes.fetch
-            success: -> console.log 'daily notes fetched'
+        @notes.fetch()
 
 
     ## Tracker creation widget
@@ -382,8 +381,7 @@ module.exports = class AppView extends BaseView
         annotator.update()
 
         average = 0
-        for amount in comparisonData
-            average += amount
-        average = average / comparisonData.length
-
-        @$("#average-value").html average
+        for amount in data
+            average += amount.y
+        average = average / data.length
+        $("#average-value").html average

@@ -154,7 +154,6 @@ module.exports = {
     initSpinner();
     Router = require('router');
     this.router = new Router();
-    console.log(this);
     Backbone.history.start();
     if (typeof Object.freeze === 'function') {
       return Object.freeze(this);
@@ -1159,11 +1158,7 @@ module.exports = AppView = (function(_super) {
       }
     });
     this.notes = new DailyNotes;
-    return this.notes.fetch({
-      success: function() {
-        return console.log('daily notes fetched');
-      }
-    });
+    return this.notes.fetch();
   };
 
   AppView.prototype.onTrackerButtonClicked = function() {
@@ -1437,12 +1432,15 @@ module.exports = AppView = (function(_super) {
     }
     annotator.update();
     average = 0;
-    for (_j = 0, _len1 = comparisonData.length; _j < _len1; _j++) {
-      amount = comparisonData[_j];
-      average += amount;
+    console.log(data);
+    for (_j = 0, _len1 = data.length; _j < _len1; _j++) {
+      amount = data[_j];
+      average += amount.y;
     }
-    average = average / comparisonData.length;
-    return this.$("#average-value").html(average);
+    average = average / data.length;
+    console.log(average);
+    console.log($("#average-value"));
+    return $("#average-value").html(average);
   };
 
   return AppView;
