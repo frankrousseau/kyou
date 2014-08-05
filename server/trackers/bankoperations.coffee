@@ -9,9 +9,6 @@ Sum of every bank operations (all accounts)."""
     requestName: 'allOpsByDay'
     request:
         map: (doc) ->
-            sign = 1
-            if doc.amount < 0
-                sign = -1
-            emit doc.date.substring(0,10), (sign * doc.amount)
+            emit doc.date.substring(0,10), doc.amount
         reduce: (key, values, rereduce) ->
             sum values
