@@ -8,6 +8,9 @@ Sum of every bank operations (all accounts)."""
     model: americano.getModel 'bankoperation', date: Date
     request:
         map: (doc) ->
-            emit doc.date.substring(0,10), doc.amount
+            sign = 1
+            if doc.amount < 0
+                sign = -1
+            emit doc.date.substring(0,10), (sign * doc.amount)
         reduce: (key, values, rereduce) ->
             sum values

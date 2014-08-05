@@ -12,7 +12,12 @@ module.exports = {
   }),
   request: {
     map: function(doc) {
-      return emit(doc.date.substring(0, 10), doc.amount);
+      var sign;
+      sign = 1;
+      if (doc.amount < 0) {
+        sign = -1;
+      }
+      return emit(doc.date.substring(0, 10), sign * doc.amount);
     },
     reduce: function(key, values, rereduce) {
       return sum(values);
