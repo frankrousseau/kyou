@@ -86,7 +86,7 @@
     "BloodPressure": {
       "description": "Blood pressure data measure from Withings objects."
     },
-    "Commits": {
+    "Commit": {
       "description": "Commits downloaded from Github."
     }
   }
