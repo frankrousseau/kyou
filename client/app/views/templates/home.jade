@@ -1,4 +1,4 @@
-#menu.clearfix
+#menu
     .right
         h1
             a(href="#") 
@@ -32,6 +32,11 @@
                     option(value="scatterplot") points
                     option(value="lineplot") lines + points
                     option(value="correlation") correlate (points)
+                span &nbsp;
+                span (average:&nbsp;
+                span#average-value
+                span )
+                
             p
                 select#zoomcomparison
                 span.smaller.em &nbsp;(Compared tracker is in red).
@@ -43,8 +48,10 @@
             a(href="#") go back to tracker list
         p
             button#remove-btn.smaller remove tracker
-        p
+        p#show-data-section
             button#show-data-btn show data
+            | or 
+            a#show-data-csv(target="_blank")  download csv file
         #raw-data
 
 .tools.line

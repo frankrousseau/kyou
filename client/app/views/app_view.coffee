@@ -151,8 +151,7 @@ module.exports = class AppView extends BaseView
                 @$('#dailynote').val dailynote.get 'text'
 
         @notes = new DailyNotes
-        @notes.fetch
-            success: -> console.log 'daily notes fetched'
+        @notes.fetch()
 
 
     ## Tracker creation widget
@@ -221,6 +220,7 @@ module.exports = class AppView extends BaseView
             @$("p.zoomexplaination").show()
             @$("input.zoomtitle").hide()
             @$("textarea.zoomexplaination").hide()
+            @$("#show-data-section").hide()
 
             @currentData = @moodTracker.data
             @currentTracker = @moodTracker
@@ -240,6 +240,7 @@ module.exports = class AppView extends BaseView
                 @$("p.zoomexplaination").show()
                 @$("input.zoomtitle").hide()
                 @$("textarea.zoomexplaination").hide()
+                @$("#show-data-section").hide()
 
                 recWait = =>
                     data = @basicTrackerList.views[tracker.cid]?.data
@@ -265,6 +266,8 @@ module.exports = class AppView extends BaseView
                 @$("p.zoomexplaination").hide()
                 @$("input.zoomtitle").show()
                 @$("textarea.zoomexplaination").show()
+                @$("#show-data-section").show()
+                @$("#show-data-csv").attr 'href', "trackers/#{id}/csv"
 
                 recWait = =>
                     data = @trackerList.views[tracker.cid]?.data
@@ -365,7 +368,6 @@ module.exports = class AppView extends BaseView
             el, yEl, width, color, data, graphStyle, comparisonData, time)
 
         timelineEl = @$('#timeline')[0]
-        console.log timelineEl
 
         element: @$('#timeline').html(null)
         annotator = new Rickshaw.Graph.Annotate
@@ -377,3 +379,9 @@ module.exports = class AppView extends BaseView
             annotator.add date, note.get 'text'
 
         annotator.update()
+
+        average = 0
+        for amount in data
+            average += amount.y
+        average = average / data.length
+        $("#average-value").html average

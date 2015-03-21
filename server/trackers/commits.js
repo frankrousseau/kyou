@@ -4,15 +4,15 @@ var americano;
 americano = require('americano-cozy');
 
 module.exports = {
-  name: "Steps",
-  color: "#D35400",
-  description: "Number of steps you walked every day. Data should be imported from Jawbone\nKonnector.",
-  model: americano.getModel('Steps', {
+  name: "Commits",
+  color: "#408000",
+  description: "This tracker counts your amount of commits on a daily basis.",
+  model: americano.getModel('Commit', {
     date: Date
   }),
   request: {
     map: function(doc) {
-      return emit(doc.date.substring(0, 10), doc.steps);
+      return emit(doc.date.substring(0, 10), 1);
     },
     reduce: function(key, values, rereduce) {
       return sum(values);

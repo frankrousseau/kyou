@@ -56,10 +56,10 @@
     "RescueTimeActivity": {
       "description": "Track time spent on productive apps/websites."
     },
-    "JawboneMove": {
+    "Steps": {
       "description": "Track steps count from Jawbone data."
     },
-    "JawboneSleep": {
+    "Sleep": {
       "description": "Track sleep duration from Jawbone data."
     },
     "TwitterTweet": {
@@ -67,9 +67,6 @@
     },
     "Mood": {
       "description": "Track your mood on a daily basis."
-    },
-    "CoffeeCup": {
-      "description": "Track the amount of coffeecup you drink every day."
     },
     "Tracker": {
       "description": "Custom tracker you create."
@@ -80,8 +77,17 @@
     "DailyNote": {
       "description": "Small note to add details that can't be measured."
     },
-    "WithingsScaleMeasure": {
+    "Weight": {
       "description": "Weight data measure with SMB from Withings."
+    },
+    "HeartBeat": {
+      "description": "Heart beat data measure from Withings objects."
+    },
+    "BloodPressure": {
+      "description": "Blood pressure data measure from Withings objects."
+    },
+    "Commit": {
+      "description": "Commits downloaded from Github."
     }
   }
 }

@@ -51,20 +51,18 @@ track your specific stuff.
 
 ## What about contributions?
 
-Here are the next things I have in mind and not started yet. Your participation to
-them would be highly appreciated. Of course any idea is welcome!
+Here are the next things I have in mind and not started yet. Your participation
+to them would be highly appreciated. Of course any idea is welcome!
 
-* weather tracker: store your location and track temperature and pluviometry.
-* github commit tracker: store your daily amount of commits.
-* localization/translations
-* allow edition for custom trackers
-* ask for confirmation before deleting custrom trackers
-* add a goal line on analytics
-* allow user to hide the trackers he doesn't use
-* display daily notes below the tracker zoom widget
-* allow to export any tracker to a CSV file
 * allow to import CSV data into a custom tracker
+* allow to see raw data for mood and basic tracker 
+* send daily reminders to fill custom trackers
+* allow to add a goal line
+* send weekly report on goal achievements
+* allow user to hide the trackers he doesn't use
+* localization/translations
 * write tests
+* mobile app
 
 ### Coding trackers
 
@@ -80,7 +78,7 @@ Adding a tracker requires one coffeescript file, with the following fields:
 
 See existing trackers for example.
 
-### Coding connector to outside services
+### Coding connector to fetch data from web services
 
 See the [Konnectors](https://github.com/frankrousseau/konnectors) project.
 This project allows to build easily connectors to other web services for your

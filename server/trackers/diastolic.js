@@ -4,15 +4,15 @@ var americano;
 americano = require('americano-cozy');
 
 module.exports = {
-  name: "Weight",
-  color: "#2F5DAB",
-  description: "Your weight in grams.",
-  model: americano.getModel('Weight', {
+  name: "Blood Pressure - diastolic",
+  color: "#2FAD5B",
+  description: "Your diastolic blood pressure.",
+  model: americano.getModel('BloodPressure', {
     date: Date
   }),
   request: {
     map: function(doc) {
-      return emit(doc.date.substring(0, 10), doc.weight);
+      return emit(doc.date.substring(0, 10), doc.diastolic);
     },
     reduce: function(key, values, rereduce) {
       return sum(values) / values.length;
