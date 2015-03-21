@@ -86,6 +86,7 @@ module.exports = class AppView extends BaseView
         @$(".date-next").show()
 
         @redrawCharts()
+        @trackerList.refreshCurrentValue()
 
     onNextClicked: ->
         @currentDate = moment @$("#datepicker").val()
@@ -96,6 +97,7 @@ module.exports = class AppView extends BaseView
             @$(".date-next").hide()
 
         @redrawCharts()
+        @trackerList.refreshCurrentValue()
 
     onReloadClicked: ->
         @reloadAll()

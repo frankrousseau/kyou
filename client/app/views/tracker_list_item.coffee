@@ -32,6 +32,11 @@ module.exports = class TrackerItem extends BaseView
         else
             setTimeout getData, 1000
 
+    refreshCurrentValue: ->
+        label = @$('.current-amount')
+        day = moment window.app.mainView.currentDate
+        label.html @dataByDay[day.format 'YYYYMMDD']
+
     onCurrentAmountKeyup: (event) ->
         keyCode = event.which or event.keyCode
         @onUpClicked() if keyCode is 13
@@ -50,12 +55,11 @@ module.exports = class TrackerItem extends BaseView
             try
                 amount += parseInt @$('.tracker-increment').val()
             catch
-                return false
+                return false # cancel event
 
             label = @$('.current-amount')
             label.css 'color', 'transparent'
             label.spin 'tiny', color: '#444'
-            day = window.app.mainView.currentDate
             @model.updateDay day, amount, (err) =>
                 label.spin()
                 label.css 'color', '#444'
@@ -63,10 +67,15 @@ module.exports = class TrackerItem extends BaseView
                     alert 'An error occured while saving data'
                 else
                     label.html amount
-                    @data[@data.length - 1]['y'] = amount
-                    @$('.chart').html null
-                    @$('.y-axis').html null
-                    @redrawGraph()
+                    distance = moment().diff moment(day), 'days'
+                    index = @data.length - (distance + 1)
+
+                    if index >= 0
+                        @data[index].y = amount
+                        @dataByDay[moment(day).format 'YYYYMMDD'] = amount
+                        @$('.chart').html null
+                        @$('.y-axis').html null
+                        @redrawGraph()
 
 
     onDownClicked: (event) ->
@@ -95,11 +104,15 @@ module.exports = class TrackerItem extends BaseView
                     alert 'An error occured while saving data'
                 else
                     label.html amount
-                    @data[@data.length - 1]['y'] = amount
-                    @$('.chart').html null
-                    @$('.y-axis').html null
-                    @redrawGraph()
+                    distance = moment().diff moment(day), 'days'
+                    index = @data.length - (distance + 1)
 
+                    if index >= 0
+                        @data[index].y = amount
+                        @dataByDay[moment(day).format 'YYYYMMDD'] = amount
+                        @$('.chart').html null
+                        @$('.y-axis').html null
+                        @redrawGraph()
 
     getAnalytics: (callback) ->
         @$(".graph-container").spin 'tiny'
@@ -110,6 +123,10 @@ module.exports = class TrackerItem extends BaseView
             else
                 @$(".graph-container").spin()
                 @data = data
+                @dataByDay = {}
+                for point in data
+                    key = moment(point.x * 1000).format 'YYYYMMDD'
+                    @dataByDay[key] = point.y
                 @drawCharts()
                 callback() if callback?
 

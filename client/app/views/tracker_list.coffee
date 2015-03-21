@@ -26,3 +26,7 @@ module.exports = class TrackerList extends ViewCollection
                 nbLoaded++
                 if nbLoaded is length
                     callback() if callback?
+
+    refreshCurrentValue: ->
+        for id, view of @views
+            view.refreshCurrentValue()

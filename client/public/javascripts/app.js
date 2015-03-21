@@ -1106,7 +1106,8 @@ module.exports = AppView = (function(_super) {
       trigger: false
     });
     this.$(".date-next").show();
-    return this.redrawCharts();
+    this.redrawCharts();
+    return this.trackerList.refreshCurrentValue();
   };
 
   AppView.prototype.onNextClicked = function() {
@@ -1118,7 +1119,8 @@ module.exports = AppView = (function(_super) {
     if (moment().format('YYYYMMDD') === this.currentDate.format('YYYYMMDD')) {
       this.$(".date-next").hide();
     }
-    return this.redrawCharts();
+    this.redrawCharts();
+    return this.trackerList.refreshCurrentValue();
   };
 
   AppView.prototype.onReloadClicked = function() {
@@ -2024,6 +2026,17 @@ module.exports = TrackerList = (function(_super) {
     return _results;
   };
 
+  TrackerList.prototype.refreshCurrentValue = function() {
+    var id, view, _ref1, _results;
+    _ref1 = this.views;
+    _results = [];
+    for (id in _ref1) {
+      view = _ref1[id];
+      _results.push(view.refreshCurrentValue());
+    }
+    return _results;
+  };
+
   return TrackerList;
 
 })(ViewCollection);
@@ -2086,6 +2099,13 @@ module.exports = TrackerItem = (function(_super) {
     }
   };
 
+  TrackerItem.prototype.refreshCurrentValue = function() {
+    var day, label;
+    label = this.$('.current-amount');
+    day = moment(window.app.mainView.currentDate);
+    return label.html(this.dataByDay[day.format('YYYYMMDD')]);
+  };
+
   TrackerItem.prototype.onCurrentAmountKeyup = function(event) {
     var keyCode;
     keyCode = event.which || event.keyCode;
@@ -2118,18 +2138,23 @@ module.exports = TrackerItem = (function(_super) {
       label.spin('tiny', {
         color: '#444'
       });
-      day = window.app.mainView.currentDate;
       return _this.model.updateDay(day, amount, function(err) {
+        var distance, index;
         label.spin();
         label.css('color', '#444');
         if (err) {
           return alert('An error occured while saving data');
         } else {
           label.html(amount);
-          _this.data[_this.data.length - 1]['y'] = amount;
-          _this.$('.chart').html(null);
-          _this.$('.y-axis').html(null);
-          return _this.redrawGraph();
+          distance = moment().diff(moment(day), 'days');
+          index = _this.data.length - (distance + 1);
+          if (index >= 0) {
+            _this.data[index].y = amount;
+            _this.dataByDay[moment(day).format('YYYYMMDD')] = amount;
+            _this.$('.chart').html(null);
+            _this.$('.y-axis').html(null);
+            return _this.redrawGraph();
+          }
         }
       });
     });
@@ -2164,16 +2189,22 @@ module.exports = TrackerItem = (function(_super) {
       });
       day = window.app.mainView.currentDate;
       return _this.model.updateDay(day, amount, function(err) {
+        var distance, index;
         label.spin();
         label.css('color', '#444');
         if (err) {
           return alert('An error occured while saving data');
         } else {
           label.html(amount);
-          _this.data[_this.data.length - 1]['y'] = amount;
-          _this.$('.chart').html(null);
-          _this.$('.y-axis').html(null);
-          return _this.redrawGraph();
+          distance = moment().diff(moment(day), 'days');
+          index = _this.data.length - (distance + 1);
+          if (index >= 0) {
+            _this.data[index].y = amount;
+            _this.dataByDay[moment(day).format('YYYYMMDD')] = amount;
+            _this.$('.chart').html(null);
+            _this.$('.y-axis').html(null);
+            return _this.redrawGraph();
+          }
         }
       });
     });
@@ -2185,11 +2216,18 @@ module.exports = TrackerItem = (function(_super) {
     this.$(".graph-container").spin('tiny');
     day = window.app.mainView.currentDate.format("YYYY-MM-DD");
     return request.get("trackers/" + (this.model.get('id')) + "/amounts/" + day, function(err, data) {
+      var key, point, _i, _len;
       if (err) {
         return alert("An error occured while retrieving data");
       } else {
         _this.$(".graph-container").spin();
         _this.data = data;
+        _this.dataByDay = {};
+        for (_i = 0, _len = data.length; _i < _len; _i++) {
+          point = data[_i];
+          key = moment(point.x * 1000).format('YYYYMMDD');
+          _this.dataByDay[key] = point.y;
+        }
         _this.drawCharts();
         if (callback != null) {
           return callback();
