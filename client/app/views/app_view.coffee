@@ -1,5 +1,6 @@
 request = require '../lib/request'
 graphHelper = require '../lib/graph'
+normalizer = require '../lib/normalizer'
 BaseView = require '../lib/base_view'
 
 Tracker = require '../models/tracker'
@@ -300,13 +301,14 @@ module.exports = class AppView extends BaseView
                 @$("#show-data-section").show()
                 @$("#show-data-csv").attr 'href', "trackers/#{id}/csv"
 
+                i = 0
                 recWait = =>
                     data = @trackerList.views[tracker.cid]?.data
 
                     if data?
                         @currentData = data
                         @currentTracker = tracker
-                        @printZoomGraph @currentData, tracker.get 'color'
+                        @onComparisonChanged()
                     else
                         setTimeout recWait, 10
                 recWait()
@@ -337,7 +339,7 @@ module.exports = class AppView extends BaseView
         val = @$("#zoomcomparison").val()
         timeUnit = $("#zoomtimeunit").val()
         graphStyle = $("#zoomstyle").val()
-        data = @currentData
+        data = normalizer.getSixMonths @currentData
         time = true
 
         # Define comparison
@@ -400,7 +402,7 @@ module.exports = class AppView extends BaseView
 
         timelineEl = @$('#timeline')[0]
 
-        element: @$('#timeline').html(null)
+        @$('#timeline').html(null)
         annotator = new Rickshaw.Graph.Annotate
             graph: graph
             element: @$('#timeline')[0]

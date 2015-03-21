@@ -140,4 +140,5 @@ module.exports = class TrackerItem extends BaseView
         color = 'black'
 
         data = normalizer.getSixMonths @data
+        #if @$el.is 'visible'
         graph.draw el, yEl, width, color, data
