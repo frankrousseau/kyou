@@ -12,6 +12,7 @@ BasicTrackerList = require './basic_tracker_list'
 
 RawDataTable = require './raw_data_table'
 
+
 module.exports = class AppView extends BaseView
 
     el: 'body.application'
@@ -20,6 +21,8 @@ module.exports = class AppView extends BaseView
     events:
         'change #datepicker': 'onDatePickerChanged'
         'blur #dailynote': 'onDailyNoteChanged'
+        'click .date-previous': 'onPreviousClicked'
+        'click .date-next': 'onNextClicked'
         'blur input.zoomtitle': 'onCurrentTrackerChanged'
         'blur textarea.zoomexplaination': 'onCurrentTrackerChanged'
         'change #zoomtimeunit': 'onComparisonChanged'
@@ -64,6 +67,7 @@ module.exports = class AppView extends BaseView
 
         @$("#datepicker").datepicker maxDate: "+0D"
         @$("#datepicker").val @currentDate.format('LL (dddd)'), trigger: false
+        @$(".date-next").hide()
 
         @loadNote()
 
@@ -71,6 +75,28 @@ module.exports = class AppView extends BaseView
     onDatePickerChanged: ->
         @currentDate = moment @$("#datepicker").val()
         @$("#datepicker").val @currentDate.format('LL (dddd)'), trigger: false
+        @reloadAll()
+
+    onPreviousClicked: ->
+        @currentDate = moment @$("#datepicker").val()
+        @currentDate = @currentDate.subtract 1, 'days'
+        @$("#datepicker").val @currentDate.format('LL (dddd)'), trigger: false
+
+        @$(".date-next").show()
+
+        @reloadAll()
+
+    onNextClicked: ->
+        @currentDate = moment @$("#datepicker").val()
+        @currentDate = @currentDate.add 1, 'days'
+        @$("#datepicker").val @currentDate.format('LL (dddd)'), trigger: false
+
+        if moment().format('YYYYMMDD') is @currentDate.format('YYYYMMDD')
+            @$(".date-next").hide()
+
+        @reloadAll()
+
+    reloadAll: ->
         @loadNote()
         @moodTracker.reload =>
             @trackerList.reloadAll =>
@@ -85,7 +111,6 @@ module.exports = class AppView extends BaseView
                                 trackerView = @trackerList.views[tracker.cid]
                             @currentData = trackerView?.data
                         @onComparisonChanged()
-
 
     # View management
 

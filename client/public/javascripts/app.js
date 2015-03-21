@@ -1006,6 +1006,8 @@ module.exports = AppView = (function(_super) {
   AppView.prototype.events = {
     'change #datepicker': 'onDatePickerChanged',
     'blur #dailynote': 'onDailyNoteChanged',
+    'click .date-previous': 'onPreviousClicked',
+    'click .date-next': 'onNextClicked',
     'blur input.zoomtitle': 'onCurrentTrackerChanged',
     'blur textarea.zoomexplaination': 'onCurrentTrackerChanged',
     'change #zoomtimeunit': 'onComparisonChanged',
@@ -1060,15 +1062,42 @@ module.exports = AppView = (function(_super) {
     this.$("#datepicker").val(this.currentDate.format('LL (dddd)'), {
       trigger: false
     });
+    this.$(".date-next").hide();
     return this.loadNote();
   };
 
   AppView.prototype.onDatePickerChanged = function() {
-    var _this = this;
     this.currentDate = moment(this.$("#datepicker").val());
     this.$("#datepicker").val(this.currentDate.format('LL (dddd)'), {
       trigger: false
     });
+    return this.reloadAll();
+  };
+
+  AppView.prototype.onPreviousClicked = function() {
+    this.currentDate = moment(this.$("#datepicker").val());
+    this.currentDate = this.currentDate.subtract(1, 'days');
+    this.$("#datepicker").val(this.currentDate.format('LL (dddd)'), {
+      trigger: false
+    });
+    this.$(".date-next").show();
+    return this.reloadAll();
+  };
+
+  AppView.prototype.onNextClicked = function() {
+    this.currentDate = moment(this.$("#datepicker").val());
+    this.currentDate = this.currentDate.add(1, 'days');
+    this.$("#datepicker").val(this.currentDate.format('LL (dddd)'), {
+      trigger: false
+    });
+    if (moment().format('YYYYMMDD') === this.currentDate.format('YYYYMMDD')) {
+      this.$(".date-next").hide();
+    }
+    return this.reloadAll();
+  };
+
+  AppView.prototype.reloadAll = function() {
+    var _this = this;
     this.loadNote();
     return this.moodTracker.reload(function() {
       return _this.trackerList.reloadAll(function() {
