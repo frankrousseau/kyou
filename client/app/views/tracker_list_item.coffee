@@ -1,6 +1,7 @@
 BaseView = require 'lib/base_view'
 request = require 'lib/request'
 graph = require 'lib/graph'
+normalizer = require 'lib/normalizer'
 
 # Item View for the albums list
 module.exports = class TrackerItem extends BaseView
@@ -121,4 +122,5 @@ module.exports = class TrackerItem extends BaseView
         yEl = @$('.y-axis')[0]
         color = 'black'
 
-        graph.draw el, yEl, width, color, @data
+        data = normalizer.getSixMonths @data
+        graph.draw el, yEl, width, color, data

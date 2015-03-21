@@ -1,6 +1,7 @@
 BaseView = require 'lib/base_view'
 request = require 'lib/request'
 graph = require 'lib/graph'
+normalizer = require 'lib/normalizer'
 
 Mood = require '../models/mood'
 Moods = require '../collections/moods'
@@ -68,4 +69,6 @@ module.exports = class TrackerItem extends BaseView
         width = @$("#moods").width() - 70
         el = @$("#moods-charts")[0]
         yEl = @$("#moods-y-axis")[0]
-        graph.draw el, yEl, width, 'steelblue', @data
+
+        data = normalizer.getSixMonths @data
+        graph.draw el, yEl, width, 'steelblue', data

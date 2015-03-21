@@ -1,3 +1,4 @@
+normalizer = require 'lib/normalizer'
 ViewCollection = require 'lib/view_collection'
 TrackerCollection = require 'collections/trackers'
 

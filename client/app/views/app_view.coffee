@@ -23,6 +23,7 @@ module.exports = class AppView extends BaseView
         'blur #dailynote': 'onDailyNoteChanged'
         'click .date-previous': 'onPreviousClicked'
         'click .date-next': 'onNextClicked'
+        'click .reload': 'onReloadClicked'
         'blur input.zoomtitle': 'onCurrentTrackerChanged'
         'blur textarea.zoomexplaination': 'onCurrentTrackerChanged'
         'change #zoomtimeunit': 'onComparisonChanged'
@@ -75,7 +76,7 @@ module.exports = class AppView extends BaseView
     onDatePickerChanged: ->
         @currentDate = moment @$("#datepicker").val()
         @$("#datepicker").val @currentDate.format('LL (dddd)'), trigger: false
-        @reloadAll()
+        @redrawCharts()
 
     onPreviousClicked: ->
         @currentDate = moment @$("#datepicker").val()
@@ -84,7 +85,7 @@ module.exports = class AppView extends BaseView
 
         @$(".date-next").show()
 
-        @reloadAll()
+        @redrawCharts()
 
     onNextClicked: ->
         @currentDate = moment @$("#datepicker").val()
@@ -94,6 +95,9 @@ module.exports = class AppView extends BaseView
         if moment().format('YYYYMMDD') is @currentDate.format('YYYYMMDD')
             @$(".date-next").hide()
 
+        @redrawCharts()
+
+    onReloadClicked: ->
         @reloadAll()
 
     reloadAll: ->
