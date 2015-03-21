@@ -2424,6 +2424,9 @@ cursor not-allowed {
   color: #e58067;
   cursor: pointer;
 }
+.reload {
+  padding-left: 20px;
+}
 #datepicker {
   font-family: title;
   font-size: 24px;

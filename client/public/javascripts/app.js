@@ -566,6 +566,30 @@ module.exports = Model = (function(_super) {
 
 });
 
+;require.register("lib/normalizer", function(exports, require, module) {
+module.exports = {
+  getSixMonths: function(data, endDate) {
+    var beginDate, currentDate, point, result, _i, _len;
+    if (endDate == null) {
+      endDate = window.app.mainView.currentDate;
+    }
+    result = [];
+    endDate = moment(endDate);
+    beginDate = moment(endDate);
+    beginDate = beginDate.subtract(6, 'months');
+    for (_i = 0, _len = data.length; _i < _len; _i++) {
+      point = data[_i];
+      currentDate = moment(point.x * 1000);
+      if ((currentDate != null) && (currentDate >= beginDate) && (currentDate <= endDate)) {
+        result.push(point);
+      }
+    }
+    return result;
+  }
+};
+
+});
+
 ;require.register("lib/request", function(exports, require, module) {
 exports.request = function(type, url, data, callback) {
   return $.ajax({
@@ -1008,6 +1032,7 @@ module.exports = AppView = (function(_super) {
     'blur #dailynote': 'onDailyNoteChanged',
     'click .date-previous': 'onPreviousClicked',
     'click .date-next': 'onNextClicked',
+    'click .reload': 'onReloadClicked',
     'blur input.zoomtitle': 'onCurrentTrackerChanged',
     'blur textarea.zoomexplaination': 'onCurrentTrackerChanged',
     'change #zoomtimeunit': 'onComparisonChanged',
@@ -1071,7 +1096,7 @@ module.exports = AppView = (function(_super) {
     this.$("#datepicker").val(this.currentDate.format('LL (dddd)'), {
       trigger: false
     });
-    return this.reloadAll();
+    return this.redrawCharts();
   };
 
   AppView.prototype.onPreviousClicked = function() {
@@ -1081,7 +1106,7 @@ module.exports = AppView = (function(_super) {
       trigger: false
     });
     this.$(".date-next").show();
-    return this.reloadAll();
+    return this.redrawCharts();
   };
 
   AppView.prototype.onNextClicked = function() {
@@ -1093,6 +1118,10 @@ module.exports = AppView = (function(_super) {
     if (moment().format('YYYYMMDD') === this.currentDate.format('YYYYMMDD')) {
       this.$(".date-next").hide();
     }
+    return this.redrawCharts();
+  };
+
+  AppView.prototype.onReloadClicked = function() {
     return this.reloadAll();
   };
 
@@ -1546,7 +1575,7 @@ module.exports = BasicTrackerList = (function(_super) {
 });
 
 ;require.register("views/basic_tracker_list_item", function(exports, require, module) {
-var BaseView, BasicTrackerItem, graph, request, _ref,
+var BaseView, BasicTrackerItem, graph, normalizer, request, _ref,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1556,6 +1585,8 @@ BaseView = require('lib/base_view');
 request = require('lib/request');
 
 graph = require('lib/graph');
+
+normalizer = require('lib/normalizer');
 
 module.exports = BasicTrackerItem = (function(_super) {
   __extends(BasicTrackerItem, _super);
@@ -1600,12 +1631,13 @@ module.exports = BasicTrackerItem = (function(_super) {
   };
 
   BasicTrackerItem.prototype.drawCharts = function() {
-    var color, el, width, yEl;
+    var color, data, el, width, yEl;
     width = this.$('.graph-container').width() - 70;
     el = this.$('.chart')[0];
     yEl = this.$('.y-axis')[0];
     color = this.model.get('color');
-    return graph.draw(el, yEl, width, color, this.data);
+    data = normalizer.getSixMonths(this.data);
+    return graph.draw(el, yEl, width, color, data);
   };
 
   return BasicTrackerItem;
@@ -1615,7 +1647,7 @@ module.exports = BasicTrackerItem = (function(_super) {
 });
 
 ;require.register("views/mood_tracker", function(exports, require, module) {
-var BaseView, Mood, Moods, TrackerItem, graph, request, _ref,
+var BaseView, Mood, Moods, TrackerItem, graph, normalizer, request, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1624,6 +1656,8 @@ BaseView = require('lib/base_view');
 request = require('lib/request');
 
 graph = require('lib/graph');
+
+normalizer = require('lib/normalizer');
 
 Mood = require('../models/mood');
 
@@ -1718,13 +1752,14 @@ module.exports = TrackerItem = (function(_super) {
   };
 
   TrackerItem.prototype.redraw = function() {
-    var el, width, yEl;
+    var data, el, width, yEl;
     this.$("#moods-charts").html('');
     this.$("#moods-y-axis").html('');
     width = this.$("#moods").width() - 70;
     el = this.$("#moods-charts")[0];
     yEl = this.$("#moods-y-axis")[0];
-    return graph.draw(el, yEl, width, 'steelblue', this.data);
+    data = normalizer.getSixMonths(this.data);
+    return graph.draw(el, yEl, width, 'steelblue', data);
   };
 
   return TrackerItem;
@@ -1811,7 +1846,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div id="menu"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"> <span class="header-button date-previous"><</span><input id="datepicker"/><span class="header-button date-next">></span></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select><span>&nbsp;</span><span>(average:&nbsp;</span><span id="average-value"></span><span>)</span></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
+buf.push('<div id="menu"><div class="right"><h1><a href="#"> <img src="icons/main_icon_small.png"/></a></h1></div><div class="left"> <span class="header-button date-previous"><</span><input id="datepicker"/><span class="header-button date-next">></span><span class="header-button reload">reload</span></div></div><div id="content" class="pa2 trackers"><div class="line pl1"><textarea id="dailynote" placeholder="add a note for today"></textarea></div><div id="zoomtracker" class="line"><div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p><p><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select><span>&nbsp;</span><select id="zoomstyle"><option value="line">lines</option><option value="bar">bars</option><option value="scatterplot">points</option><option value="lineplot">lines + points</option><option value="correlation">correlate (points)</option></select><span>&nbsp;</span><span>(average:&nbsp;</span><span id="average-value"></span><span>)</span></p><p><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a href="#">go back to tracker list</a></div><p><button id="remove-btn" class="smaller">remove tracker</button></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div></div><div class="tools line"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description"></textarea></div><div class="line"><button id="add-tracker-btn">add tracker</button></div></div></div>');
 }
 return buf.join("");
 };
@@ -1924,9 +1959,11 @@ module.exports = TrackerAmountItem = (function(_super) {
 });
 
 ;require.register("views/tracker_list", function(exports, require, module) {
-var TrackerCollection, TrackerList, ViewCollection, _ref,
+var TrackerCollection, TrackerList, ViewCollection, normalizer, _ref,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+normalizer = require('lib/normalizer');
 
 ViewCollection = require('lib/view_collection');
 
@@ -1994,7 +2031,7 @@ module.exports = TrackerList = (function(_super) {
 });
 
 ;require.register("views/tracker_list_item", function(exports, require, module) {
-var BaseView, TrackerItem, graph, request, _ref,
+var BaseView, TrackerItem, graph, normalizer, request, _ref,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2004,6 +2041,8 @@ BaseView = require('lib/base_view');
 request = require('lib/request');
 
 graph = require('lib/graph');
+
+normalizer = require('lib/normalizer');
 
 module.exports = TrackerItem = (function(_super) {
   __extends(TrackerItem, _super);
@@ -2164,12 +2203,13 @@ module.exports = TrackerItem = (function(_super) {
   };
 
   TrackerItem.prototype.drawCharts = function() {
-    var color, el, width, yEl;
+    var color, data, el, width, yEl;
     width = this.$(".graph-container").width() - 70;
     el = this.$('.chart')[0];
     yEl = this.$('.y-axis')[0];
     color = 'black';
-    return graph.draw(el, yEl, width, color, this.data);
+    data = normalizer.getSixMonths(this.data);
+    return graph.draw(el, yEl, width, color, data);
   };
 
   return TrackerItem;

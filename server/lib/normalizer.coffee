@@ -10,7 +10,7 @@ module.exports =
 
         end.hours 0, 0, 0, 0
         date = moment end
-        date.subtract 'month', 6
+        date.subtract 'month', 9
 
         while date < end
             date = date.add 'days', 1
