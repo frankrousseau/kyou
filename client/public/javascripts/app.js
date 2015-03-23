@@ -575,6 +575,7 @@ module.exports = {
     }
     result = [];
     endDate = moment(endDate);
+    endDate.add(1, 'days');
     beginDate = moment(endDate);
     beginDate = beginDate.subtract(6, 'months');
     for (_i = 0, _len = data.length; _i < _len; _i++) {

@@ -8,6 +8,7 @@ module.exports =
         endDate ?= window.app.mainView.currentDate
         result = []
         endDate = moment(endDate)
+        endDate.add 1, 'days'
         beginDate = moment endDate
         beginDate = beginDate.subtract 6, 'months'
 
