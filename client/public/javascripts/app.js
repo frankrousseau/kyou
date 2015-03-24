@@ -1440,6 +1440,9 @@ module.exports = AppView = (function(_super) {
     } else {
       comparisonData = null;
     }
+    if (comparisonData != null) {
+      comparisonData = normalizer.getSixMonths(comparisonData);
+    }
     if (timeUnit === 'week') {
       data = graphHelper.getWeekData(data);
       if (comparisonData != null) {
@@ -1473,7 +1476,7 @@ module.exports = AppView = (function(_super) {
   AppView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData, time) {
     var amount, annotator, average, date, el, graph, note, timelineEl, width, yEl, _i, _j, _len, _len1, _ref;
     if (graphStyle == null) {
-      graphStyle = 'line';
+      graphStyle = 'bar';
     }
     width = $(window).width() - 140;
     el = this.$('#zoom-charts')[0];

@@ -358,6 +358,9 @@ module.exports = class AppView extends BaseView
         else
             comparisonData = null
 
+        if comparisonData?
+            comparisonData = normalizer.getSixMonths comparisonData
+
         # Define timeUnit
         if timeUnit is 'week'
             data = graphHelper.getWeekData data
@@ -391,7 +394,7 @@ module.exports = class AppView extends BaseView
 
         @printZoomGraph data, color, graphStyle, comparisonData, time
 
-    printZoomGraph: (data, color, graphStyle='line', comparisonData, time) ->
+    printZoomGraph: (data, color, graphStyle='bar', comparisonData, time) ->
         width = $(window).width() - 140
         el = @$('#zoom-charts')[0]
         yEl = @$('#zoom-y-axis')[0]
@@ -402,7 +405,7 @@ module.exports = class AppView extends BaseView
 
         timelineEl = @$('#timeline')[0]
 
-        @$('#timeline').html(null)
+        @$('#timeline').html null
         annotator = new Rickshaw.Graph.Annotate
             graph: graph
             element: @$('#timeline')[0]
@@ -414,7 +417,6 @@ module.exports = class AppView extends BaseView
         annotator.update()
 
         average = 0
-        for amount in data
-            average += amount.y
+        average += amount.y for amount in data
         average = average / data.length
         $("#average-value").html average
