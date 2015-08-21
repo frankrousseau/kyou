@@ -6,7 +6,7 @@ module.exports =
     description: """
 Number of steps you walked every day. Data should be imported from Jawbone
 Konnector."""
-    model: americano.getModel 'Steps', date: Date
+    model: americano.getModel 'steps', date: Date
     request:
         map: (doc) ->
             emit doc.date.substring(0,10), doc.steps

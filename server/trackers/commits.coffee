@@ -6,7 +6,7 @@ module.exports =
     description: """
 This tracker counts your amount of commits on a daily basis.
 """
-    model: americano.getModel 'Commit', date: Date
+    model: americano.getModel 'commit', date: Date
     request:
         map: (doc) ->
             emit doc.date.substring(0,10), 1

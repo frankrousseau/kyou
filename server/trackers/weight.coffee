@@ -5,7 +5,7 @@ module.exports =
     color: "#2F5DAB"
     description: """
 Your weight in grams."""
-    model: americano.getModel 'Weight', date: Date
+    model: americano.getModel 'weight', date: Date
     request:
         map: (doc) ->
             emit doc.date.substring(0,10), doc.weight
