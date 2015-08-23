@@ -7,25 +7,47 @@
 
 
 #content
-    padding: 0 20px
+    padding: 0 30px
+
+@font-face
+    font-family: title
+    src: url('../fonts/cabin.otf')
+
+@font-face
+    font-family: main
+    src: url('../fonts/cabin.otf')
 
 // Menu
 #menu
-    position: fixed
-    width: 100%
-    height: 50px
-    padding: 10px 10px 0 10px
-    background-color: yellow-grey
-    z-index: 100
+    position fixed
+    width 100%
+    height 50px
+    padding 10px 10px 0 10px
+    background-color #39424E
+    color white
+    z-index 100
 
     h1
         margin-bottom: 0
 
+    .left 
+        span
+            margin 0 15px
+
+        input
+            width 250px
+            background transparent
+            border 0p solid transparent
+            outline none
+            box-shadow none
+            color blue
+
 #content
-    padding-top: 60px
+    padding-top: 80px
 
 .header-button
     font-weight: bold
+    color white
 
     &:hover
         color: red
@@ -42,6 +64,7 @@
     background: transparent
     border: 0
     cursor: pointer
+    color white
 
 #datepicker:hover
     color: red
@@ -101,6 +124,7 @@
 .zoomexplaination
     font-family: main
     font-size: 20px
+    margin 0
 
 .tracker-increment
     display: inline-block
@@ -122,6 +146,7 @@
     margin-top: 10px
     min-height: 300px
     position: relative
+    width: 98%
 
 .chart
     position: relative
@@ -164,3 +189,15 @@
 #timeline
     margin-left: 38px
     margin-top: 20px
+
+#moods-tracker
+    border-bottom 1px solid #EEE
+
+
+.trackers
+    padding 20px
+
+.tracker.line
+    border-bottom 1px solid #EEE
+    padding 0 0 40px 0
+

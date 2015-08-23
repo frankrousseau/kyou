@@ -4,16 +4,8 @@
 dark-grey = #444
 yellow-grey = #f5f0d7
 red = #E58067
-
-
-// Fonts
-@font-face
-    font-family: title
-    src: url('../fonts/chunkfive.otf')
-
-@font-face
-    font-family: main
-    src: url('../fonts/district-pro-thin.otf')
+blue-grey = #39424E
+green = #2EC565
 
 
 // Root selectors
@@ -27,17 +19,18 @@ body
 
 body
     text-rendering optimizeLegibility
-    background-color: yellow-grey
+    background-color: white
     font-family: main
 
 h2
     font-family: main
     font-weight: bold
+    margin-bottom 0
 
 body,
 input
     color #444
-    font 300 16px Geneva, Verdana, "Lucida Sans", "Lucida Grande", sans-serif
+    font 300 16px Verdana, "Lucida Sans", "Lucida Grande", sans-serif
     line-height 1.2
 
 a,
@@ -56,13 +49,14 @@ h1
 button
     border: 0
     border-radius: 3px
-    background-color: dark-grey
+    background-color: green
     color: white
     padding: 10px
     margin-right: 5px
 
 button:hover
-    background-color: red
+    background-color: green - 20%
+    transition background-color 0.2s
 
 button:active
     background-color: red - 20%
