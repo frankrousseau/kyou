@@ -3,9 +3,13 @@ dailynotes = require './dailynotes'
 trackers = require './trackers'
 
 module.exports =
+    'slug': param: trackers.loadMetadataTracker
     'trackerId': param: trackers.loadTracker
     'trackerAmountId': param: trackers.loadTrackerAmount
     'day': param: trackers.loadDay
+
+    'all-data':
+        get: trackers.allData
 
     'moods/:day':
         get: moods.all
@@ -14,6 +18,9 @@ module.exports =
         put: moods.updateDay
     'basic-trackers':
         get: trackers.allBasicTrackers
+    'basic-trackers/:slug':
+        put: trackers.updateMetadataBasic
+
     'trackers':
         get: trackers.all
         post: trackers.create
@@ -31,8 +38,10 @@ module.exports =
         put: trackers.updateDayValue
     'trackers/:trackerId/amounts/:day':
         get: trackers.amounts
+
     'dailynotes/:day':
         get: dailynotes.day
         put: dailynotes.updateDay
     'dailynotes/':
         get: dailynotes.all
+

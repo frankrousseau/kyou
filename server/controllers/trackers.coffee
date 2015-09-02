@@ -1,20 +1,24 @@
 moment = require 'moment'
+async = require 'async'
 slugify = require 'cozy-slug'
 
 Tracker = require '../models/tracker'
 TrackerAmount = require '../models/trackeramount'
+TrackerMetadata = require '../models/trackermetadata'
 normalizer = require '../lib/normalizer'
-trackerUtils = require '../lib/trackers'
+basicTrackers = require('../lib/trackers')()
 
 
 # Return number of tasks completed for every day
 module.exports =
 
-    # Transform data given in rul in a data without hours
+
+    # Transform data given in a data without hours
     loadDay: (req, res, next, day) ->
         req.day = moment req.params.day
         req.day.hours 0, 0, 0, 0
         next()
+
 
     # Load tracker before processing request.
     loadTracker: (req, res, next, trackerId) ->
@@ -27,25 +31,41 @@ module.exports =
                 req.tracker = trackers[0]
                 next()
 
+
+    # Load basic tracker metadata before processing request.
+    loadMetadataTracker: (req, res, next, slug) ->
+        TrackerMetadata.get slug, (err, metadata) ->
+            return next err if err
+
+            req.metadata = metadata
+            next()
+
+
     # Load tracker before processing request.
     loadTrackerAmount: (req, res, next, trackerAmountId) ->
         TrackerAmount.request 'all', key: trackerAmountId, (err, amounts) ->
             if err then next err
             else if amounts.length is 0
-                console.log 'AmounT not found'
+                console.log 'Amount not found'
                 res.send error: 'not found', 404
             else
                 req.amount = amounts[0]
                 next()
 
+
     # Get all trackers described in the KYou code, from the trackers folder.
     allBasicTrackers: (req, res, next) ->
-        trackers = trackerUtils.getTrackers()
-        for tracker in trackers
-            tracker.slug = slugify tracker.name
-            tracker.path = "basic-trackers/#{tracker.slug}"
-            delete tracker.request
-        res.send trackers
+
+        TrackerMetadata.allHash (err, metadataHash) ->
+            results = []
+            for tracker in basicTrackers
+                metadata = metadataHash[tracker.slug]
+                tracker.metadata = metadata or {}
+                delete tracker.request
+                results.push tracker
+
+            res.send results
+
 
     # Return all user custom trackers.
     all: (req, res, next) ->
@@ -54,12 +74,14 @@ module.exports =
             else
                 res.send trackers
 
+
     # Create a user custom tracker.
     create: (req, res, next) ->
         Tracker.create req.body, (err, tracker) ->
             if err then next err
             else
                 res.send tracker
+
 
     # Update given user custom tracker.
     update: (req, res, next) ->
@@ -79,12 +101,14 @@ module.exports =
                     else
                         res.send success: true
 
+
     # Get value for given day and given custom tracker.
     day: (req, res, next) ->
         req.tracker.getAmount req.day, (err, trackerAmount) ->
             if err then next err
             else if trackerAmount? then res.send trackerAmount
             else res.send {}
+
 
     # Set value for given day and given custom tracker.
     updateDayValue: (req, res, next) ->
@@ -104,6 +128,7 @@ module.exports =
                     if err then next err
                     else res.send trackerAmount
 
+
     # Return 6 month of data for given custom tracker.
     amounts: (req, res, next) ->
         id = req.tracker.id
@@ -119,11 +144,13 @@ module.exports =
                 data = normalizer.normalize tmpRows, day
                 res.send normalizer.toClientFormat data
 
+
     # Returns all stored data for a given tracker.
     rawData: (req, res, next) ->
         req.tracker.getAmounts (err, trackerAmounts) ->
             if err then next err
             else res.send trackerAmounts
+
 
     # Returns all stored data for a given tracker as a CSV file.
     rawDataCsv: (req, res, next) ->
@@ -147,8 +174,39 @@ module.exports =
 
                 res.send data
 
+
     # Delete given raw data
     rawDataDelete: (req, res, next) ->
         req.amount.destroy (err) ->
             if err then next err
             else res.send success: true, 204
+
+
+    allData: (req, res, next) ->
+        results = {}
+        options = group: true
+
+        async.eachSeries basicTrackers, (tracker, done) ->
+            requestName = tracker.requestName or 'nbByDay'
+            tracker.model.rawRequest requestName, options, (err, rows) ->
+                results[tracker.slug] = normalizer.toClientFormat rows
+                done()
+        , (err) ->
+            res.send results
+
+
+    updateMetadataBasic: (req, res, next) ->
+        data = req.body
+        if req.metadata?
+            console.log data
+            req.metadata.updateAttributes data, (err, metadata) ->
+                return next err if err
+                res.send metadata
+
+        else
+            data.slug = req.params.slug
+            console.log data
+            TrackerMetadata.create data, (err, metadata) ->
+                return next err if err
+                res.send metadata
+
