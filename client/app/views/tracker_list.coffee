@@ -8,8 +8,10 @@ module.exports = class TrackerList extends ViewCollection
     template: require 'views/templates/tracker_list'
     collection: new TrackerCollection()
 
+
     redrawAll: ->
         view.redrawGraph() for id, view of @views
+
 
     reloadAll: (callback) ->
         @$(".tracker .chart").html ''
@@ -26,6 +28,7 @@ module.exports = class TrackerList extends ViewCollection
                 nbLoaded++
                 if nbLoaded is length
                     callback() if callback?
+
 
     refreshCurrentValue: ->
         for id, view of @views

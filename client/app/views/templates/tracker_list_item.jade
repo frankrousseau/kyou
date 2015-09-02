@@ -1,14 +1,9 @@
-.mod.w33.left
+.line
     h2 
         a(href="#trackers/#{model.id}") #{model.name}
     p.explaination #{model.description}
-    .current-amount
-        | Set value for today
-    button.up-btn + 
-    button.down-btn -
-    input.tracker-increment(value="1")
 
-.mod.w66.left
+.line
     .graph-container
         .y-axis
         .chart

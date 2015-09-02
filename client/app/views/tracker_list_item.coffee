@@ -3,15 +3,18 @@ request = require 'lib/request'
 graph = require 'lib/graph'
 normalizer = require 'lib/normalizer'
 
+
 # Item View for the albums list
 module.exports = class TrackerItem extends BaseView
     className: 'tracker line'
     template: require 'views/templates/tracker_list_item'
 
+
     events:
         'click .up-btn': 'onUpClicked'
         'click .down-btn': 'onDownClicked'
         'keyup .tracker-increment': 'onCurrentAmountKeyup'
+
 
     afterRender: (callback) =>
         day = window.app.mainView.currentDate
@@ -20,8 +23,7 @@ module.exports = class TrackerItem extends BaseView
                 if err
                     alert "An error occured while retrieving tracker data"
                 else if not amount?
-                    @$('.current-amount').html(
-                        'Set value for current day')
+                    @$('.current-amount').html('Set value for current day')
                 else
                     @$('.current-amount').html amount.get 'amount'
 
@@ -32,14 +34,17 @@ module.exports = class TrackerItem extends BaseView
         else
             setTimeout getData, 1000
 
+
     refreshCurrentValue: ->
         label = @$('.current-amount')
         day = moment window.app.mainView.currentDate
         label.html @dataByDay[day.format 'YYYYMMDD']
 
+
     onCurrentAmountKeyup: (event) ->
         keyCode = event.which or event.keyCode
         @onUpClicked() if keyCode is 13
+
 
     onUpClicked: (event) ->
         day = window.app.mainView.currentDate
@@ -114,6 +119,7 @@ module.exports = class TrackerItem extends BaseView
                         @$('.y-axis').html null
                         @redrawGraph()
 
+
     getAnalytics: (callback) ->
         @$(".graph-container").spin 'tiny'
         day = window.app.mainView.currentDate.format "YYYY-MM-DD"
@@ -130,8 +136,10 @@ module.exports = class TrackerItem extends BaseView
                 @drawCharts()
                 callback() if callback?
 
+
     redrawGraph: ->
         @drawCharts()
+
 
     drawCharts: ->
         width = @$(".graph-container").width() - 70
@@ -142,3 +150,4 @@ module.exports = class TrackerItem extends BaseView
         data = normalizer.getSixMonths @data
         #if @$el.is 'visible'
         graph.draw el, yEl, width, color, data
+

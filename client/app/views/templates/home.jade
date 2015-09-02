@@ -1,66 +1,28 @@
 #menu
-    .right
-        h1
-            a(href="#") 
-                img(src='icons/main_icon_small.png')
+    span.info-text Visualize your data from:
+    input.datepicker#datepicker-start(value="#{startDate}")
+    span.info-text to:
+    input.datepicker#datepicker-end(value="#{endDate}")
 
-    .left 
-        span.header-button.date-previous <
-        input#datepicker
-        span.header-button.date-next >
-        span.header-button.reload reload
 #content.pa2.trackers
-    .line.pl1
-        textarea#dailynote(placeholder="add a note for today")
 
-    .line#zoomtracker
-        .line.graph-section
-            h2.zoomtitle No tracker selected
-            p.zoomexplaination.explaination
-            p.zoom-editable
-                input.zoomtitle No tracker selected
-            p.zoom-editable
-                textarea.zoomexplaination.explaination
-            p
-                select#zoomtimeunit
-                    option(value="day") day
-                    option(value="week") week
-                    option(value="month") month
-                span &nbsp;
-                select#zoomstyle
-                    option(value="bar") bars
-                    option(value="line") lines
-                    option(value="scatterplot") points
-                    option(value="lineplot") lines + points
-                    option(value="correlation") correlate (points)
-                span &nbsp;
-                span (average:&nbsp;
-                span#average-value
-                span )
-                
-            p
-                select#zoomcomparison
-                span.smaller.em &nbsp;(Compared tracker is in red).
-        #zoomgraph.graph-container
-            #zoom-y-axis.y-axis
-            #zoom-charts.chart
-            #timeline.rickshaw_annotation_timeline
-        .line.txt-center.pt2
-            a(href="#") go back to tracker list
-        p
-            button#remove-btn.smaller remove tracker
-        p#show-data-section
-            button#show-data-btn show data
-            | or 
-            a#show-data-csv(target="_blank")  download csv file
-        #raw-data
+    img.hidden(src='img/spinner.svg')
 
-.tools.line
-    #add-tracker-widget
-        h2 Create your tracker
-        .line
-            input#add-tracker-name(placeholder="name")
-        .line
-            textarea#add-tracker-description(placeholder="description")
-        .line
-            button#add-tracker-btn add tracker
+    .line#zoom-view
+
+.line
+    #add-basic-tracker-widget
+    h2 Add your tracker
+    .line#add-basic-tracker-list
+        
+
+//-.line.hidden
+    //-#add-tracker-widget
+        //-h2 Create your tracker
+        //-.line
+            //-input#add-tracker-name(placeholder="name")
+        //-.line
+            //-textarea#add-tracker-description(placeholder="description")
+        //-.line
+            //-button#add-tracker-btn add tracker
+

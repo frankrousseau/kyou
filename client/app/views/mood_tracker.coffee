@@ -8,7 +8,7 @@ Moods = require '../collections/moods'
 
 # Item View for the albums list
 module.exports = class TrackerItem extends BaseView
-    id: 'moods'
+    id: 'moods-tracker'
     className: 'line'
     template: require './templates/mood'
 

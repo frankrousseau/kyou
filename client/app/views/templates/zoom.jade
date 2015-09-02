@@ -1,0 +1,63 @@
+.line.graph-section
+    h2.zoomtitle No tracker selected
+    p.zoomexplaination.explaination
+    p.zoom-editable
+        input.zoomtitle No tracker selected
+    p.zoom-editable
+        textarea.zoomexplaination.explaination
+
+#zoomgraph.graph-container
+    #zoom-y-axis.y-axis
+    #zoom-charts.chart
+    #timeline.rickshaw_annotation_timeline
+.line.txt-center.pt2
+    a#back-trackers-btn(href="#") go back to tracker list
+
+.line
+    .mod.w50.left
+        h3 Visualization options
+        p.zoom-option
+            span scale:
+            select#zoomtimeunit
+                option(value="day") day
+                option(value="week") week
+                option(value="month") month
+
+        p.zoom-option
+            span display:
+            select#zoomstyle
+                option(value="bar") bars
+                option(value="line") lines
+                option(value="scatterplot") points
+                option(value="correlation") correlate (points)
+            span &nbsp;
+            
+        p.zoom-option
+            span compare with:
+            select#zoomcomparison
+            span.smaller.em &nbsp;(Compared tracker is in red).
+
+        p.zoom-option
+            span objective:
+            input#zoomgoal
+
+    .mod.w50.left
+        h3 Additional information
+        p.zoom-option
+            span average:&nbsp;
+            span#average-value
+        p.zoom-option
+            span recent evolution:&nbsp;
+            span#evolution-value
+
+.line
+    p.zoom-option
+        button#remove-btn.smaller remove tracker
+
+    p#show-data-section
+        button#show-data-btn show data
+        | or 
+        a#show-data-csv(target="_blank")  download csv file
+    #raw-data
+
+
