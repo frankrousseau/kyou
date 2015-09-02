@@ -76,6 +76,9 @@
     "TrackerAmount": {
       "description": "Values for your Custom tracker."
     },
+    "TrackerMetadata": {
+      "description": "Additional information about trackers."
+    },
     "DailyNote": {
       "description": "Small note to add details that can't be measured."
     },
