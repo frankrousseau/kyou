@@ -57,6 +57,8 @@ module.exports =
     allBasicTrackers: (req, res, next) ->
 
         TrackerMetadata.allHash (err, metadataHash) ->
+            console.log err if err
+            metadataHash ?= {}
             results = []
             for tracker in basicTrackers
                 metadata = metadataHash[tracker.slug]
@@ -198,14 +200,12 @@ module.exports =
     updateMetadataBasic: (req, res, next) ->
         data = req.body
         if req.metadata?
-            console.log data
             req.metadata.updateAttributes data, (err, metadata) ->
                 return next err if err
                 res.send metadata
 
         else
             data.slug = req.params.slug
-            console.log data
             TrackerMetadata.create data, (err, metadata) ->
                 return next err if err
                 res.send metadata

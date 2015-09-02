@@ -69,6 +69,12 @@ module.exports = {
   allBasicTrackers: function(req, res, next) {
     return TrackerMetadata.allHash(function(err, metadataHash) {
       var i, len, metadata, results, tracker;
+      if (err) {
+        console.log(err);
+      }
+      if (metadataHash == null) {
+        metadataHash = {};
+      }
       results = [];
       for (i = 0, len = basicTrackers.length; i < len; i++) {
         tracker = basicTrackers[i];
@@ -256,7 +262,6 @@ module.exports = {
     var data;
     data = req.body;
     if (req.metadata != null) {
-      console.log(data);
       return req.metadata.updateAttributes(data, function(err, metadata) {
         if (err) {
           return next(err);
@@ -265,7 +270,6 @@ module.exports = {
       });
     } else {
       data.slug = req.params.slug;
-      console.log(data);
       return TrackerMetadata.create(data, function(err, metadata) {
         if (err) {
           return next(err);
