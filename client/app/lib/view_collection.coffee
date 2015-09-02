@@ -45,6 +45,7 @@ module.exports = class ViewCollection extends BaseView
 
     # after render, we reattach the views
     afterRender: ->
+        console.log @colllectionEl
         if @colllectionEl?
             @$collectionEl = $(@collectionEl)
         else
@@ -64,13 +65,16 @@ module.exports = class ViewCollection extends BaseView
         view.remove() for id, view of @views
         newcollection.forEach @addItem
 
+
     # event listeners for add
     addItem: (model) =>
         options = _.extend {}, {model: model}, @itemViewOptions(model)
         view = new @itemView(options)
         @views[model.cid] = view.render()
+        model.view = view
         @appendView view
         @onChange @views
+
 
     # event listeners for remove
     removeItem: (model) =>
@@ -78,3 +82,4 @@ module.exports = class ViewCollection extends BaseView
         delete @views[model.cid]
 
         @onChange @views
+

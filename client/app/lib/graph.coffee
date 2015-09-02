@@ -1,7 +1,12 @@
 module.exports =
 
+
     # Draw a graph following the Risckshaw lib conventions.
-    draw: (el, yEl, width, color, data, graphStyle, comparisonData, time) ->
+    draw: (opts) ->
+        {
+            el, yEl, width, color, data, graphStyle, comparisonData, time, goal
+        } = opts
+
         graphStyle = "bar" unless graphStyle?
 
         # Build graph options depending of if there is something to compare.
@@ -9,26 +14,42 @@ module.exports =
             series = [
                     color: color
                     data: data
+                    renderer: graphStyle
                 ,
                     color: 'red'
                     data: comparisonData
+                    renderer: graphStyle
             ]
-            renderer = graphStyle
         else
             series = [
                 color: color
                 data: data
+                renderer: graphStyle
             ]
-            renderer = graphStyle
+
+        if goal?
+            goal = parseInt goal
+            goalData = []
+            for point in data
+                goalData.push
+                    x: point.x
+                    y: goal
+            console.log data
+            console.log goalData
+            series.push
+                color: 'rgba(200, 200, 220, 0.8)'
+                renderer: 'line'
+                data: goalData
+
 
         # Build rickshaw object
         graph = new Rickshaw.Graph(
             element: el
             width: width
             height: 300
-            renderer: renderer
             series: series
             interpolation: 'linear'
+            renderer: 'multi'
             min: 'auto'
         )
 
@@ -56,10 +77,12 @@ module.exports =
 
         graph
 
+
     # Graph cleaning based on given elements.
     clear: (el, yEl) ->
         $(el).html null
         $(yEl).html null
+
 
     getWeekData: (data) ->
         graphData = {}
@@ -81,6 +104,7 @@ module.exports =
                 y: value
 
         return graphDataArray
+
 
     getMonthData: (data) ->
         graphData = {}
@@ -105,7 +129,11 @@ module.exports =
 
         return graphDataArray
 
+
     normalizeComparisonData: (data, comparisonData) ->
+
+        console.log comparisonData
+        # Get max
         maxData = 0
         for entry in data
             maxData = entry.y if entry.y > maxData
@@ -114,16 +142,52 @@ module.exports =
         for entry in comparisonData
             maxComparisonData = entry.y if entry.y > maxComparisonData
 
-        factor = maxData / maxComparisonData
+        # Calculus for normalizer
+        if maxComparisonData > 0
+            factor = maxData / maxComparisonData
+        else
+            factor = 1
 
-        newComparisonData = []
+        # Add an entry if there is no match (required by rickshaw)
+        dataHash = {}
+        comparisonDataHash = {}
+        for entry in data
+            dataHash[entry.x] = entry
+
         for entry in comparisonData
-            max = entry.y if entry.y > max
+            comparisonDataHash[entry.x] = entry
+        for entry in data
+
+            comparisonDataHash[entry.x] ?=
+                x: entry.x
+                y: 0
+
+        for entry in comparisonData
+            dataHash[entry.x] ?=
+                x: entry.x
+                y: 0
+
+
+        # Build results
+        newData = []
+        newComparisonData = []
+
+        for x, entry of dataHash
+            if entry?
+                newData.push entry
+
+
+        # normalize
+        for x, entry of comparisonDataHash
             newComparisonData.push
                 x: entry.x
                 y: entry.y * factor
 
-        return newComparisonData
+        return {
+            data: newData
+            comparisonData: newComparisonData
+        }
+
 
     mixData: (data, comparisonData) ->
 
@@ -140,9 +204,4 @@ module.exports =
         newData = _.sortBy newData, (entry) -> entry.x
 
         newData
-
-
-
-
-
 
