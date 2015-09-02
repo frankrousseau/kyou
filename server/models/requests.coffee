@@ -12,6 +12,10 @@ module.exports =
         byDay: (doc) ->
             emit doc.date.substring(0,10), doc
 
+    trackermetadata:
+        all: americano.defaultRequests.all
+        bySlug: (doc) -> emit doc.slug, doc
+
     tracker:
         all: americano.defaultRequests.all
         byName: (doc) -> emit doc.name, doc
