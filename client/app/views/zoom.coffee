@@ -1,7 +1,7 @@
 BaseView = require 'lib/base_view'
 request = require 'lib/request'
 graphHelper = require '../lib/graph'
-normalizer = require 'lib/normalizer'
+calculus = require 'lib/calculus'
 
 MainState = require '../main_state'
 
@@ -33,47 +33,77 @@ module.exports = class ZoomView extends BaseView
 
     show: (slug) ->
         super
-
         tracker = @basicTrackers.findWhere slug: slug
 
         unless tracker?
             alert "Tracker does not exist"
+
         else
-            @$("h2.zoomtitle").html tracker.get 'name'
-            @$("p.zoomexplaination").html tracker.get 'description'
-
-            # non edit mode by default
-            @$("h2.zoomtitle").show()
-            @$("p.zoomexplaination").show()
-            @$("input.zoomtitle").hide()
-            @$("textarea.zoomexplaination").hide()
-            @$("#show-data-section").hide()
-
-            # Get data
-            data = MainState.data[tracker.get 'slug']
             @model.set 'tracker', tracker
-            @$("#zoomstyle").val tracker.get('metadata').style or 'bar'
-            @$("#zoomgoal").val tracker.get('metadata').goal or ''
+            @prefillFields tracker
+            @setEditMode()
+            @displayData()
 
-            # Set average
-            @showAverage data
-            @showEvolution data
 
-            @fillComparisonCombo()
+    prefillFields: (tracker) ->
+        @$("h2.zoomtitle").html tracker.get 'name'
+        @$("p.zoomexplaination").html tracker.get 'description'
+        @$("#zoomstyle").val tracker.get('metadata').style or 'bar'
+        @$("#zoomgoal").val tracker.get('metadata').goal or ''
+        @fillComparisonCombo()
+
+
+    fillComparisonCombo: ->
+        combo = @$ "#zoomcomparison"
+        combo.append """
+<option value=\"undefined\">Select the tracker to compare</option>"
+"""
+#combo.append "<option value=\"moods\">Moods</option>"
+
+        #for tracker in @trackerList.collection.models
+            #option = "<option value="
+            #option += "\"#{tracker.get 'id'}\""
+            #option += ">#{tracker.get 'name'}</option>"
+            #combo.append option
+
+        for tracker in @basicTrackers.models
+            option = "<option value="
+            option += "\"basic-#{tracker.get 'slug'}\""
+            option += ">#{tracker.get 'name'}</option>"
+            combo.append option
+
+
+    setEditMode: ->
+        @$("h2.zoomtitle").show()
+        @$("p.zoomexplaination").show()
+        @$("input.zoomtitle").hide()
+        @$("textarea.zoomexplaination").hide()
+        @$("#show-data-section").hide()
+
+
+    displaydata: ->
+        data = MainState.data[tracker.get 'slug']
+        @showAverage data
+        @showEvolution data
+        @printZoomGraph data, tracker.get 'color'
+
+
+    reload: ->
+        tracker = @model.get 'tracker'
+        if tracker?
+            data = MainState.data[tracker.get 'slug']
             @printZoomGraph data, tracker.get 'color'
 
 
     showAverage: (data) ->
-        average = 0
-        average += amount.y for amount in data
-        average = average / data.length
-        average = Math.round(average * 100) / 100
-        @$("#average-value").html average
+        @$("#average-value").html calculus.average data
 
 
     showEvolution: (data) ->
+
         if data.length in [0, 1]
             evolution = 0
+
         else
             length = data.length
             if data.length < 14
@@ -86,6 +116,7 @@ module.exports = class ZoomView extends BaseView
             while i > 0
                 newTrend += data[length - i - 1].y
                 i--
+
             oldTrend = 0
             i = middle
             while i > 0
@@ -99,13 +130,6 @@ module.exports = class ZoomView extends BaseView
 
         evolution = Math.round(evolution * 100) / 100
         @$("#evolution-value").html evolution + " %"
-
-
-    reload: ->
-        tracker = @model.get 'tracker'
-        if tracker?
-            data = MainState.data[tracker.get 'slug']
-            @printZoomGraph data, tracker.get 'color'
 
 
     printZoomGraph: (data, color, graphStyle, comparisonData, time, goal) ->
@@ -214,24 +238,4 @@ module.exports = class ZoomView extends BaseView
             color = tracker.get 'color'
 
         @printZoomGraph data, color, graphStyle, comparisonData, time
-
-
-    fillComparisonCombo: ->
-        combo = @$ "#zoomcomparison"
-        combo.append """
-<option value=\"undefined\">Select the tracker to compare</option>"
-"""
-#combo.append "<option value=\"moods\">Moods</option>"
-
-        #for tracker in @trackerList.collection.models
-            #option = "<option value="
-            #option += "\"#{tracker.get 'id'}\""
-            #option += ">#{tracker.get 'name'}</option>"
-            #combo.append option
-
-        for tracker in @basicTrackers.models
-            option = "<option value="
-            option += "\"basic-#{tracker.get 'slug'}\""
-            option += ">#{tracker.get 'name'}</option>"
-            combo.append option
 

@@ -4,7 +4,7 @@ graph = require 'lib/graph'
 normalizer = require 'lib/normalizer'
 
 
-# Item View for the albums list
+# Add button for a basic tracker.
 module.exports = class AddBasicTrackerItem extends BaseView
     tagName: 'button'
     className: 'add-basic-tracker-btn'
@@ -20,4 +20,5 @@ module.exports = class AddBasicTrackerItem extends BaseView
 
     clicked: =>
         Backbone.Mediator.pub 'basic-tracker:add', @model.get 'slug'
+        @remove()
 

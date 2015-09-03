@@ -44,6 +44,30 @@ module.exports = class Router extends Backbone.Router
         window.app.mainView.displayBasicTracker name
 
 
+    navigateZoom: ->
+        @navigate isMain: false, trigger: true
+
+
+    navigateHome: ->
+        @navigate isMain: true, trigger: true
+
+
+    resetHash: ->
+        @navigate isMain: false, trigger: false
+
+
+    navigate: (options) ->
+        {isMain, trigger} = options
+
+        if isMain
+            view = MainState.currentView
+        else
+            view = 'main'
+        start = MainState.startDate.format 'YYYY-MM-DD'
+        end = MainState.endDate.format 'YYYY-MM-DD'
+        window.app.router.navigate "##{view}/#{start}/#{end}", trigger: trigger
+
+
     tracker: (name) ->
         @createMainView()
         window.app.mainView.displayTracker name
@@ -52,24 +76,4 @@ module.exports = class Router extends Backbone.Router
     mood: (name) ->
         @createMainView()
         window.app.mainView.displayMood()
-
-
-    navigateZoom: (slug) ->
-        view = MainState.currentView
-        start = MainState.startDate.format 'YYYY-MM-DD'
-        end = MainState.endDate.format 'YYYY-MM-DD'
-        window.app.router.navigate "##{view}/#{start}/#{end}", trigger: true
-
-
-    navigateHome: ->
-        start = MainState.startDate.format 'YYYY-MM-DD'
-        end = MainState.endDate.format 'YYYY-MM-DD'
-        window.app.router.navigate "#main/#{start}/#{end}", trigger: true
-
-
-    resetHash: ->
-        view = MainState.currentView
-        start = MainState.startDate.format 'YYYY-MM-DD'
-        end = MainState.endDate.format 'YYYY-MM-DD'
-        window.app.router.navigate "##{view}/#{start}/#{end}", trigger: false
 

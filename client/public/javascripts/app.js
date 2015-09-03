@@ -317,6 +317,22 @@ module.exports = BaseView = (function(superClass) {
 
 });
 
+require.register("lib/calculus", function(exports, require, module) {
+module.exports = {
+  average: function(data) {
+    var amount, average, i, len;
+    average = 0;
+    for (i = 0, len = data.length; i < len; i++) {
+      amount = data[i];
+      average += amount.y;
+    }
+    average = average / data.length;
+    return average = Math.round(average * 100) / 100;
+  }
+};
+
+});
+
 require.register("lib/constants", function(exports, require, module) {
 module.exports = {
   DATE_FORMAT: 'dddd, DD MMMM, YYYY',
@@ -1077,6 +1093,42 @@ module.exports = Router = (function(superClass) {
     return window.app.mainView.displayBasicTracker(name);
   };
 
+  Router.prototype.navigateZoom = function() {
+    return this.navigate({
+      isMain: false,
+      trigger: true
+    });
+  };
+
+  Router.prototype.navigateHome = function() {
+    return this.navigate({
+      isMain: true,
+      trigger: true
+    });
+  };
+
+  Router.prototype.resetHash = function() {
+    return this.navigate({
+      isMain: false,
+      trigger: false
+    });
+  };
+
+  Router.prototype.navigate = function(options) {
+    var end, isMain, start, trigger, view;
+    isMain = options.isMain, trigger = options.trigger;
+    if (isMain) {
+      view = MainState.currentView;
+    } else {
+      view = 'main';
+    }
+    start = MainState.startDate.format('YYYY-MM-DD');
+    end = MainState.endDate.format('YYYY-MM-DD');
+    return window.app.router.navigate("#" + view + "/" + start + "/" + end, {
+      trigger: trigger
+    });
+  };
+
   Router.prototype.tracker = function(name) {
     this.createMainView();
     return window.app.mainView.displayTracker(name);
@@ -1085,35 +1137,6 @@ module.exports = Router = (function(superClass) {
   Router.prototype.mood = function(name) {
     this.createMainView();
     return window.app.mainView.displayMood();
-  };
-
-  Router.prototype.navigateZoom = function(slug) {
-    var end, start, view;
-    view = MainState.currentView;
-    start = MainState.startDate.format('YYYY-MM-DD');
-    end = MainState.endDate.format('YYYY-MM-DD');
-    return window.app.router.navigate("#" + view + "/" + start + "/" + end, {
-      trigger: true
-    });
-  };
-
-  Router.prototype.navigateHome = function() {
-    var end, start;
-    start = MainState.startDate.format('YYYY-MM-DD');
-    end = MainState.endDate.format('YYYY-MM-DD');
-    return window.app.router.navigate("#main/" + start + "/" + end, {
-      trigger: true
-    });
-  };
-
-  Router.prototype.resetHash = function() {
-    var end, start, view;
-    view = MainState.currentView;
-    start = MainState.startDate.format('YYYY-MM-DD');
-    end = MainState.endDate.format('YYYY-MM-DD');
-    return window.app.router.navigate("#" + view + "/" + start + "/" + end, {
-      trigger: false
-    });
   };
 
   return Router;
@@ -1150,6 +1173,13 @@ module.exports = AddBasicTrackerList = (function(superClass) {
 
   AddBasicTrackerList.prototype.afterRender = function() {
     return AddBasicTrackerList.__super__.afterRender.apply(this, arguments);
+  };
+
+  AddBasicTrackerList.prototype.appendView = function(view) {
+    this.$collectionEl.append(view.el);
+    if (!view.model.get('metadata').hidden) {
+      return view.$el.addClass('hidden');
+    }
   };
 
   return AddBasicTrackerList;
@@ -1194,7 +1224,8 @@ module.exports = AddBasicTrackerItem = (function(superClass) {
   AddBasicTrackerItem.prototype.afterRender = function(callback) {};
 
   AddBasicTrackerItem.prototype.clicked = function() {
-    return Backbone.Mediator.pub('basic-tracker:add', this.model.get('slug'));
+    Backbone.Mediator.pub('basic-tracker:add', this.model.get('slug'));
+    return this.remove();
   };
 
   return AddBasicTrackerItem;
@@ -2376,7 +2407,7 @@ module.exports = TrackerItem = (function(superClass) {
 });
 
 require.register("views/zoom", function(exports, require, module) {
-var BaseView, MainState, ZoomView, graphHelper, normalizer, request,
+var BaseView, MainState, ZoomView, calculus, graphHelper, request,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -2387,7 +2418,7 @@ request = require('lib/request');
 
 graphHelper = require('../lib/graph');
 
-normalizer = require('lib/normalizer');
+calculus = require('lib/calculus');
 
 MainState = require('../main_state');
 
@@ -2425,7 +2456,7 @@ module.exports = ZoomView = (function(superClass) {
   ZoomView.prototype.afterRender = function() {};
 
   ZoomView.prototype.show = function(slug) {
-    var data, tracker;
+    var tracker;
     ZoomView.__super__.show.apply(this, arguments);
     tracker = this.basicTrackers.findWhere({
       slug: slug
@@ -2433,34 +2464,64 @@ module.exports = ZoomView = (function(superClass) {
     if (tracker == null) {
       return alert("Tracker does not exist");
     } else {
-      this.$("h2.zoomtitle").html(tracker.get('name'));
-      this.$("p.zoomexplaination").html(tracker.get('description'));
-      this.$("h2.zoomtitle").show();
-      this.$("p.zoomexplaination").show();
-      this.$("input.zoomtitle").hide();
-      this.$("textarea.zoomexplaination").hide();
-      this.$("#show-data-section").hide();
-      data = MainState.data[tracker.get('slug')];
       this.model.set('tracker', tracker);
-      this.$("#zoomstyle").val(tracker.get('metadata').style || 'bar');
-      this.$("#zoomgoal").val(tracker.get('metadata').goal || '');
-      this.showAverage(data);
-      this.showEvolution(data);
-      this.fillComparisonCombo();
+      this.prefillFields(tracker);
+      this.setEditMode();
+      return this.displayData();
+    }
+  };
+
+  ZoomView.prototype.prefillFields = function(tracker) {
+    this.$("h2.zoomtitle").html(tracker.get('name'));
+    this.$("p.zoomexplaination").html(tracker.get('description'));
+    this.$("#zoomstyle").val(tracker.get('metadata').style || 'bar');
+    this.$("#zoomgoal").val(tracker.get('metadata').goal || '');
+    return this.fillComparisonCombo();
+  };
+
+  ZoomView.prototype.fillComparisonCombo = function() {
+    var combo, j, len, option, ref, results, tracker;
+    combo = this.$("#zoomcomparison");
+    combo.append("<option value=\"undefined\">Select the tracker to compare</option>\"");
+    ref = this.basicTrackers.models;
+    results = [];
+    for (j = 0, len = ref.length; j < len; j++) {
+      tracker = ref[j];
+      option = "<option value=";
+      option += "\"basic-" + (tracker.get('slug')) + "\"";
+      option += ">" + (tracker.get('name')) + "</option>";
+      results.push(combo.append(option));
+    }
+    return results;
+  };
+
+  ZoomView.prototype.setEditMode = function() {
+    this.$("h2.zoomtitle").show();
+    this.$("p.zoomexplaination").show();
+    this.$("input.zoomtitle").hide();
+    this.$("textarea.zoomexplaination").hide();
+    return this.$("#show-data-section").hide();
+  };
+
+  ZoomView.prototype.displaydata = function() {
+    var data;
+    data = MainState.data[tracker.get('slug')];
+    this.showAverage(data);
+    this.showEvolution(data);
+    return this.printZoomGraph(data, tracker.get('color'));
+  };
+
+  ZoomView.prototype.reload = function() {
+    var data, tracker;
+    tracker = this.model.get('tracker');
+    if (tracker != null) {
+      data = MainState.data[tracker.get('slug')];
       return this.printZoomGraph(data, tracker.get('color'));
     }
   };
 
   ZoomView.prototype.showAverage = function(data) {
-    var amount, average, j, len;
-    average = 0;
-    for (j = 0, len = data.length; j < len; j++) {
-      amount = data[j];
-      average += amount.y;
-    }
-    average = average / data.length;
-    average = Math.round(average * 100) / 100;
-    return this.$("#average-value").html(average);
+    return this.$("#average-value").html(calculus.average(data));
   };
 
   ZoomView.prototype.showEvolution = function(data) {
@@ -2494,15 +2555,6 @@ module.exports = ZoomView = (function(superClass) {
     }
     evolution = Math.round(evolution * 100) / 100;
     return this.$("#evolution-value").html(evolution + " %");
-  };
-
-  ZoomView.prototype.reload = function() {
-    var data, tracker;
-    tracker = this.model.get('tracker');
-    if (tracker != null) {
-      data = MainState.data[tracker.get('slug')];
-      return this.printZoomGraph(data, tracker.get('color'));
-    }
   };
 
   ZoomView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData, time, goal) {
@@ -2613,22 +2665,6 @@ module.exports = ZoomView = (function(superClass) {
       color = tracker.get('color');
     }
     return this.printZoomGraph(data, color, graphStyle, comparisonData, time);
-  };
-
-  ZoomView.prototype.fillComparisonCombo = function() {
-    var combo, j, len, option, ref, results, tracker;
-    combo = this.$("#zoomcomparison");
-    combo.append("<option value=\"undefined\">Select the tracker to compare</option>\"");
-    ref = this.basicTrackers.models;
-    results = [];
-    for (j = 0, len = ref.length; j < len; j++) {
-      tracker = ref[j];
-      option = "<option value=";
-      option += "\"basic-" + (tracker.get('slug')) + "\"";
-      option += ">" + (tracker.get('name')) + "</option>";
-      results.push(combo.append(option));
-    }
-    return results;
   };
 
   return ZoomView;

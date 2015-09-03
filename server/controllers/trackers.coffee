@@ -54,12 +54,15 @@ module.exports =
 
 
     # Get all trackers described in the KYou code, from the trackers folder.
+    # Append metadata (user config) for each tracker.
+    # It removes the request field because it's big and useless for the client.
     allBasicTrackers: (req, res, next) ->
 
         TrackerMetadata.allHash (err, metadataHash) ->
             console.log err if err
             metadataHash ?= {}
             results = []
+
             for tracker in basicTrackers
                 metadata = metadataHash[tracker.slug]
                 tracker.metadata = metadata or {}
@@ -184,6 +187,8 @@ module.exports =
             else res.send success: true, 204
 
 
+    # Retrieve all data from all trackers. It's for experimental purpose
+    # but it's a little bit slow.
     allData: (req, res, next) ->
         results = {}
         options = group: true
@@ -197,6 +202,8 @@ module.exports =
             res.send results
 
 
+    # Update metadata for a basic tracker. If the tracker is not found it's
+    # created. That way the client doesn't have to think about creation/update.
     updateMetadataBasic: (req, res, next) ->
         data = req.body
         if req.metadata?

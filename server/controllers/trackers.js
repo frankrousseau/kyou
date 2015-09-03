@@ -72,6 +72,7 @@ module.exports = {
       if (err) {
         console.log(err);
       }
+      console.log(metadataHash);
       if (metadataHash == null) {
         metadataHash = {};
       }
