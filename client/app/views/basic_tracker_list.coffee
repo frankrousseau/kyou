@@ -67,11 +67,20 @@ module.exports = class BasicTrackerList extends ViewCollection
     # Then, it saves the hidden status change so it remembers it for further
     # loading.
     onAddBasicTracker: (slug) ->
-        tracker = @collection.findWhere slug: slug
-        view = @views[tracker.cid]
+        view = @getView slug
         view.$el.removeClass 'hidden'
         view.load()
         data =
             hidden: false
         request.put "basic-trackers/#{slug}", data, (err) ->
 
+
+    remove: (slug) ->
+        view = @getView slug
+        view.remove()
+
+
+    getView: (slug) ->
+        tracker = @collection.findWhere slug: slug
+        view = @views[tracker.cid]
+        return view

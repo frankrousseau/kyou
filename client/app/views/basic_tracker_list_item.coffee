@@ -32,6 +32,7 @@ module.exports = class BasicTrackerItem extends BaseView
             yEl = @$('.y-axis')[0]
             color = @model.get 'color'
             data = MainState.data[@model.get 'slug']
+            graphStyle = @model.get('metadata').style or 'bar'
 
             data ?= [
                 x: MainState.startDate.toDate().getTime() / 1000
@@ -41,5 +42,5 @@ module.exports = class BasicTrackerItem extends BaseView
                 y: 0
             ]
 
-            graph.draw {el, yEl, width, color, data}
+            graph.draw {el, yEl, width, color, data, graphStyle}
 

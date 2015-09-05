@@ -38,6 +38,7 @@ module.exports = class AppView extends BaseView
     subscriptions:
         'start-date:change': 'onStartDateChanged'
         'end-date:change': 'onEndDateChanged'
+        'tracker:removed': 'onTrackerRemoved'
 
 
     constructor: (options) ->
@@ -151,6 +152,10 @@ module.exports = class AppView extends BaseView
         @loadTrackers =>
             @zoomView.reload()
         @resetRouteHash()
+
+
+    onTrackerRemoved: (slug) ->
+        @basicTrackerList.remove slug
 
 
     reloadAll: ->

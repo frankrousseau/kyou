@@ -322,12 +322,15 @@ module.exports = {
   average: function(data) {
     var amount, average, i, len;
     average = 0;
-    for (i = 0, len = data.length; i < len; i++) {
-      amount = data[i];
-      average += amount.y;
+    if (data != null) {
+      for (i = 0, len = data.length; i < len; i++) {
+        amount = data[i];
+        average += amount.y;
+      }
+      average = average / data.length;
+      average = Math.round(average * 100) / 100;
     }
-    average = average / data.length;
-    return average = Math.round(average * 100) / 100;
+    return average;
   }
 };
 
@@ -840,6 +843,13 @@ module.exports = TrackerModel = (function(superClass) {
     return (this.get('path')) + "/" + (startDate.format(format)) + "/" + (endDate.format(format));
   };
 
+  TrackerModel.prototype.setMetadata = function(field, value) {
+    var metadata;
+    metadata = this.get('metadata');
+    metadata[field] = value;
+    return this.set('metadata', metadata);
+  };
+
   return TrackerModel;
 
 })(Backbone.Model);
@@ -1289,7 +1299,8 @@ module.exports = AppView = (function(superClass) {
 
   AppView.prototype.subscriptions = {
     'start-date:change': 'onStartDateChanged',
-    'end-date:change': 'onEndDateChanged'
+    'end-date:change': 'onEndDateChanged',
+    'tracker:removed': 'onTrackerRemoved'
   };
 
   function AppView(options) {
@@ -1401,6 +1412,10 @@ module.exports = AppView = (function(superClass) {
       };
     })(this));
     return this.resetRouteHash();
+  };
+
+  AppView.prototype.onTrackerRemoved = function(slug) {
+    return this.basicTrackerList.remove(slug);
   };
 
   AppView.prototype.reloadAll = function() {
@@ -1674,17 +1689,29 @@ module.exports = BasicTrackerList = (function(superClass) {
   };
 
   BasicTrackerList.prototype.onAddBasicTracker = function(slug) {
-    var data, tracker, view;
-    tracker = this.collection.findWhere({
-      slug: slug
-    });
-    view = this.views[tracker.cid];
+    var data, view;
+    view = this.getView(slug);
     view.$el.removeClass('hidden');
     view.load();
     data = {
       hidden: false
     };
     return request.put("basic-trackers/" + slug, data, function(err) {});
+  };
+
+  BasicTrackerList.prototype.remove = function(slug) {
+    var view;
+    view = this.getView(slug);
+    return view.remove();
+  };
+
+  BasicTrackerList.prototype.getView = function(slug) {
+    var tracker, view;
+    tracker = this.collection.findWhere({
+      slug: slug
+    });
+    view = this.views[tracker.cid];
+    return view;
   };
 
   return BasicTrackerList;
@@ -1739,13 +1766,14 @@ module.exports = BasicTrackerItem = (function(superClass) {
   };
 
   BasicTrackerItem.prototype.drawCharts = function() {
-    var color, data, el, width, yEl;
+    var color, data, el, graphStyle, width, yEl;
     if (this.data != null) {
       width = this.$(".graph-container").width() - 70;
       el = this.$('.chart')[0];
       yEl = this.$('.y-axis')[0];
       color = this.model.get('color');
       data = MainState.data[this.model.get('slug')];
+      graphStyle = this.model.get('metadata').style || 'bar';
       if (data == null) {
         data = [
           {
@@ -1762,7 +1790,8 @@ module.exports = BasicTrackerItem = (function(superClass) {
         yEl: yEl,
         width: width,
         color: color,
-        data: data
+        data: data,
+        graphStyle: graphStyle
       });
     }
   };
@@ -2497,7 +2526,7 @@ module.exports = ZoomView = (function(superClass) {
     this.$("h2.zoomtitle").html(tracker.get('name'));
     this.$("p.zoomexplaination").html(tracker.get('description'));
     this.$("#zoomstyle").val(tracker.get('metadata').style || 'bar');
-    this.$("#zoomgoal").val(tracker.get('metadata').goal || '');
+    this.$("#zoomgoal").val(tracker.get('metadata').goal || '0');
     return this.fillComparisonCombo();
   };
 
@@ -2551,33 +2580,32 @@ module.exports = ZoomView = (function(superClass) {
 
   ZoomView.prototype.showEvolution = function(data) {
     var evolution, i, length, middle, newTrend, oldTrend, ref;
-    if ((ref = data.length) === 0 || ref === 1) {
-      evolution = 0;
-    } else {
-      length = data.length;
-      if (data.length < 14) {
-        middle = Math.round(length / 2);
-      } else {
-        middle = 7;
-      }
-      newTrend = 0;
-      i = middle;
-      while (i > 0) {
-        newTrend += data[length - i - 1].y;
-        i--;
-      }
-      oldTrend = 0;
-      i = middle;
-      console.log(middle);
-      console.log(data);
-      while (i > 0) {
-        oldTrend += data[length - middle - i].y;
-        i--;
-      }
-      if (oldTrend !== 0) {
-        evolution = (newTrend / oldTrend) * 100 - 100;
-      } else {
-        evolution = 0;
+    evolution = 0;
+    if (data) {
+      if ((ref = !data.length) === 0 || ref === 1) {
+        length = data.length;
+        if (data.length < 14) {
+          middle = Math.round(length / 2);
+        } else {
+          middle = 7;
+        }
+        newTrend = 0;
+        i = middle;
+        while (i > 0) {
+          newTrend += data[length - i - 1].y;
+          i--;
+        }
+        oldTrend = 0;
+        i = middle;
+        while (i > 0) {
+          oldTrend += data[length - middle - i].y;
+          i--;
+        }
+        if (oldTrend !== 0) {
+          evolution = (newTrend / oldTrend) * 100 - 100;
+        } else {
+          evolution = 0;
+        }
       }
     }
     evolution = Math.round(evolution * 100) / 100;
@@ -2586,42 +2614,47 @@ module.exports = ZoomView = (function(superClass) {
 
   ZoomView.prototype.printZoomGraph = function(data, color, graphStyle, comparisonData, time, goal) {
     var annotator, el, graph, timelineEl, width, yEl;
-    if (graphStyle == null) {
-      graphStyle = this.$("#zoomstyle").val() || 'bar';
+    if (data != null) {
+      if (graphStyle == null) {
+        graphStyle = this.$("#zoomstyle").val() || 'bar';
+      }
+      if (goal == null) {
+        goal = this.$("#zoomgoal").val() || null;
+      }
+      width = $(window).width() - 140;
+      el = this.$('#zoom-charts')[0];
+      yEl = this.$('#zoom-y-axis')[0];
+      graphHelper.clear(el, yEl);
+      graph = graphHelper.draw({
+        el: el,
+        yEl: yEl,
+        width: width,
+        color: color,
+        data: data,
+        graphStyle: graphStyle,
+        comparisonData: comparisonData,
+        time: time,
+        goal: goal
+      });
+      timelineEl = this.$('#timeline')[0];
+      this.$('#timeline').html(null);
+      return annotator = new Rickshaw.Graph.Annotate({
+        graph: graph,
+        element: this.$('#timeline')[0]
+      });
     }
-    if (goal == null) {
-      goal = this.$("#zoomgoal").val() || null;
-    }
-    width = $(window).width() - 140;
-    el = this.$('#zoom-charts')[0];
-    yEl = this.$('#zoom-y-axis')[0];
-    graphHelper.clear(el, yEl);
-    graph = graphHelper.draw({
-      el: el,
-      yEl: yEl,
-      width: width,
-      color: color,
-      data: data,
-      graphStyle: graphStyle,
-      comparisonData: comparisonData,
-      time: time,
-      goal: goal
-    });
-    timelineEl = this.$('#timeline')[0];
-    this.$('#timeline').html(null);
-    return annotator = new Rickshaw.Graph.Annotate({
-      graph: graph,
-      element: this.$('#timeline')[0]
-    });
   };
 
   ZoomView.prototype.onRemoveClicked = function() {
-    var data, slug;
-    slug = this.model.get('tracker').get('slug');
+    var data, slug, tracker;
+    tracker = this.model.get('tracker');
+    slug = tracker.get('slug');
     data = {
       hidden: true
     };
     request.put("basic-trackers/" + slug, data, function(err) {});
+    tracker.setMetadata('hidden', true);
+    Backbone.Mediator.pub('tracker:removed', slug);
     return window.app.router.navigateHome();
   };
 
@@ -2631,24 +2664,28 @@ module.exports = ZoomView = (function(superClass) {
   };
 
   ZoomView.prototype.onStyleChanged = function() {
-    var data, slug, style;
+    var data, slug, style, tracker;
     style = this.$("#zoomstyle").val();
-    if (style === 'bar' || style === 'line' || style === 'point') {
-      slug = this.model.get('tracker').get('slug');
+    if (style === 'bar' || style === 'line' || style === 'scatterplot') {
+      tracker = this.model.get('tracker');
+      slug = tracker.get('slug');
       data = {
         style: style
       };
+      tracker.setMetadata('style', data.style);
       request.put("basic-trackers/" + slug, data, function(err) {});
     }
     return this.onComparisonChanged();
   };
 
   ZoomView.prototype.onGoalChanged = function() {
-    var data, slug;
-    slug = this.model.get('tracker').get('slug');
+    var data, slug, tracker;
+    tracker = this.model.get('tracker');
+    slug = tracker.get('slug');
     data = {
       goal: parseInt(this.$("#zoomgoal").val())
     };
+    tracker.setMetadata('goal', data.goal);
     this.onComparisonChanged();
     return request.put("basic-trackers/" + slug, data, function(err) {});
   };
