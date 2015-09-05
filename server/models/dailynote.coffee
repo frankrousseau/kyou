@@ -1,4 +1,4 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 moment = require 'moment'
 
 module.exports = DailyNote = americano.getModel 'DailyNote',

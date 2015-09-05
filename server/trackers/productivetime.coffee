@@ -1,7 +1,7 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 module.exports =
-    name: "Productive Time - Rescue Time"
+    name: "Productive Time"
     color: "#27AE61"
     description: """
 Number of minutes spent on apps and websites with productiviy rating superior to

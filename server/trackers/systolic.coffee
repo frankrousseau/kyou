@@ -1,4 +1,4 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 module.exports =
     name: "Blood Pressure - systolic"

@@ -18,9 +18,6 @@
   ],
   "version": "0.2.1",
   "homepage": "",
-  "bugs": {
-    "url": ""
-  },
   "author": "Frank R <frank@cozycloud.cc>",
   "contributors": [],
   "engines": {
@@ -29,9 +26,9 @@
   "main": "server.js",
   "dependencies": {
     "americano": "0.3.0",
-    "americano-cozy": "0.2.0",
     "async": "^1.4.2",
     "cozy-slug": "~0.1.2",
+    "cozydb": "0.0.20",
     "moment": "~2.5.0",
     "printit": "~0.1.2",
     "underscore": "^1.8.3"
@@ -93,6 +90,12 @@
     },
     "Commit": {
       "description": "Commits downloaded from Github."
+    },
+    "Message": {
+      "description": "To count your emails."
+    },
+    "Tasky": {
+      "description": "To count your tasky tasks."
     }
   }
 }
