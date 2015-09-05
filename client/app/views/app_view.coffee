@@ -90,6 +90,8 @@ module.exports = class AppView extends BaseView
 
         @addBasicTrackerList = new AddBasicTrackerList(
             @basicTrackerList.collection)
+
+        @addTrackerZone = @$ '#add-tracker-zone'
         #@rawDataTable = new RawDataTable()
         #@rawDataTable.render()
         #@$('#raw-data').append @rawDataTable.$el
@@ -173,6 +175,7 @@ module.exports = class AppView extends BaseView
     displayBasicTracker: (slug) ->
         MainState.currentView = "basic-trackers/#{slug}"
         @basicTrackerList.hide()
+        @addTrackerZone.hide()
         @displayZoomTracker slug, =>
 
 
@@ -189,9 +192,14 @@ module.exports = class AppView extends BaseView
     displayTrackers: ->
         MainState.currentView = 'main'
         @basicTrackerList.show()
+        @addTrackerZone.show()
+        console.log 'step 1'
         @redrawCharts()
+        console.log 'step 2'
         @zoomView.hide()
+        console.log 'step 3'
         @loadTrackers() unless MainState.dataLoaded
+        console.log 'step 4'
 
 
     redrawCharts: =>

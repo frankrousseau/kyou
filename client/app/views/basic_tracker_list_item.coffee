@@ -4,7 +4,7 @@ graph = require 'lib/graph'
 MainState =  require '../main_state'
 
 
-# Item View for the albums list
+# Item View for the albums list.
 module.exports = class BasicTrackerItem extends BaseView
     className: 'tracker line'
     template: require 'views/templates/basic_tracker_list_item'
@@ -26,11 +26,20 @@ module.exports = class BasicTrackerItem extends BaseView
 
 
     drawCharts: ->
-        width = @$(".graph-container").width() - 70
-        el = @$('.chart')[0]
-        yEl = @$('.y-axis')[0]
-        color = @model.get 'color'
-        data = MainState.data[@model.get 'slug']
+        if @data?
+            width = @$(".graph-container").width() - 70
+            el = @$('.chart')[0]
+            yEl = @$('.y-axis')[0]
+            color = @model.get 'color'
+            data = MainState.data[@model.get 'slug']
 
-        graph.draw {el, yEl, width, color, data}
+            data ?= [
+                x: MainState.startDate.toDate().getTime() / 1000
+                y: 0
+            ,
+                x: MainState.endDate.toDate().getTime() / 1000
+                y: 0
+            ]
+
+            graph.draw {el, yEl, width, color, data}
 

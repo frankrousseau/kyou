@@ -29,6 +29,8 @@ module.exports = class ZoomView extends BaseView
 
 
     afterRender: ->
+        @$('#zoom-correlation-option').hide()
+        @$('#zoomgoal').numeric()
 
 
     show: (slug) ->
@@ -42,7 +44,8 @@ module.exports = class ZoomView extends BaseView
             @model.set 'tracker', tracker
             @prefillFields tracker
             @setEditMode()
-            @displayData()
+            @displayData tracker
+        @$el.scrollTop()
 
 
     prefillFields: (tracker) ->
@@ -54,10 +57,13 @@ module.exports = class ZoomView extends BaseView
 
 
     fillComparisonCombo: ->
-        combo = @$ "#zoomcomparison"
-        combo.append """
-<option value=\"undefined\">Select the tracker to compare</option>"
-"""
+
+        if @$("#zoomcomparison option").length < 1
+            console.log 'cool'
+            combo = @$ "#zoomcomparison"
+            combo.append """
+    <option value=\"undefined\">no comparison</option>"
+    """
 #combo.append "<option value=\"moods\">Moods</option>"
 
         #for tracker in @trackerList.collection.models
@@ -66,11 +72,11 @@ module.exports = class ZoomView extends BaseView
             #option += ">#{tracker.get 'name'}</option>"
             #combo.append option
 
-        for tracker in @basicTrackers.models
-            option = "<option value="
-            option += "\"basic-#{tracker.get 'slug'}\""
-            option += ">#{tracker.get 'name'}</option>"
-            combo.append option
+            for tracker in @basicTrackers.models
+                option = "<option value="
+                option += "\"basic-#{tracker.get 'slug'}\""
+                option += ">#{tracker.get 'name'}</option>"
+                combo.append option
 
 
     setEditMode: ->
@@ -81,7 +87,7 @@ module.exports = class ZoomView extends BaseView
         @$("#show-data-section").hide()
 
 
-    displaydata: ->
+    displayData: (tracker) ->
         data = MainState.data[tracker.get 'slug']
         @showAverage data
         @showEvolution data
@@ -107,7 +113,7 @@ module.exports = class ZoomView extends BaseView
         else
             length = data.length
             if data.length < 14
-                middle = length / 2
+                middle = Math.round(length / 2)
             else
                 middle = 7
 
@@ -119,8 +125,10 @@ module.exports = class ZoomView extends BaseView
 
             oldTrend = 0
             i = middle
+            console.log middle
+            console.log data
             while i > 0
-                oldTrend += data[length - middle - i - 1].y
+                oldTrend += data[length - middle - i].y
                 i--
 
             if oldTrend isnt 0
@@ -188,6 +196,8 @@ module.exports = class ZoomView extends BaseView
         slug = @model.get('tracker').get 'slug'
         data =
             goal: parseInt @$("#zoomgoal").val()
+
+        @onComparisonChanged()
         request.put "basic-trackers/#{slug}", data, (err) ->
 
 
@@ -195,6 +205,7 @@ module.exports = class ZoomView extends BaseView
         val = @$("#zoomcomparison").val()
         timeUnit = @$("#zoomtimeunit").val()
         graphStyle = @$("#zoomstyle").val()
+
         tracker = @model.get 'tracker'
         data = MainState.data[tracker.get 'slug']
         time = true # true if x axis should show dates.
@@ -203,8 +214,18 @@ module.exports = class ZoomView extends BaseView
         if val.indexOf('basic') isnt -1
             slug = val.substring 6
             comparisonData = MainState.data[slug]
+            @$('#zoom-bar-option').hide()
+            @$('#zoom-correlation-option').show()
+            if graphStyle is 'bar'
+                graphStyle = 'line'
+                @$("#zoomstyle").val 'line'
 
         else
+            @$('#zoom-correlation-option').hide()
+            @$('#zoom-bar-option').show()
+            if graphStyle is 'correlation'
+                graphStyle = 'bar'
+                @$("#zoomstyle").val 'line'
             comparisonData = null
 
         # Define timeUnit

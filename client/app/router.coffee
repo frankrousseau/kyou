@@ -45,24 +45,24 @@ module.exports = class Router extends Backbone.Router
 
 
     navigateZoom: ->
-        @navigate isMain: false, trigger: true
+        @navigateTo isMain: false, trigger: true
 
 
     navigateHome: ->
-        @navigate isMain: true, trigger: true
+        @navigateTo isMain: true, trigger: true
 
 
     resetHash: ->
-        @navigate isMain: false, trigger: false
+        @navigateTo isMain: false, trigger: false
 
 
-    navigate: (options) ->
+    navigateTo: (options) ->
         {isMain, trigger} = options
 
         if isMain
-            view = MainState.currentView
-        else
             view = 'main'
+        else
+            view = MainState.currentView
         start = MainState.startDate.format 'YYYY-MM-DD'
         end = MainState.endDate.format 'YYYY-MM-DD'
         window.app.router.navigate "##{view}/#{start}/#{end}", trigger: trigger

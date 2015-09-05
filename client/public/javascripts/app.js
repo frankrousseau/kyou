@@ -1094,33 +1094,33 @@ module.exports = Router = (function(superClass) {
   };
 
   Router.prototype.navigateZoom = function() {
-    return this.navigate({
+    return this.navigateTo({
       isMain: false,
       trigger: true
     });
   };
 
   Router.prototype.navigateHome = function() {
-    return this.navigate({
+    return this.navigateTo({
       isMain: true,
       trigger: true
     });
   };
 
   Router.prototype.resetHash = function() {
-    return this.navigate({
+    return this.navigateTo({
       isMain: false,
       trigger: false
     });
   };
 
-  Router.prototype.navigate = function(options) {
+  Router.prototype.navigateTo = function(options) {
     var end, isMain, start, trigger, view;
     isMain = options.isMain, trigger = options.trigger;
     if (isMain) {
-      view = MainState.currentView;
-    } else {
       view = 'main';
+    } else {
+      view = MainState.currentView;
     }
     start = MainState.startDate.format('YYYY-MM-DD');
     end = MainState.endDate.format('YYYY-MM-DD');
@@ -1342,7 +1342,8 @@ module.exports = AppView = (function(superClass) {
     this.zoomView = new ZoomView(zoom, this.basicTrackerList.collection);
     this.zoomView.render();
     this.zoomView.hide();
-    return this.addBasicTrackerList = new AddBasicTrackerList(this.basicTrackerList.collection);
+    this.addBasicTrackerList = new AddBasicTrackerList(this.basicTrackerList.collection);
+    return this.addTrackerZone = this.$('#add-tracker-zone');
   };
 
   AppView.prototype.loadTrackers = function(callback) {
@@ -1414,6 +1415,7 @@ module.exports = AppView = (function(superClass) {
   AppView.prototype.displayBasicTracker = function(slug) {
     MainState.currentView = "basic-trackers/" + slug;
     this.basicTrackerList.hide();
+    this.addTrackerZone.hide();
     return this.displayZoomTracker(slug, (function(_this) {
       return function() {};
     })(this));
@@ -1436,11 +1438,16 @@ module.exports = AppView = (function(superClass) {
   AppView.prototype.displayTrackers = function() {
     MainState.currentView = 'main';
     this.basicTrackerList.show();
+    this.addTrackerZone.show();
+    console.log('step 1');
     this.redrawCharts();
+    console.log('step 2');
     this.zoomView.hide();
+    console.log('step 3');
     if (!MainState.dataLoaded) {
-      return this.loadTrackers();
+      this.loadTrackers();
     }
+    return console.log('step 4');
   };
 
   AppView.prototype.redrawCharts = function() {
@@ -1733,18 +1740,31 @@ module.exports = BasicTrackerItem = (function(superClass) {
 
   BasicTrackerItem.prototype.drawCharts = function() {
     var color, data, el, width, yEl;
-    width = this.$(".graph-container").width() - 70;
-    el = this.$('.chart')[0];
-    yEl = this.$('.y-axis')[0];
-    color = this.model.get('color');
-    data = MainState.data[this.model.get('slug')];
-    return graph.draw({
-      el: el,
-      yEl: yEl,
-      width: width,
-      color: color,
-      data: data
-    });
+    if (this.data != null) {
+      width = this.$(".graph-container").width() - 70;
+      el = this.$('.chart')[0];
+      yEl = this.$('.y-axis')[0];
+      color = this.model.get('color');
+      data = MainState.data[this.model.get('slug')];
+      if (data == null) {
+        data = [
+          {
+            x: MainState.startDate.toDate().getTime() / 1000,
+            y: 0
+          }, {
+            x: MainState.endDate.toDate().getTime() / 1000,
+            y: 0
+          }
+        ];
+      }
+      return graph.draw({
+        el: el,
+        yEl: yEl,
+        width: width,
+        color: color,
+        data: data
+      });
+    }
   };
 
   return BasicTrackerItem;
@@ -1940,10 +1960,8 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<button>');
 var __val__ = model.name
 buf.push(escape(null == __val__ ? "" : __val__));
-buf.push('</button>');
 }
 return buf.join("");
 };
@@ -1984,7 +2002,7 @@ buf.push('<div id="menu"><span class="info-text">Visualize your data from:</span
 buf.push(attrs({ 'id':('datepicker-start'), 'value':("" + (startDate) + ""), "class": ('datepicker') }, {"value":true}));
 buf.push('/><span class="info-text">to:</span><input');
 buf.push(attrs({ 'id':('datepicker-end'), 'value':("" + (endDate) + ""), "class": ('datepicker') }, {"value":true}));
-buf.push('/></div><div id="content" class="pa2 trackers"><img src="img/spinner.svg" class="hidden"/><div id="zoom-view" class="line"></div></div><div class="line"><div id="add-basic-tracker-widget"></div><h2>Add your tracker</h2><div id="add-basic-tracker-list" class="line"></div></div>');
+buf.push('/></div><div id="content" class="pa2 trackers"><img src="img/spinner.svg" class="hidden"/><div id="zoom-view" class="line"></div></div><div id="add-tracker-zone" class="pa2 line"><div id="add-basic-tracker-widget"></div><h2 class="mb2">Add your tracker</h2><div id="add-basic-tracker-list" class="line"></div></div>');
 }
 return buf.join("");
 };
@@ -2057,7 +2075,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a id="back-trackers-btn" href="#">go back to tracker list</a></div><div class="line"><div class="mod w50 left"><h3>Visualization options</h3><p class="zoom-option"><span>scale:</span><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></p><p class="zoom-option"><span>display:</span><select id="zoomstyle"><option value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option value="correlation">correlate (points)</option></select><span>&nbsp;</span></p><p class="zoom-option"><span>compare with:</span><select id="zoomcomparison"></select><span class="smaller em">&nbsp;(Compared tracker is in red).</span></p><p class="zoom-option"><span>objective:</span><input id="zoomgoal"/></p></div><div class="mod w50 left"><h3>Additional information</h3><p class="zoom-option"><span>average:&nbsp;</span><span id="average-value"></span></p><p class="zoom-option"><span>recent evolution:&nbsp;</span><span id="evolution-value"></span></p></div></div><div class="line"><p class="zoom-option"><button id="remove-btn" class="smaller">remove tracker</button></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div>');
+buf.push('<div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a id="back-trackers-btn" href="#">go back to tracker list</a></div><div class="line"><div class="mod w50 left"><h3>Options</h3><p class="zoom-option"><span>scale</span><span><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></span></p><p class="zoom-option"><span>display</span><span><select id="zoomstyle"><option id="zoom-bar-option" value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option id="zoom-correlation-option" value="correlation">correlate (points)</option></select></span></p><p class="zoom-option"><span>compare with</span><span><select id="zoomcomparison"></select><br/></span></p><p class="zoom-option"><span>goal</span><span><input id="zoomgoal" value="0"/></span></p><p><span class="smaller em">Note: Compared tracker is displayed in red.</span></p></div><div class="mod w50 left"><h3>Information</h3><p class="zoom-option"><span>average&nbsp;</span><span id="average-value"></span></p><p class="zoom-option"><span>recent evolution&nbsp;</span><span id="evolution-value"></span></p><h3>Manage</h3><p class="zoom-option"><span>remove</span><span><button id="remove-btn" class="btn-danger smaller">remove tracker</button></span></p></div></div><div class="line"><p class="pa2"></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div>');
 }
 return buf.join("");
 };
@@ -2453,7 +2471,10 @@ module.exports = ZoomView = (function(superClass) {
     ZoomView.__super__.constructor.apply(this, arguments);
   }
 
-  ZoomView.prototype.afterRender = function() {};
+  ZoomView.prototype.afterRender = function() {
+    this.$('#zoom-correlation-option').hide();
+    return this.$('#zoomgoal').numeric();
+  };
 
   ZoomView.prototype.show = function(slug) {
     var tracker;
@@ -2462,13 +2483,14 @@ module.exports = ZoomView = (function(superClass) {
       slug: slug
     });
     if (tracker == null) {
-      return alert("Tracker does not exist");
+      alert("Tracker does not exist");
     } else {
       this.model.set('tracker', tracker);
       this.prefillFields(tracker);
       this.setEditMode();
-      return this.displayData();
+      this.displayData(tracker);
     }
+    return this.$el.scrollTop();
   };
 
   ZoomView.prototype.prefillFields = function(tracker) {
@@ -2481,18 +2503,21 @@ module.exports = ZoomView = (function(superClass) {
 
   ZoomView.prototype.fillComparisonCombo = function() {
     var combo, j, len, option, ref, results, tracker;
-    combo = this.$("#zoomcomparison");
-    combo.append("<option value=\"undefined\">Select the tracker to compare</option>\"");
-    ref = this.basicTrackers.models;
-    results = [];
-    for (j = 0, len = ref.length; j < len; j++) {
-      tracker = ref[j];
-      option = "<option value=";
-      option += "\"basic-" + (tracker.get('slug')) + "\"";
-      option += ">" + (tracker.get('name')) + "</option>";
-      results.push(combo.append(option));
+    if (this.$("#zoomcomparison option").length < 1) {
+      console.log('cool');
+      combo = this.$("#zoomcomparison");
+      combo.append("<option value=\"undefined\">no comparison</option>\"");
+      ref = this.basicTrackers.models;
+      results = [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        tracker = ref[j];
+        option = "<option value=";
+        option += "\"basic-" + (tracker.get('slug')) + "\"";
+        option += ">" + (tracker.get('name')) + "</option>";
+        results.push(combo.append(option));
+      }
+      return results;
     }
-    return results;
   };
 
   ZoomView.prototype.setEditMode = function() {
@@ -2503,7 +2528,7 @@ module.exports = ZoomView = (function(superClass) {
     return this.$("#show-data-section").hide();
   };
 
-  ZoomView.prototype.displaydata = function() {
+  ZoomView.prototype.displayData = function(tracker) {
     var data;
     data = MainState.data[tracker.get('slug')];
     this.showAverage(data);
@@ -2531,7 +2556,7 @@ module.exports = ZoomView = (function(superClass) {
     } else {
       length = data.length;
       if (data.length < 14) {
-        middle = length / 2;
+        middle = Math.round(length / 2);
       } else {
         middle = 7;
       }
@@ -2543,8 +2568,10 @@ module.exports = ZoomView = (function(superClass) {
       }
       oldTrend = 0;
       i = middle;
+      console.log(middle);
+      console.log(data);
       while (i > 0) {
-        oldTrend += data[length - middle - i - 1].y;
+        oldTrend += data[length - middle - i].y;
         i--;
       }
       if (oldTrend !== 0) {
@@ -2622,6 +2649,7 @@ module.exports = ZoomView = (function(superClass) {
     data = {
       goal: parseInt(this.$("#zoomgoal").val())
     };
+    this.onComparisonChanged();
     return request.put("basic-trackers/" + slug, data, function(err) {});
   };
 
@@ -2636,7 +2664,19 @@ module.exports = ZoomView = (function(superClass) {
     if (val.indexOf('basic') !== -1) {
       slug = val.substring(6);
       comparisonData = MainState.data[slug];
+      this.$('#zoom-bar-option').hide();
+      this.$('#zoom-correlation-option').show();
+      if (graphStyle === 'bar') {
+        graphStyle = 'line';
+        this.$("#zoomstyle").val('line');
+      }
     } else {
+      this.$('#zoom-correlation-option').hide();
+      this.$('#zoom-bar-option').show();
+      if (graphStyle === 'correlation') {
+        graphStyle = 'bar';
+        this.$("#zoomstyle").val('line');
+      }
       comparisonData = null;
     }
     if (timeUnit === 'week') {

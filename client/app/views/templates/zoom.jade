@@ -15,49 +15,59 @@
 
 .line
     .mod.w50.left
-        h3 Visualization options
+        h3 Options
         p.zoom-option
-            span scale:
-            select#zoomtimeunit
-                option(value="day") day
-                option(value="week") week
-                option(value="month") month
+            span scale
+            span
+                select#zoomtimeunit
+                    option(value="day") day
+                    option(value="week") week
+                    option(value="month") month
 
         p.zoom-option
-            span display:
-            select#zoomstyle
-                option(value="bar") bars
-                option(value="line") lines
-                option(value="scatterplot") points
-                option(value="correlation") correlate (points)
-            span &nbsp;
+            span display
+            span
+                select#zoomstyle
+                    option#zoom-bar-option(value="bar") bars
+                    option(value="line") lines
+                    option(value="scatterplot") points
+                    option#zoom-correlation-option(value="correlation") correlate (points)
             
         p.zoom-option
-            span compare with:
-            select#zoomcomparison
-            span.smaller.em &nbsp;(Compared tracker is in red).
+            span compare with
+            span
+                select#zoomcomparison
+                br
 
         p.zoom-option
-            span objective:
-            input#zoomgoal
+            span goal
+            span
+                input#zoomgoal(value="0")
+
+        p
+            span.smaller.em Note: Compared tracker is displayed in red.
 
     .mod.w50.left
-        h3 Additional information
+        h3 Information
         p.zoom-option
-            span average:&nbsp;
+            span average&nbsp;
             span#average-value
         p.zoom-option
-            span recent evolution:&nbsp;
+            span recent evolution&nbsp;
             span#evolution-value
+        h3 Manage
+        p.zoom-option
+            span remove
+            span
+                button#remove-btn.btn-danger.smaller remove tracker
+
 
 .line
-    p.zoom-option
-        button#remove-btn.smaller remove tracker
+    p.pa2
 
     p#show-data-section
         button#show-data-btn show data
         | or 
         a#show-data-csv(target="_blank")  download csv file
     #raw-data
-
 
