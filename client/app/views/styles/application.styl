@@ -17,13 +17,18 @@
     font-family: main
     src: url('../fonts/cabin.otf')
 
+
+darkblue = #39424E // #2B3442 // #5B6E8C // #39424E
+blue = #4989F2
+
+
 // Menu
 #menu
     position fixed
     width 100%
     height 50px
     padding 10px 10px 0 10px
-    background-color #39424E
+    background-color darkblue
     color white
     z-index 100
 
@@ -61,6 +66,7 @@
 .reload
     padding-left: 20px
 
+
 // Date selector
 #datepicker
     font-family: title
@@ -73,6 +79,7 @@
 
 #datepicker:hover
     color: red
+
 
 // Note widget
 #dailynote
@@ -93,12 +100,12 @@
     background: white
     box-shadow: 0
 
+
 // Zoom widget
 #zoomtracker
     padding-left: 20px
     width: 96%
 
-// Tracker widget
 #current-mood
 #current-coffeecup
 .current-amount
@@ -114,7 +121,6 @@
     margin-bottom: 0
 
 .zoomtitle
-    font-size: 22px
     font-weight: bold
     font-family: title
 
@@ -138,18 +144,37 @@
 #remove-btn
     padding: 0 5px 
 
-
 #zoom-view
 
     h3
-        font-size 12px
+        font-size 22px
+
 
     .zoom-option
-        span 
-            width 100px
+        display flex
+        align-items center
+
+        span:nth-child(1)
+            width 200px
+            text-transform uppercase
+            color grey
+
+
+        span:nth-child(2)
+            flex-grow 1
+
+        input
+            background white
+            border 2px solid darkblue
+            padding 10px
+            border-radius 0
+            width 300px
+            margin-left 10px
+
 
 
 // New tracker widget
+
 .tools
      padding: 30px
      border-top: 1px solid #AAA 
@@ -157,7 +182,9 @@
      .line
          margin-bottom: 0px
 
+
 // Graph widget
+
 .graph-container
     margin-top: 10px
     min-height: 300px
@@ -173,6 +200,7 @@
     top: 0
     bottom: 0
     width: 40px
+
 
 // Tracker Amount List
 
@@ -196,18 +224,25 @@
         button
             display: none
 
+
 // Quick fix to display x axis labels of Risckshaw graphes below the x axis
+
 .rickshaw_graph .x_tick .title
     bottom: -14px;
     left: -18px
 
+
 // Quickfix to display timeline properly
+
 #timeline
     margin-left: 38px
     margin-top: 20px
 
 #moods-tracker
     border-bottom 1px solid #EEE
+
+
+// Misc
 
 .trackers
     padding 20px
@@ -216,3 +251,45 @@
     border-bottom 1px solid #EEE
     padding 0 0 40px 0
 
+button.add-basic-tracker-btn
+    background white
+    border-radius 2px
+    border 2px solid green
+    color green
+    margin-right 10px
+    padding 10px
+
+    &:hover
+        background green
+        color white
+        transition all 0.2s
+
+button.btn-danger
+    background white
+    border-radius 2px
+    border 2px solid red
+    color red
+    padding 5px
+
+    &:hover
+        background red
+        color white
+        transition all 0.2s
+
+
+select
+    background white
+    border-radius 2px
+    border 2px solid green
+    color green
+    margin-left 10px
+    padding 10px
+    width 300px
+
+    &:hover
+        cursor pointer
+        outline 0px
+ 
+    &:active
+    &:focus
+        outline 0px
