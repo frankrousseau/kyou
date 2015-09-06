@@ -2,7 +2,7 @@ americano = require 'cozydb'
 
 module.exports =
     name: "Productive Time"
-    color: "#27AE61"
+    color: "#2196F3"
     description: """
 Number of minutes spent on apps and websites with productiviy rating superior to
 0 in Rescue Time. Data should be imported from Rescue Time konnector"""

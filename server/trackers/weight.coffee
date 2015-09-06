@@ -2,7 +2,7 @@ americano = require 'cozydb'
 
 module.exports =
     name: "Weight"
-    color: "#2F5DAB"
+    color: "#E91E63"
     description: """
 Your weight in grams."""
     model: americano.getModel 'weight', date: Date

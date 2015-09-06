@@ -5,7 +5,7 @@ americano = require('cozydb');
 
 module.exports = {
   name: "Expenses",
-  color: "#297FB8",
+  color: "#795548",
   description: "Sum of every bank operations below 0 (all accounts).",
   model: americano.getModel('bankoperation', {
     date: Date

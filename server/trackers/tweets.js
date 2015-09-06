@@ -5,7 +5,7 @@ americano = require('cozydb');
 
 module.exports = {
   name: "Tweets",
-  color: "#96A4A5",
+  color: "#E91E63",
   description: "Number of tweets you publish every day",
   model: americano.getModel('twittertweet', {
     date: Date

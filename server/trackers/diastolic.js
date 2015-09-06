@@ -5,7 +5,7 @@ americano = require('cozydb');
 
 module.exports = {
   name: "Blood Pressure - diastolic",
-  color: "#2FAD5B",
+  color: "#FFEB3B",
   description: "Your diastolic blood pressure.",
   model: americano.getModel('BloodPressure', {
     date: Date

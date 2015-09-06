@@ -2,7 +2,7 @@ americano = require 'cozydb'
 
 module.exports =
     name: "Steps"
-    color: "#D35400"
+    color: "#795548"
     description: """
 Number of steps you walked."""
     model: americano.getModel 'steps', date: Date

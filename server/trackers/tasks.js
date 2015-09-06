@@ -5,7 +5,7 @@ americano = require('cozydb');
 
 module.exports = {
   name: "Tasks",
-  color: "#800000",
+  color: "#FF5722",
   description: "This tracker counts the tasks marked as done in your Cozy. The date used to\nbuild the graph is the completion date.",
   model: americano.getModel('Task', {
     completionDate: Date
