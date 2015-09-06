@@ -277,5 +277,38 @@ module.exports = {
         return res.send(metadata);
       });
     }
+  },
+  "export": function(req, res, next) {
+    var requestName, slug, tracker, trackers;
+    slug = req.params.slug;
+    trackers = basicTrackers.filter(function(tracker) {
+      return tracker.slug === slug;
+    });
+    if (trackers.length > 0) {
+      tracker = trackers[0];
+      requestName = tracker.requestName || 'nbByDay';
+      return tracker.model.rawRequest(requestName, {
+        group: true
+      }, function(err, rows) {
+        var csv, csvFile, i, len, row;
+        if (err) {
+          return next(err);
+        }
+        csv = [];
+        for (i = 0, len = rows.length; i < len; i++) {
+          row = rows[i];
+          csv.push(row.key + "," + row.value);
+        }
+        csvFile = csv.join('\n');
+        res.setHeader('Content-length', csvFile);
+        res.setHeader('Content-disposition', "attachment; filename=" + (slug + '.csv'));
+        res.setHeader('Content-type', 'application/csv');
+        return res.send(csvFile);
+      });
+    } else {
+      return res.status(404).send({
+        error: 'Tracker was not found'
+      });
+    }
   }
 };

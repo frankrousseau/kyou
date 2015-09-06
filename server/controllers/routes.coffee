@@ -20,6 +20,8 @@ module.exports =
         get: trackers.allBasicTrackers
     'basic-trackers/:slug':
         put: trackers.updateMetadataBasic
+    'basic-trackers/export/:slug.csv':
+        get: trackers.export
 
     'trackers':
         get: trackers.all

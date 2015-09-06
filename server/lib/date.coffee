@@ -8,3 +8,4 @@ module.exports.getDateString = getDateString = (date) ->
     dd = "0" + dd if dd.length is 1
     dateString = yyyy + '-' + mm + '-' + dd
     dateString
+

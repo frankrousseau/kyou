@@ -217,3 +217,31 @@ module.exports =
                 return next err if err
                 res.send metadata
 
+
+    export: (req, res, next) ->
+        slug = req.params.slug
+        trackers = basicTrackers.filter (tracker) ->
+            return tracker.slug is slug
+
+        if trackers.length > 0
+            tracker = trackers[0]
+
+            requestName = tracker.requestName or 'nbByDay'
+            tracker.model.rawRequest requestName, group: true, (err, rows) ->
+                return next err if err
+
+                csv = []
+                csv.push "#{row.key},#{row.value}" for row in rows
+                csvFile = csv.join '\n'
+
+                res.setHeader 'Content-length', csvFile
+                res.setHeader(
+                    'Content-disposition',
+                    "attachment; filename=#{slug + '.csv'}"
+                )
+                res.setHeader 'Content-type', 'application/csv'
+                res.send csvFile
+
+        else
+            res.status(404).send error: 'Tracker was not found'
+
