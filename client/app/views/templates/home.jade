@@ -3,12 +3,25 @@
     input.datepicker#datepicker-start(value="#{startDate}")
     span.info-text to:
     input.datepicker#datepicker-end(value="#{endDate}")
+    
+#content.pa2
 
-#content.pa2.trackers
+    .welcome-message
+        | Welcome on KYou the app that will help you to monitor yourself
+        | It builds graph based on the data store in your Cozy. To start
+        | it's super simple, you just have to select the data you want
+        | in the list below. Every time you click on a tracker, its graph
+        | is displayed. 
+        |
+        | If you want details about a graph or compare it with another graph
+        | simply click on its title, it will lead you to a dedicatd UI.
+
+    .trackers
 
     img.hidden(src='img/spinner.svg')
 
     .line#zoom-view
+
 
 .pa2.line#add-tracker-zone
     #add-basic-tracker-widget

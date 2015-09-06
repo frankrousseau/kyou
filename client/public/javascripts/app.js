@@ -2051,7 +2051,7 @@ buf.push('<div id="menu"><span class="info-text">Visualize your data from:</span
 buf.push(attrs({ 'id':('datepicker-start'), 'value':("" + (startDate) + ""), "class": ('datepicker') }, {"value":true}));
 buf.push('/><span class="info-text">to:</span><input');
 buf.push(attrs({ 'id':('datepicker-end'), 'value':("" + (endDate) + ""), "class": ('datepicker') }, {"value":true}));
-buf.push('/></div><div id="content" class="pa2 trackers"><img src="img/spinner.svg" class="hidden"/><div id="zoom-view" class="line"></div></div><div id="add-tracker-zone" class="pa2 line"><div id="add-basic-tracker-widget"></div><h2 class="mb2">Add your tracker</h2><div id="add-basic-tracker-list" class="line"></div></div>');
+buf.push('/></div><div id="content" class="pa2"><div class="welcome-message">Welcome on KYou the app that will help you to monitor yourself\nIt builds graph based on the data store in your Cozy. To start\nit\'s super simple, you just have to select the data you want\nin the list below. Every time you click on a tracker, its graph\nis displayed. \n|\nIf you want details about a graph or compare it with another graph\nsimply click on its title, it will lead you to a dedicatd UI.</div><div class="trackers"></div><img src="img/spinner.svg" class="hidden"/><div id="zoom-view" class="line"></div></div><div id="add-tracker-zone" class="pa2 line"><div id="add-basic-tracker-widget"></div><h2 class="mb2">Add your tracker</h2><div id="add-basic-tracker-list" class="line"></div></div>');
 }
 return buf.join("");
 };
