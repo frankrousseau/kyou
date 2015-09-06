@@ -9,3 +9,23 @@ module.exports =
             average = Math.round(average * 100) / 100
         return average
 
+
+    addDayToDates: (data, nbDays) ->
+        for entry in data
+            date = moment entry.x * 1000
+            date.add 'day', nbDays
+            entry.x = date.toDate().getTime() / 1000
+
+        return data
+
+
+    addYearToDates: (data) ->
+        for entry in data
+            date = moment entry.x * 1000
+            date.add 'year', 1
+            entry.x = date.toDate().getTime() / 1000
+
+        return data
+
+
+

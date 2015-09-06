@@ -34,8 +34,6 @@ module.exports =
                 goalData.push
                     x: point.x
                     y: goal
-            console.log data
-            console.log goalData
             series.push
                 color: 'rgba(200, 200, 220, 0.8)'
                 renderer: 'line'
@@ -132,7 +130,6 @@ module.exports =
 
     normalizeComparisonData: (data, comparisonData) ->
 
-        console.log comparisonData
         # Get max
         maxData = 0
         for entry in data

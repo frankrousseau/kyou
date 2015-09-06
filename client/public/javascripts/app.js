@@ -331,6 +331,26 @@ module.exports = {
       average = Math.round(average * 100) / 100;
     }
     return average;
+  },
+  addDayToDates: function(data, nbDays) {
+    var date, entry, i, len;
+    for (i = 0, len = data.length; i < len; i++) {
+      entry = data[i];
+      date = moment(entry.x * 1000);
+      date.add('day', nbDays);
+      entry.x = date.toDate().getTime() / 1000;
+    }
+    return data;
+  },
+  addYearToDates: function(data) {
+    var date, entry, i, len;
+    for (i = 0, len = data.length; i < len; i++) {
+      entry = data[i];
+      date = moment(entry.x * 1000);
+      date.add('year', 1);
+      entry.x = date.toDate().getTime() / 1000;
+    }
+    return data;
   }
 };
 
@@ -383,8 +403,6 @@ module.exports = {
           y: goal
         });
       }
-      console.log(data);
-      console.log(goalData);
       series.push({
         color: 'rgba(200, 200, 220, 0.8)',
         renderer: 'line',
@@ -484,7 +502,6 @@ module.exports = {
   },
   normalizeComparisonData: function(data, comparisonData) {
     var comparisonDataHash, dataHash, entry, factor, i, j, k, l, len, len1, len2, len3, len4, len5, m, maxComparisonData, maxData, n, name, name1, newComparisonData, newData, x;
-    console.log(comparisonData);
     maxData = 0;
     for (i = 0, len = data.length; i < len; i++) {
       entry = data[i];
@@ -1696,7 +1713,10 @@ module.exports = BasicTrackerList = (function(superClass) {
     data = {
       hidden: false
     };
-    return request.put("basic-trackers/" + slug, data, function(err) {});
+    $('#add-tracker-zone').scrollBottom();
+    return request.put("basic-trackers/" + slug, data, function(err) {
+      return $('#add-tracker-zone').scrollBottom();
+    });
   };
 
   BasicTrackerList.prototype.remove = function(slug) {
@@ -2104,7 +2124,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a id="back-trackers-btn" href="#">go back to tracker list</a></div><div class="line"><div class="mod w50 left"><h3>Options</h3><p class="zoom-option"><span>scale</span><span><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></span></p><p class="zoom-option"><span>display</span><span><select id="zoomstyle"><option id="zoom-bar-option" value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option id="zoom-correlation-option" value="correlation">correlate (points)</option></select></span></p><p class="zoom-option"><span>compare with</span><span><select id="zoomcomparison"></select><br/></span></p><p class="zoom-option"><span>goal</span><span><input id="zoomgoal" value="0"/></span></p><p><span class="smaller em">Note: Compared tracker is displayed in red.</span></p></div><div class="mod w50 left"><h3>Information</h3><p class="zoom-option"><span>average&nbsp;</span><span id="average-value"></span></p><p class="zoom-option"><span>recent evolution&nbsp;</span><span id="evolution-value"></span></p><h3>Manage</h3><p class="zoom-option"><span>remove</span><span><button id="remove-btn" class="btn-danger smaller">remove tracker</button></span></p></div></div><div class="line"><p class="pa2"></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div>');
+buf.push('<div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a id="back-trackers-btn" href="#">go back to tracker list</a></div><div class="line"><div class="mod w50 left"><h3>Options</h3><p class="zoom-option"><span>scale</span><span><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></span></p><p class="zoom-option"><span>display</span><span><select id="zoomstyle"><option id="zoom-bar-option" value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option id="zoom-correlation-option" value="correlation">correlate (points)</option></select></span></p><p class="zoom-option"><span>compare with</span><span><select id="zoomcomparison"></select><br/></span></p><p class="zoom-option"><span>goal</span><span><input id="zoomgoal" value="0"/></span></p><p><span class="smaller em">Note: Compared tracker is displayed in red.</span></p></div><div class="mod w50 left"><h3>Information</h3><p class="zoom-option"><span>average&nbsp;</span><span id="average-value"></span></p><p class="zoom-option"><span>recent evolution&nbsp;</span><span id="evolution-value"></span></p><h3>Manage</h3><p class="zoom-option"><span>export</span><span><a href="" id="export-btn" class="btn smaller">all data in a .csv file</a></span></p><p class="zoom-option"><span>remove</span><span><button id="remove-btn" class="btn-danger smaller">remove tracker</button></span></p></div></div><div class="line"><p class="pa2"></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div>');
 }
 return buf.join("");
 };
@@ -2505,12 +2525,17 @@ module.exports = ZoomView = (function(superClass) {
     return this.$('#zoomgoal').numeric();
   };
 
+  ZoomView.prototype.getTracker = function() {
+    return this.model.get('tracker');
+  };
+
   ZoomView.prototype.show = function(slug) {
     var tracker;
     ZoomView.__super__.show.apply(this, arguments);
     tracker = this.basicTrackers.findWhere({
       slug: slug
     });
+    $("#export-btn").attr("href", "basic-trackers/export/" + slug + ".csv");
     if (tracker == null) {
       alert("Tracker does not exist");
     } else {
@@ -2533,9 +2558,10 @@ module.exports = ZoomView = (function(superClass) {
   ZoomView.prototype.fillComparisonCombo = function() {
     var combo, j, len, option, ref, results, tracker;
     if (this.$("#zoomcomparison option").length < 1) {
-      console.log('cool');
       combo = this.$("#zoomcomparison");
       combo.append("<option value=\"undefined\">no comparison</option>\"");
+      combo.append("<option value=\"last-year\">previous year</option>\"");
+      combo.append("<option value=\"previous\">previous period</option>\"");
       ref = this.basicTrackers.models;
       results = [];
       for (j = 0, len = ref.length; j < len; j++) {
@@ -2691,22 +2717,32 @@ module.exports = ZoomView = (function(superClass) {
   };
 
   ZoomView.prototype.onComparisonChanged = function() {
-    var color, comparisonData, data, graphStyle, ref, slug, time, timeUnit, tracker, val;
+    var comparisonData, data, graphStyle, timeUnit, toNormalize, tracker, val;
     val = this.$("#zoomcomparison").val();
     timeUnit = this.$("#zoomtimeunit").val();
     graphStyle = this.$("#zoomstyle").val();
     tracker = this.model.get('tracker');
     data = MainState.data[tracker.get('slug')];
-    time = true;
-    if (val.indexOf('basic') !== -1) {
-      slug = val.substring(6);
-      comparisonData = MainState.data[slug];
+    toNormalize = false;
+    if (val.indexOf('basic') !== -1 || (val === 'last-year' || val === 'previous')) {
       this.$('#zoom-bar-option').hide();
       this.$('#zoom-correlation-option').show();
       if (graphStyle === 'bar') {
         graphStyle = 'line';
         this.$("#zoomstyle").val('line');
       }
+      return this.getComparisonData(val, (function(_this) {
+        return function(err, comparisonData) {
+          toNormalize = !(val === 'last-year' || val === 'previous');
+          return _this.displayGraph({
+            timeUnit: timeUnit,
+            data: data,
+            comparisonData: comparisonData,
+            graphStyle: graphStyle,
+            toNormalize: toNormalize
+          });
+        };
+      })(this));
     } else {
       this.$('#zoom-correlation-option').hide();
       this.$('#zoom-bar-option').show();
@@ -2715,7 +2751,19 @@ module.exports = ZoomView = (function(superClass) {
         this.$("#zoomstyle").val('line');
       }
       comparisonData = null;
+      return this.displayGraph({
+        timeUnit: timeUnit,
+        data: data,
+        graphStyle: graphStyle,
+        toNormalize: toNormalize
+      });
     }
+  };
+
+  ZoomView.prototype.displayGraph = function(options) {
+    var color, comparisonData, data, graphStyle, ref, time, timeUnit, toNormalize;
+    timeUnit = options.timeUnit, data = options.data, comparisonData = options.comparisonData, graphStyle = options.graphStyle, toNormalize = options.toNormalize;
+    time = true;
     if (timeUnit === 'week') {
       data = graphHelper.getWeekData(data);
       if (comparisonData != null) {
@@ -2727,7 +2775,7 @@ module.exports = ZoomView = (function(superClass) {
         comparisonData = graphHelper.getMonthData(comparisonData);
       }
     }
-    if (comparisonData != null) {
+    if (toNormalize) {
       ref = graphHelper.normalizeComparisonData(data, comparisonData), data = ref.data, comparisonData = ref.comparisonData;
     }
     if (graphStyle === 'correlation' && (comparisonData != null)) {
@@ -2736,12 +2784,56 @@ module.exports = ZoomView = (function(superClass) {
       graphStyle = 'scatterplot';
       time = false;
     }
-    if (comparisonData != null) {
+    color = this.getColor(comparisonData !== null);
+    return this.printZoomGraph(data, color, graphStyle, comparisonData, time);
+  };
+
+  ZoomView.prototype.getColor = function(isComparison) {
+    var color;
+    if (isComparison) {
       color = 'black';
     } else {
-      color = tracker.get('color');
+      color = this.getTracker().get('color');
     }
-    return this.printZoomGraph(data, color, graphStyle, comparisonData, time);
+    return color;
+  };
+
+  ZoomView.prototype.getComparisonData = function(slug, callback) {
+    var endDate, length, path, startDate;
+    if (slug === 'last-year' || slug === 'previous') {
+      startDate = moment(MainState.startDate);
+      endDate = moment(MainState.endDate);
+      if (slug === 'last-year') {
+        startDate.subtract('year', 1);
+        endDate.subtract('year', 1);
+      }
+      if (slug === 'previous') {
+        length = endDate.diff(startDate, 'days');
+        length++;
+        startDate.subtract('day', length);
+        endDate.subtract('day', length);
+      }
+      path = this.getTracker().getPath(startDate, endDate);
+      return request.get(path, (function(_this) {
+        return function(err, data) {
+          if (err) {
+            alert("An error occured while retrieving previous data");
+            return callback(null, {});
+          } else {
+            if (slug === 'last-year') {
+              calculus.addYearToDates(data);
+            }
+            if (slug === 'previous') {
+              calculus.addDayToDates(data, length);
+            }
+            return callback(null, data);
+          }
+        };
+      })(this));
+    } else {
+      slug = slug.substring(6);
+      return callback(null, MainState.data[slug]);
+    }
   };
 
   return ZoomView;

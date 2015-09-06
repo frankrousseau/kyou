@@ -72,7 +72,10 @@ module.exports = class BasicTrackerList extends ViewCollection
         view.load()
         data =
             hidden: false
+        $('#add-tracker-zone').scrollBottom()
         request.put "basic-trackers/#{slug}", data, (err) ->
+            $('#add-tracker-zone').scrollBottom()
+
 
 
     remove: (slug) ->

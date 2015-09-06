@@ -33,9 +33,15 @@ module.exports = class ZoomView extends BaseView
         @$('#zoomgoal').numeric()
 
 
+    getTracker: ->
+        return @model.get 'tracker'
+
     show: (slug) ->
         super
         tracker = @basicTrackers.findWhere slug: slug
+        $("#export-btn").attr(
+            "href", "basic-trackers/export/#{slug}.csv"
+        )
 
         unless tracker?
             alert "Tracker does not exist"
@@ -59,10 +65,15 @@ module.exports = class ZoomView extends BaseView
     fillComparisonCombo: ->
 
         if @$("#zoomcomparison option").length < 1
-            console.log 'cool'
             combo = @$ "#zoomcomparison"
             combo.append """
     <option value=\"undefined\">no comparison</option>"
+    """
+            combo.append """
+    <option value=\"last-year\">previous year</option>"
+    """
+            combo.append """
+    <option value=\"previous\">previous period</option>"
     """
 #combo.append "<option value=\"moods\">Moods</option>"
 
@@ -215,17 +226,21 @@ module.exports = class ZoomView extends BaseView
 
         tracker = @model.get 'tracker'
         data = MainState.data[tracker.get 'slug']
-        time = true # true if x axis should show dates.
+        toNormalize = false
 
         # Check if it's a comparison.
-        if val.indexOf('basic') isnt -1
-            slug = val.substring 6
-            comparisonData = MainState.data[slug]
+        if val.indexOf('basic') isnt -1 or val in ['last-year', 'previous']
             @$('#zoom-bar-option').hide()
             @$('#zoom-correlation-option').show()
             if graphStyle is 'bar'
                 graphStyle = 'line'
                 @$("#zoomstyle").val 'line'
+
+            @getComparisonData val, (err, comparisonData) =>
+                toNormalize = not (val in ['last-year', 'previous'])
+                @displayGraph {
+                   timeUnit, data, comparisonData, graphStyle, toNormalize
+                }
 
         else
             @$('#zoom-correlation-option').hide()
@@ -234,6 +249,12 @@ module.exports = class ZoomView extends BaseView
                 graphStyle = 'bar'
                 @$("#zoomstyle").val 'line'
             comparisonData = null
+            @displayGraph {timeUnit, data, graphStyle, toNormalize}
+
+
+    displayGraph: (options) ->
+        {timeUnit, data, comparisonData, graphStyle, toNormalize} = options
+        time = true # true if x axis should show dates.
 
         # Define timeUnit
         if timeUnit is 'week'
@@ -247,7 +268,7 @@ module.exports = class ZoomView extends BaseView
                 comparisonData = graphHelper.getMonthData comparisonData
 
         # Normalize data
-        if comparisonData?
+        if toNormalize
             {data, comparisonData} = graphHelper.normalizeComparisonData(
                 data, comparisonData
             )
@@ -259,11 +280,52 @@ module.exports = class ZoomView extends BaseView
             graphStyle = 'scatterplot'
             time = false
 
-        # Chose color
-        if comparisonData?
+        color = @getColor comparisonData isnt null
+        @printZoomGraph data, color, graphStyle, comparisonData, time
+
+
+    getColor: (isComparison) ->
+
+        if isComparison
             color = 'black'
         else
-            color = tracker.get 'color'
+            color = @getTracker().get 'color'
 
-        @printZoomGraph data, color, graphStyle, comparisonData, time
+        return color
+
+
+    getComparisonData: (slug, callback) ->
+
+        if slug in ['last-year', 'previous']
+
+            startDate = moment MainState.startDate
+            endDate = moment MainState.endDate
+            if slug is 'last-year'
+                startDate.subtract 'year', 1
+                endDate.subtract 'year', 1
+
+            if slug is 'previous'
+                length = endDate.diff startDate, 'days'
+                length++
+                startDate.subtract 'day', length
+                endDate.subtract 'day', length
+
+            path = @getTracker().getPath startDate, endDate
+            request.get path, (err, data) =>
+                if err
+                    alert "An error occured while retrieving previous data"
+                    callback null, {}
+
+                else
+                    if slug is 'last-year'
+                        calculus.addYearToDates data
+
+                    if slug is 'previous'
+                        calculus.addDayToDates data, length
+
+                    callback null, data
+
+        else
+            slug = slug.substring 6
+            callback null, MainState.data[slug]
 
