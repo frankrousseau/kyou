@@ -259,11 +259,18 @@ module.exports = {
     });
   },
   getMetadata: function(req, res, next) {
+    var data;
     if (req.metadata != null) {
       return res.send(req.metadata);
     } else {
-      return res.status(404).send({
-        error: 'Tracker was not found'
+      data = {
+        slug: req.params.slug
+      };
+      return TrackerMetadata.create(date, function(err, metadata) {
+        if (err) {
+          return next(err);
+        }
+        return res.send(metadata);
       });
     }
   },
