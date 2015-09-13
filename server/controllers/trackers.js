@@ -258,6 +258,15 @@ module.exports = {
       return res.send(results);
     });
   },
+  getMetadata: function(req, res, next) {
+    if (req.metadata != null) {
+      return res.send(req.metadata);
+    } else {
+      return res.status(404).send({
+        error: 'Tracker was not found'
+      });
+    }
+  },
   updateMetadataBasic: function(req, res, next) {
     var data;
     data = req.body;
@@ -300,7 +309,7 @@ module.exports = {
           csv.push(row.key + "," + row.value);
         }
         csvFile = csv.join('\n');
-        res.setHeader('Content-length', csvFile);
+        res.setHeader('Content-length', csvFile.length);
         res.setHeader('Content-disposition', "attachment; filename=" + (slug + '.csv'));
         res.setHeader('Content-type', 'application/csv');
         return res.send(csvFile);

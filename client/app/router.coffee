@@ -8,6 +8,7 @@ module.exports = class Router extends Backbone.Router
     routes:
         '': 'main'
         'main/:startDate/:endDate': 'mainDate'
+        'mood/:startDate/:endDate': 'moodDate'
         'basic-trackers/:name': 'basicTracker'
         'basic-trackers/:name/:startDate/:endDate': 'basicTrackerDate'
         'trackers/:name': 'tracker'
@@ -75,5 +76,13 @@ module.exports = class Router extends Backbone.Router
 
     mood: (name) ->
         @createMainView()
+        view = 'mood'
+        start = MainState.startDate.format 'YYYY-MM-DD'
+        end = MainState.endDate.format 'YYYY-MM-DD'
+        window.app.router.navigate "##{view}/#{start}/#{end}", trigger: true
+
+    moodDate: (name) ->
+        @createMainView()
+
         window.app.mainView.displayMood()
 

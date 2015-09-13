@@ -2205,6 +2205,7 @@ cursor not-allowed {
   border-bottom: 1px solid #eee;
   padding: 0 0 40px 0;
 }
+button.btn,
 button.add-basic-tracker-btn {
   background: #fff;
   -webkit-border-radius: 2px;
@@ -2214,6 +2215,7 @@ button.add-basic-tracker-btn {
   margin-right: 10px;
   padding: 10px;
 }
+button.btn:hover,
 button.add-basic-tracker-btn:hover {
   background: #2ec565;
   color: #fff;
@@ -2282,6 +2284,25 @@ a.btn:hover {
 a.btn:active,
 a.btn:focus {
   outline: 0px;
+}
+input.input {
+  background: #fff;
+  border: 2px solid #39424e;
+  padding: 10px;
+  -webkit-border-radius: 0;
+  border-radius: 0;
+  width: 300px;
+  margin-left: 10px;
+}
+.tracker-value {
+  margin-left: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}
+input.input.tracker-input {
+  padding: 5px;
+  width: 270px;
+  margin-right: 10px;
 }
 
 .chromeframe { margin: 0.2em 0; background: #ccc; color: #000; padding: 0.2em 0; }

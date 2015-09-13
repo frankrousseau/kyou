@@ -16,3 +16,4 @@ module.exports = class TrackerModel extends Backbone.Model
         metadata = @get 'metadata'
         metadata[field] = value
         @set 'metadata', metadata
+

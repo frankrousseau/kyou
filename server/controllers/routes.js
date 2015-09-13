@@ -23,21 +23,25 @@ module.exports = {
   'all-data': {
     get: trackers.allData
   },
-  'moods/:day': {
-    get: moods.all
-  },
   'moods/mood/:day': {
     get: moods.day,
     put: moods.updateDay
   },
+  'moods/export/mood.csv': {
+    get: moods["export"]
+  },
+  'moods/:startDate/:endDate': {
+    get: moods.all
+  },
   'basic-trackers': {
     get: trackers.allBasicTrackers
   },
-  'basic-trackers/:slug': {
-    put: trackers.updateMetadataBasic
-  },
   'basic-trackers/export/:slug.csv': {
     get: trackers["export"]
+  },
+  'metadata/basic-trackers/:slug': {
+    get: trackers.getMetadata,
+    put: trackers.updateMetadataBasic
   },
   'trackers': {
     get: trackers.all,

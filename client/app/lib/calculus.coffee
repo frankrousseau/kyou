@@ -1,3 +1,4 @@
+MainState = require '../main_state'
 
 module.exports =
 
@@ -26,4 +27,19 @@ module.exports =
             entry.x = date.toDate().getTime() / 1000
 
         return data
+
+
+    getDefaultData: ->
+        console.log "getDefaultData"
+        console.log MainState.endDate()
+        console.log MainState.endDate
+
+        [
+            x: MainState.startDate.toDate().getTime() / 1000
+            y: 0
+        ,
+            x: MainState.endDate.toDate().getTime() / 1000
+            y: 0
+        ]
+
 

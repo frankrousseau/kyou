@@ -3,6 +3,7 @@ request = require 'lib/request'
 graphHelper = require '../lib/graph'
 calculus = require 'lib/calculus'
 
+Tracker = require '../models/tracker'
 MainState = require '../main_state'
 
 
@@ -24,7 +25,7 @@ module.exports = class ZoomView extends BaseView
         'click #back-trackers-btn': 'onBackTrackersClicked'
 
 
-    constructor: (@model, @basicTrackers) ->
+    constructor: (@model, @basicTrackers, @moodTracker) ->
         super
 
 
@@ -36,12 +37,26 @@ module.exports = class ZoomView extends BaseView
     getTracker: ->
         return @model.get 'tracker'
 
+
     show: (slug) ->
         super
-        tracker = @basicTrackers.findWhere slug: slug
-        $("#export-btn").attr(
-            "href", "basic-trackers/export/#{slug}.csv"
-        )
+
+        if slug is 'mood'
+            tracker = @moodTracker
+
+            @$("#export-btn").attr(
+                "href", "moods/export/mood.csv"
+            )
+            @$("#remove-section").hide()
+
+
+        else
+            tracker = @basicTrackers.findWhere slug: slug
+
+            @$("#export-btn").attr(
+                "href", "basic-trackers/export/#{slug}.csv"
+            )
+            @$("#remove-section").show()
 
         unless tracker?
             alert "Tracker does not exist"
@@ -75,15 +90,16 @@ module.exports = class ZoomView extends BaseView
             combo.append """
     <option value=\"previous\">previous period</option>"
     """
-#combo.append "<option value=\"moods\">Moods</option>"
+            combo.append "<option value=\"moods\">Moods</option>"
 
-        #for tracker in @trackerList.collection.models
-            #option = "<option value="
-            #option += "\"#{tracker.get 'id'}\""
-            #option += ">#{tracker.get 'name'}</option>"
-            #combo.append option
+            #for tracker in @trackerList.collection.models
+                #option = "<option value="
+                #option += "\"#{tracker.get 'id'}\""
+                #option += ">#{tracker.get 'name'}</option>"
+                #combo.append option
 
             for tracker in @basicTrackers.models
+
                 option = "<option value="
                 option += "\"basic-#{tracker.get 'slug'}\""
                 option += ">#{tracker.get 'name'}</option>"
@@ -117,7 +133,6 @@ module.exports = class ZoomView extends BaseView
 
 
     showEvolution: (data) ->
-
         evolution = 0
         if data
             if not data.length in [0, 1]
@@ -177,16 +192,24 @@ module.exports = class ZoomView extends BaseView
 
 
     onRemoveClicked: =>
-        tracker = @model.get('tracker')
+        tracker = @getTracker()
         slug = tracker.get 'slug'
         data =
             hidden: true
-        request.put "basic-trackers/#{slug}", data, (err) ->
+        metadataPath = @getMetadataPath()
+        request.put metadataPath, data, (err) ->
 
         tracker.setMetadata 'hidden', true
         Backbone.Mediator.pub 'tracker:removed', slug
 
         window.app.router.navigateHome()
+
+
+    getMetadataPath: ->
+        tracker = @getTracker()
+        slug = tracker.get 'slug'
+
+        return "metadata/basic-trackers/#{slug}"
 
 
     onBackTrackersClicked: (event) =>
@@ -203,7 +226,7 @@ module.exports = class ZoomView extends BaseView
             data =
                 style: style
             tracker.setMetadata 'style', data.style
-            request.put "basic-trackers/#{slug}", data, (err) ->
+            request.put @getMetadataPath(), data, (err) ->
 
         @onComparisonChanged()
 
@@ -216,7 +239,7 @@ module.exports = class ZoomView extends BaseView
         tracker.setMetadata 'goal', data.goal
 
         @onComparisonChanged()
-        request.put "basic-trackers/#{slug}", data, (err) ->
+        request.put @getMetadataPath(), data, (err) ->
 
 
     onComparisonChanged: =>

@@ -318,6 +318,10 @@ module.exports = BaseView = (function(superClass) {
 });
 
 require.register("lib/calculus", function(exports, require, module) {
+var MainState;
+
+MainState = require('../main_state');
+
 module.exports = {
   average: function(data) {
     var amount, average, i, len;
@@ -351,6 +355,20 @@ module.exports = {
       entry.x = date.toDate().getTime() / 1000;
     }
     return data;
+  },
+  getDefaultData: function() {
+    console.log("getDefaultData");
+    console.log(MainState.endDate());
+    console.log(MainState.endDate);
+    return [
+      {
+        x: MainState.startDate.toDate().getTime() / 1000,
+        y: 0
+      }, {
+        x: MainState.endDate.toDate().getTime() / 1000,
+        y: 0
+      }
+    ];
   }
 };
 
@@ -965,12 +983,87 @@ module.exports = Mood = (function(superClass) {
 
 });
 
+require.register("models/mood_tracker", function(exports, require, module) {
+var Model, Mood, request,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+Model = require('lib/model');
+
+request = require('lib/request');
+
+module.exports = Mood = (function(superClass) {
+  extend(Mood, superClass);
+
+  function Mood() {
+    return Mood.__super__.constructor.apply(this, arguments);
+  }
+
+  Mood.prototype.urlRoot = 'moods/';
+
+  Mood.getDay = function(day, callback) {
+    return request.get("moods/mood/" + (day.format('YYYY-MM-DD')), function(err, mood) {
+      if (err) {
+        return callback(err);
+      } else {
+        if (mood.status != null) {
+          return callback(null, new Mood(mood));
+        } else {
+          return callback(null, null);
+        }
+      }
+    });
+  };
+
+  Mood.updateDay = function(day, status, callback) {
+    var path;
+    path = "moods/mood/" + (day.format('YYYY-MM-DD'));
+    return request.put(path, {
+      status: status
+    }, callback);
+  };
+
+  Mood.prototype.getPath = function(startDate, endDate) {
+    var format, path;
+    format = DATE_URL_FORMAT;
+    path = 'moods';
+    return path + "/" + (startDate.format(format)) + "/" + (endDate.format(format));
+  };
+
+  Mood.prototype.setMetadata = function(field, value) {
+    var metadata;
+    metadata = this.get('metadata');
+    metadata[field] = value;
+    return this.set('metadata', metadata);
+  };
+
+  Mood.prototype.loadMetadata = function(callback) {
+    return request.get('metadata/basic-trackers/mood', (function(_this) {
+      return function(err, metadata) {
+        if (err) {
+          alert('Cannot load metadata for mood');
+        } else {
+          _this.set('metadata', metadata);
+        }
+        return callback(metadata);
+      };
+    })(this));
+  };
+
+  return Mood;
+
+})(Model);
+
+});
+
 require.register("models/tracker", function(exports, require, module) {
-var TrackerModel, request,
+var DATE_FORMAT, DATE_URL_FORMAT, TrackerModel, ref, request,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 request = require('lib/request');
+
+ref = require('../lib/constants'), DATE_FORMAT = ref.DATE_FORMAT, DATE_URL_FORMAT = ref.DATE_URL_FORMAT;
 
 module.exports = TrackerModel = (function(superClass) {
   extend(TrackerModel, superClass);
@@ -1011,6 +1104,25 @@ module.exports = TrackerModel = (function(superClass) {
     return request.put(path, {
       amount: amount
     }, callback);
+  };
+
+  TrackerModel.prototype.getPath = function(startDate, endDate) {
+    var format, path, slug;
+    format = DATE_URL_FORMAT;
+    slug = this.get('slug');
+    if (slug === 'mood') {
+      path = 'moods';
+    } else {
+      path = slug;
+    }
+    return path + "/" + (startDate.format(format)) + "/" + (endDate.format(format));
+  };
+
+  TrackerModel.prototype.setMetadata = function(field, value) {
+    var metadata;
+    metadata = this.get('metadata');
+    metadata[field] = value;
+    return this.set('metadata', metadata);
   };
 
   return TrackerModel;
@@ -1079,6 +1191,7 @@ module.exports = Router = (function(superClass) {
   Router.prototype.routes = {
     '': 'main',
     'main/:startDate/:endDate': 'mainDate',
+    'mood/:startDate/:endDate': 'moodDate',
     'basic-trackers/:name': 'basicTracker',
     'basic-trackers/:name/:startDate/:endDate': 'basicTrackerDate',
     'trackers/:name': 'tracker',
@@ -1162,6 +1275,17 @@ module.exports = Router = (function(superClass) {
   };
 
   Router.prototype.mood = function(name) {
+    var end, start, view;
+    this.createMainView();
+    view = 'mood';
+    start = MainState.startDate.format('YYYY-MM-DD');
+    end = MainState.endDate.format('YYYY-MM-DD');
+    return window.app.router.navigate("#" + view + "/" + start + "/" + end, {
+      trigger: true
+    });
+  };
+
+  Router.prototype.moodDate = function(name) {
     this.createMainView();
     return window.app.mainView.displayMood();
   };
@@ -1262,18 +1386,18 @@ module.exports = AddBasicTrackerItem = (function(superClass) {
 });
 
 require.register("views/app_view", function(exports, require, module) {
-var AddBasicTrackerList, AppView, BaseView, BasicTrackerList, DATE_FORMAT, DATE_URL_FORMAT, DailyNote, DailyNotes, MainState, MoodTracker, RawDataTable, Tracker, TrackerList, Zoom, ZoomView, graphHelper, ref, request,
+var AddBasicTrackerList, AppView, BaseView, BasicTrackerList, DATE_FORMAT, DATE_URL_FORMAT, DailyNote, DailyNotes, MainState, MoodTracker, MoodTrackerModel, RawDataTable, Tracker, TrackerList, Zoom, ZoomView, graphHelper, ref,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
-
-request = require('../lib/request');
 
 graphHelper = require('../lib/graph');
 
 BaseView = require('../lib/base_view');
 
 Tracker = require('../models/tracker');
+
+MoodTrackerModel = require('../models/mood_tracker');
 
 Zoom = require('../models/zoom');
 
@@ -1357,7 +1481,7 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.afterRender = function() {
-    var zoom;
+    var moodTracker, zoom;
     this.colors = {};
     this.data = {};
     MainState.dataLoaded = false;
@@ -1366,21 +1490,33 @@ module.exports = AppView = (function(superClass) {
     this.basicTrackerList = new BasicTrackerList();
     this.$('#content').append(this.basicTrackerList.$el);
     this.basicTrackerList.render();
-    zoom = new Zoom;
-    this.zoomView = new ZoomView(zoom, this.basicTrackerList.collection);
-    this.zoomView.render();
-    this.zoomView.hide();
+    moodTracker = new MoodTrackerModel({
+      slug: 'mood',
+      name: 'Mood',
+      color: '#039BE5',
+      metadata: {},
+      description: " The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it to\nother trackers."
+    });
+    this.moodTracker = new MoodTracker(moodTracker);
+    this.$('#mood-section').append(this.moodTracker.$el);
+    this.moodTracker.render();
     this.addBasicTrackerList = new AddBasicTrackerList(this.basicTrackerList.collection);
-    return this.addTrackerZone = this.$('#add-tracker-zone');
+    this.addTrackerZone = this.$('#add-tracker-zone');
+    this.welcomeMessage = this.$('.welcome-message');
+    zoom = new Zoom;
+    this.zoomView = new ZoomView(zoom, this.basicTrackerList.collection, this.moodTracker.model);
+    this.zoomView.render();
+    return this.zoomView.hide();
   };
 
   AppView.prototype.loadTrackers = function(callback) {
     MainState.dataLoaded = false;
-    return this.basicTrackerList.load((function(_this) {
+    return this.moodTracker.load((function(_this) {
       return function() {
-        console.log('loadTrackers done');
-        MainState.dataLoaded = true;
-        return typeof callback === "function" ? callback() : void 0;
+        return _this.basicTrackerList.load(function() {
+          MainState.dataLoaded = true;
+          return typeof callback === "function" ? callback() : void 0;
+        });
       };
     })(this));
   };
@@ -1437,9 +1573,12 @@ module.exports = AppView = (function(superClass) {
 
   AppView.prototype.reloadAll = function() {
     console.log('start loading data');
-    return this.basicTrackerList.reloadAll((function(_this) {
+    return this.moodTracker.reload((function(_this) {
       return function() {
-        return console.log('end loading data');
+        console.log('end loading data for mood');
+        return _this.basicTrackerList.reloadAll(function() {
+          return console.log('end loading data');
+        });
       };
     })(this));
   };
@@ -1448,6 +1587,8 @@ module.exports = AppView = (function(superClass) {
     MainState.currentView = "basic-trackers/" + slug;
     this.basicTrackerList.hide();
     this.addTrackerZone.hide();
+    this.moodTracker.hide();
+    this.welcomeMessage.hide();
     return this.displayZoomTracker(slug, (function(_this) {
       return function() {};
     })(this));
@@ -1470,16 +1611,13 @@ module.exports = AppView = (function(superClass) {
   AppView.prototype.displayTrackers = function() {
     MainState.currentView = 'main';
     this.basicTrackerList.show();
+    this.moodTracker.show();
     this.addTrackerZone.show();
-    console.log('step 1');
     this.redrawCharts();
-    console.log('step 2');
     this.zoomView.hide();
-    console.log('step 3');
     if (!MainState.dataLoaded) {
-      this.loadTrackers();
+      return this.loadTrackers();
     }
-    return console.log('step 4');
   };
 
   AppView.prototype.redrawCharts = function() {
@@ -1488,6 +1626,7 @@ module.exports = AppView = (function(superClass) {
     if (this.$("#zoomtracker").is(":visible")) {
       this.onComparisonChanged();
     } else {
+      this.moodTracker.redraw();
       this.basicTrackerList.redrawAll();
     }
     return true;
@@ -1539,20 +1678,13 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.displayMood = function() {
-    return this.displayZoomTracker((function(_this) {
-      return function() {
-        _this.$("#remove-btn").hide();
-        _this.$("h2.zoomtitle").html(_this.$("#moods h2").html());
-        _this.$("p.zoomexplaination").html(_this.$("#moods .explaination").html());
-        _this.$("h2.zoomtitle").show();
-        _this.$("p.zoomexplaination").show();
-        _this.$("input.zoomtitle").hide();
-        _this.$("textarea.zoomexplaination").hide();
-        _this.$("#show-data-section").hide();
-        _this.currentData = _this.moodTracker.data;
-        _this.currentTracker = _this.moodTracker;
-        return _this.printZoomGraph(_this.currentData, 'steelblue');
-      };
+    MainState.currentView = "mood";
+    this.basicTrackerList.hide();
+    this.moodTracker.hide();
+    this.welcomeMessage.hide();
+    this.addTrackerZone.hide();
+    return this.displayZoomTracker('mood', (function(_this) {
+      return function() {};
     })(this));
   };
 
@@ -1713,8 +1845,7 @@ module.exports = BasicTrackerList = (function(superClass) {
     data = {
       hidden: false
     };
-    $('#add-tracker-zone').scrollBottom();
-    return request.put("basic-trackers/" + slug, data, function(err) {
+    return request.put("metadata/basic-trackers/" + slug, data, function(err) {
       return $('#add-tracker-zone').scrollBottom();
     });
   };
@@ -1741,7 +1872,7 @@ module.exports = BasicTrackerList = (function(superClass) {
 });
 
 require.register("views/basic_tracker_list_item", function(exports, require, module) {
-var BaseView, BasicTrackerItem, MainState, graph, request,
+var BaseView, BasicTrackerItem, MainState, calculus, graph, request,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -1750,6 +1881,8 @@ BaseView = require('lib/base_view');
 request = require('lib/request');
 
 graph = require('lib/graph');
+
+calculus = require('lib/calculus');
 
 MainState = require('../main_state');
 
@@ -1795,15 +1928,7 @@ module.exports = BasicTrackerItem = (function(superClass) {
       data = MainState.data[this.model.get('slug')];
       graphStyle = this.model.get('metadata').style || 'bar';
       if (data == null) {
-        data = [
-          {
-            x: MainState.startDate.toDate().getTime() / 1000,
-            y: 0
-          }, {
-            x: MainState.endDate.toDate().getTime() / 1000,
-            y: 0
-          }
-        ];
+        data = calculus.getDefaultData();
       }
       return graph.draw({
         el: el,
@@ -1823,7 +1948,8 @@ module.exports = BasicTrackerItem = (function(superClass) {
 });
 
 require.register("views/mood_tracker", function(exports, require, module) {
-var BaseView, Mood, Moods, TrackerItem, graph, normalizer, request,
+var BaseView, DATE_FORMAT, DATE_URL_FORMAT, MainState, Mood, MoodTracker, Moods, graph, normalizer, ref, request,
+  bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -1835,112 +1961,175 @@ graph = require('lib/graph');
 
 normalizer = require('lib/normalizer');
 
+MainState = require('../main_state');
+
 Mood = require('../models/mood');
 
 Moods = require('../collections/moods');
 
-module.exports = TrackerItem = (function(superClass) {
-  extend(TrackerItem, superClass);
+ref = require('../lib/constants'), DATE_FORMAT = ref.DATE_FORMAT, DATE_URL_FORMAT = ref.DATE_URL_FORMAT;
 
-  function TrackerItem() {
-    return TrackerItem.__super__.constructor.apply(this, arguments);
-  }
+module.exports = MoodTracker = (function(superClass) {
+  extend(MoodTracker, superClass);
 
-  TrackerItem.prototype.id = 'moods-tracker';
+  MoodTracker.prototype.id = 'moods-tracker';
 
-  TrackerItem.prototype.className = 'line';
+  MoodTracker.prototype.className = 'line';
 
-  TrackerItem.prototype.template = require('./templates/mood');
+  MoodTracker.prototype.template = require('./templates/mood');
 
-  TrackerItem.prototype.events = {
+  MoodTracker.prototype.events = {
     'click #good-mood-btn': 'onGoodMoodClicked',
     'click #neutral-mood-btn': 'onNeutralMoodClicked',
     'click #bad-mood-btn': 'onBadMoodClicked'
   };
 
-  TrackerItem.prototype.onGoodMoodClicked = function() {
+  MoodTracker.prototype.onGoodMoodClicked = function() {
     return this.updateMood('good');
   };
 
-  TrackerItem.prototype.onNeutralMoodClicked = function() {
+  MoodTracker.prototype.onNeutralMoodClicked = function() {
     return this.updateMood('neutral');
   };
 
-  TrackerItem.prototype.onBadMoodClicked = function() {
+  MoodTracker.prototype.onBadMoodClicked = function() {
     return this.updateMood('bad');
   };
 
-  TrackerItem.prototype.updateMood = function(status) {
+  function MoodTracker(model) {
+    this.model = model;
+    this.loadCurrentDay = bind(this.loadCurrentDay, this);
+    this.load = bind(this.load, this);
+    MoodTracker.__super__.constructor.apply(this, arguments);
+  }
+
+  MoodTracker.prototype.afterRender = function() {
+    MoodTracker.__super__.afterRender.apply(this, arguments);
+    return this.$('#mood-current-date').pikaday({
+      maxDate: new Date(),
+      format: DATE_FORMAT,
+      defaultDate: MainState.endDate.toDate(),
+      setDefaultDate: true,
+      onSelect: (function(_this) {
+        return function(value) {
+          return _this.loadCurrentDay();
+        };
+      })(this)
+    });
+  };
+
+  MoodTracker.prototype.updateMood = function(status) {
     var day;
-    this.$('#current-mood').html('&nbsp;');
-    this.$('#current-mood').spin('tiny');
-    day = window.app.mainView.currentDate;
+    day = moment(this.$('#mood-current-date').val());
+    this.$('#mood-current-value').html('&nbsp;');
+    this.$('#mood-current-value').spin(true);
     return Mood.updateDay(day, status, (function(_this) {
       return function(err, mood) {
-        _this.$('#current-mood').spin();
+        _this.$('#mood-current-value').spin(false);
         if (err) {
           return alert("An error occured while saving data");
         } else {
-          _this.$('#current-mood').html(status);
-          graph.clear(_this.$('#moods-charts'), _this.$('#moods-y-axis'));
+          _this.$('#mood-current-value').html(status);
           return _this.loadAnalytics();
         }
       };
     })(this));
   };
 
-  TrackerItem.prototype.reload = function(callback) {
-    var day;
-    day = window.app.mainView.currentDate;
-    return Mood.getDay(day, (function(_this) {
-      return function(err, mood) {
-        if (err) {
-          alert("An error occured while retrieving mood data");
-        } else if (mood == null) {
-          _this.$('#current-mood').html('Set your mood for current day');
-        } else {
-          _this.$('#current-mood').html(mood.get('status'));
-        }
-        _this.loadAnalytics();
-        if (callback != null) {
-          return callback();
-        }
+  MoodTracker.prototype.load = function(callback) {
+    return this.model.loadMetadata((function(_this) {
+      return function() {
+        return _this.reload(callback);
       };
     })(this));
   };
 
-  TrackerItem.prototype.loadAnalytics = function() {
-    var day, path;
-    day = window.app.mainView.currentDate;
-    path = "moods/" + (day.format('YYYY-MM-DD'));
-    this.$("#moods-charts").html('');
-    this.$("#moods-y-axis").html('');
-    this.$("#moods").spin('tiny');
+  MoodTracker.prototype.reload = function(callback) {
+    var day;
+    day = moment(this.$('#mood-current-date').val());
+    return this.loadCurrentDay((function(_this) {
+      return function() {
+        return _this.loadAnalytics(function() {
+          _this.redraw();
+          return typeof callback === "function" ? callback() : void 0;
+        });
+      };
+    })(this));
+  };
+
+  MoodTracker.prototype.loadCurrentDay = function(callback) {
+    var day;
+    day = moment(this.$('#mood-current-date').val());
+    this.$('#mood-current-value').html('&nbsp;');
+    this.$('#mood-current-value').spin(true);
+    return Mood.getDay(day, (function(_this) {
+      return function(err, mood) {
+        _this.$('#mood-current-value').spin(false);
+        if (err) {
+          alert("An error occured while retrieving mood data");
+        } else if ((mood == null) || !mood.get('status')) {
+          _this.$('#mood-current-value').html('no mood set');
+        } else {
+          _this.$('#mood-current-value').html(mood.get('status'));
+        }
+        return typeof callback === "function" ? callback() : void 0;
+      };
+    })(this));
+  };
+
+  MoodTracker.prototype.loadAnalytics = function(callback) {
+    var end, path, start;
+    start = MainState.startDate.format('YYYY-MM-DD');
+    end = MainState.endDate.format('YYYY-MM-DD');
+    path = "moods/" + start + "/" + end;
+    this.showLoading();
     return request.get(path, (function(_this) {
       return function(err, data) {
-        _this.$("#moods").spin();
+        _this.hideLoading();
         if (err) {
           return alert("An error occured while retrieving moods data");
         } else {
-          _this.data = data;
-          return _this.redraw();
+          MainState.data['mood'] = _this.data = data;
+          if ((_this.data == null) || _this.data.length === 0) {
+            _this.data = calculus.getDefaultData();
+          }
+          return typeof callback === "function" ? callback() : void 0;
         }
       };
     })(this));
   };
 
-  TrackerItem.prototype.redraw = function() {
-    var data, el, width, yEl;
-    this.$("#moods-charts").html('');
-    this.$("#moods-y-axis").html('');
-    width = this.$("#moods").width() - 70;
-    el = this.$("#moods-charts")[0];
-    yEl = this.$("#moods-y-axis")[0];
-    data = normalizer.getSixMonths(this.data);
-    return graph.draw(el, yEl, width, 'steelblue', data);
+  MoodTracker.prototype.redraw = function() {
+    var color, data, el, graphStyle, width, yEl;
+    if (this.data != null) {
+      this.$("#moods-charts").html('');
+      this.$("#moods-y-axis").html('');
+      width = this.$("#moods").width() - 70;
+      el = this.$("#moods-charts")[0];
+      yEl = this.$("#moods-y-axis")[0];
+      data = this.data;
+      color = '#039BE5';
+      graphStyle = this.model.get('metadata').style || 'bar';
+      return graph.draw({
+        el: el,
+        yEl: yEl,
+        width: width,
+        color: color,
+        data: data,
+        graphStyle: graphStyle
+      });
+    }
   };
 
-  return TrackerItem;
+  MoodTracker.prototype.showLoading = function() {
+    return this.$("#moods").spin(true);
+  };
+
+  MoodTracker.prototype.hideLoading = function() {
+    return this.$("#moods").spin(false);
+  };
+
+  return MoodTracker;
 
 })(BaseView);
 
@@ -2051,7 +2240,7 @@ buf.push('<div id="menu"><span class="info-text">Visualize your data from:</span
 buf.push(attrs({ 'id':('datepicker-start'), 'value':("" + (startDate) + ""), "class": ('datepicker') }, {"value":true}));
 buf.push('/><span class="info-text">to:</span><input');
 buf.push(attrs({ 'id':('datepicker-end'), 'value':("" + (endDate) + ""), "class": ('datepicker') }, {"value":true}));
-buf.push('/></div><div id="content" class="pa2"><div class="welcome-message">Welcome on KYou the app that will help you to monitor yourself\nIt builds graph based on the data store in your Cozy. To start\nit\'s super simple, you just have to select the data you want\nin the list below. Every time you click on a tracker, its graph\nis displayed. \n|\nIf you want details about a graph or compare it with another graph\nsimply click on its title, it will lead you to a dedicatd UI.</div><div class="trackers"></div><img src="img/spinner.svg" class="hidden"/><div id="zoom-view" class="line"></div></div><div id="add-tracker-zone" class="pa2 line"><div id="add-basic-tracker-widget"></div><h2 class="mb2">Add your tracker</h2><div id="add-basic-tracker-list" class="line"></div></div>');
+buf.push('/></div><div id="content" class="pa2"><div class="welcome-message">Welcome on KYou the app that will help you to monitor yourself\nIt builds graph based on the data store in your Cozy. To start\nit\'s super simple, you just have to select the data you want\nin the list below. Every time you click on a tracker, its graph\nis displayed. \n|\nIf you want details about a graph or compare it with another graph\nsimply click on its title, it will lead you to a dedicatd UI.</div><div id="mood-section"></div><div class="trackers"></div><img src="img/spinner.svg" class="hidden"/><div id="zoom-view" class="line"></div></div><div id="add-tracker-zone" class="pa2 line"><div id="add-basic-tracker-widget"></div><h2 class="mb2">Add your tracker</h2><div id="add-basic-tracker-list" class="line"></div></div>');
 }
 return buf.join("");
 };
@@ -2063,7 +2252,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div class="line"><h2> <a href="#mood">Mood</a></h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p></div><div class="line"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div>');
+buf.push('<div class="line"><h2> <a href="#mood">Mood</a></h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p><p><span>Mood at </span><input id="mood-current-date" class="input tracker-input"/><span>:</span><span id="mood-current-value" class="tracker-value">&nbsp;</span></p><p id="set-mood"><span>Choose value:&nbsp;</span><button id="good-mood-btn" class="btn">good</button><button id="neutral-mood-btn" class="btn">neutral</button><button id="bad-mood-btn" class="btn">bad</button></p></div><div class="line"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div>');
 }
 return buf.join("");
 };
@@ -2124,7 +2313,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a id="back-trackers-btn" href="#">go back to tracker list</a></div><div class="line"><div class="mod w50 left"><h3>Options</h3><p class="zoom-option"><span>scale</span><span><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></span></p><p class="zoom-option"><span>display</span><span><select id="zoomstyle"><option id="zoom-bar-option" value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option id="zoom-correlation-option" value="correlation">correlate (points)</option></select></span></p><p class="zoom-option"><span>compare with</span><span><select id="zoomcomparison"></select><br/></span></p><p class="zoom-option"><span>goal</span><span><input id="zoomgoal" value="0"/></span></p><p><span class="smaller em">Note: Compared tracker is displayed in red.</span></p></div><div class="mod w50 left"><h3>Information</h3><p class="zoom-option"><span>average&nbsp;</span><span id="average-value"></span></p><p class="zoom-option"><span>recent evolution&nbsp;</span><span id="evolution-value"></span></p><h3>Manage</h3><p class="zoom-option"><span>export</span><span><a href="" id="export-btn" class="btn smaller">all data in a .csv file</a></span></p><p class="zoom-option"><span>remove</span><span><button id="remove-btn" class="btn-danger smaller">remove tracker</button></span></p></div></div><div class="line"><p class="pa2"></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div>');
+buf.push('<div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a id="back-trackers-btn" href="#">go back to tracker list</a></div><div class="line"><div class="mod w50 left"><h3>Options</h3><p class="zoom-option"><span>scale</span><span><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></span></p><p class="zoom-option"><span>display</span><span><select id="zoomstyle"><option id="zoom-bar-option" value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option id="zoom-correlation-option" value="correlation">correlate (points)</option></select></span></p><p class="zoom-option"><span>compare with</span><span><select id="zoomcomparison"></select><br/></span></p><p class="zoom-option"><span>goal</span><span><input id="zoomgoal" value="0"/></span></p><p><span class="smaller em">Note: Compared tracker is displayed in red.</span></p></div><div class="mod w50 left"><h3>Information</h3><p class="zoom-option"><span>average&nbsp;</span><span id="average-value"></span></p><p class="zoom-option"><span>recent evolution&nbsp;</span><span id="evolution-value"></span></p><h3>Manage</h3><p class="zoom-option"><span>export</span><span><a href="" id="export-btn" class="btn smaller">all data in a .csv file</a></span></p><p id="remove-section" class="zoom-option"><span>remove</span><span><button id="remove-btn" class="btn-danger smaller">remove tracker</button></span></p></div></div><div class="line"><p class="pa2"></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div>');
 }
 return buf.join("");
 };
@@ -2474,7 +2663,7 @@ module.exports = TrackerItem = (function(superClass) {
 });
 
 require.register("views/zoom", function(exports, require, module) {
-var BaseView, MainState, ZoomView, calculus, graphHelper, request,
+var BaseView, MainState, Tracker, ZoomView, calculus, graphHelper, request,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -2486,6 +2675,8 @@ request = require('lib/request');
 graphHelper = require('../lib/graph');
 
 calculus = require('lib/calculus');
+
+Tracker = require('../models/tracker');
 
 MainState = require('../main_state');
 
@@ -2509,9 +2700,10 @@ module.exports = ZoomView = (function(superClass) {
     'click #back-trackers-btn': 'onBackTrackersClicked'
   };
 
-  function ZoomView(model, basicTrackers) {
+  function ZoomView(model, basicTrackers, moodTracker) {
     this.model = model;
     this.basicTrackers = basicTrackers;
+    this.moodTracker = moodTracker;
     this.onComparisonChanged = bind(this.onComparisonChanged, this);
     this.onGoalChanged = bind(this.onGoalChanged, this);
     this.onStyleChanged = bind(this.onStyleChanged, this);
@@ -2532,10 +2724,17 @@ module.exports = ZoomView = (function(superClass) {
   ZoomView.prototype.show = function(slug) {
     var tracker;
     ZoomView.__super__.show.apply(this, arguments);
-    tracker = this.basicTrackers.findWhere({
-      slug: slug
-    });
-    $("#export-btn").attr("href", "basic-trackers/export/" + slug + ".csv");
+    if (slug === 'mood') {
+      tracker = this.moodTracker;
+      this.$("#export-btn").attr("href", "moods/export/mood.csv");
+      this.$("#remove-section").hide();
+    } else {
+      tracker = this.basicTrackers.findWhere({
+        slug: slug
+      });
+      this.$("#export-btn").attr("href", "basic-trackers/export/" + slug + ".csv");
+      this.$("#remove-section").show();
+    }
     if (tracker == null) {
       alert("Tracker does not exist");
     } else {
@@ -2562,6 +2761,7 @@ module.exports = ZoomView = (function(superClass) {
       combo.append("<option value=\"undefined\">no comparison</option>\"");
       combo.append("<option value=\"last-year\">previous year</option>\"");
       combo.append("<option value=\"previous\">previous period</option>\"");
+      combo.append("<option value=\"moods\">Moods</option>");
       ref = this.basicTrackers.models;
       results = [];
       for (j = 0, len = ref.length; j < len; j++) {
@@ -2672,16 +2872,24 @@ module.exports = ZoomView = (function(superClass) {
   };
 
   ZoomView.prototype.onRemoveClicked = function() {
-    var data, slug, tracker;
-    tracker = this.model.get('tracker');
+    var data, metadataPath, slug, tracker;
+    tracker = this.getTracker();
     slug = tracker.get('slug');
     data = {
       hidden: true
     };
-    request.put("basic-trackers/" + slug, data, function(err) {});
+    metadataPath = this.getMetadataPath();
+    request.put(metadataPath, data, function(err) {});
     tracker.setMetadata('hidden', true);
     Backbone.Mediator.pub('tracker:removed', slug);
     return window.app.router.navigateHome();
+  };
+
+  ZoomView.prototype.getMetadataPath = function() {
+    var slug, tracker;
+    tracker = this.getTracker();
+    slug = tracker.get('slug');
+    return "metadata/basic-trackers/" + slug;
   };
 
   ZoomView.prototype.onBackTrackersClicked = function(event) {
@@ -2699,7 +2907,7 @@ module.exports = ZoomView = (function(superClass) {
         style: style
       };
       tracker.setMetadata('style', data.style);
-      request.put("basic-trackers/" + slug, data, function(err) {});
+      request.put(this.getMetadataPath(), data, function(err) {});
     }
     return this.onComparisonChanged();
   };
@@ -2713,7 +2921,7 @@ module.exports = ZoomView = (function(superClass) {
     };
     tracker.setMetadata('goal', data.goal);
     this.onComparisonChanged();
-    return request.put("basic-trackers/" + slug, data, function(err) {});
+    return request.put(this.getMetadataPath(), data, function(err) {});
   };
 
   ZoomView.prototype.onComparisonChanged = function() {

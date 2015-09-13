@@ -1,8 +1,8 @@
-request = require '../lib/request'
 graphHelper = require '../lib/graph'
 BaseView = require '../lib/base_view'
 
 Tracker = require '../models/tracker'
+MoodTrackerModel = require '../models/mood_tracker'
 Zoom = require '../models/zoom'
 DailyNote = require '../models/dailynote'
 DailyNotes = require '../collections/dailynotes'
@@ -84,26 +84,41 @@ module.exports = class AppView extends BaseView
         @$('#content').append @basicTrackerList.$el
         @basicTrackerList.render()
 
-        zoom = new Zoom
-        @zoomView = new ZoomView zoom, @basicTrackerList.collection
-        @zoomView.render()
-        @zoomView.hide()
+        #@rawDataTable = new RawDataTable()
+        #@rawDataTable.render()
+        #@$('#raw-data').append @rawDataTable.$el
+
+        moodTracker = new MoodTrackerModel
+            slug: 'mood'
+            name: 'Mood'
+            color: '#039BE5'
+            metadata: {}
+            description: """ The goal of this tracker is to help you
+            understand what could influence your mood by comparing it to
+            other trackers.
+            """
+        @moodTracker = new MoodTracker moodTracker
+        @$('#mood-section').append @moodTracker.$el
+        @moodTracker.render()
 
         @addBasicTrackerList = new AddBasicTrackerList(
             @basicTrackerList.collection)
 
         @addTrackerZone = @$ '#add-tracker-zone'
-        #@rawDataTable = new RawDataTable()
-        #@rawDataTable.render()
-        #@$('#raw-data').append @rawDataTable.$el
-
-        #@moodTracker = new MoodTracker()
-        #@$('#content').append @moodTracker.$el
-        #@moodTracker.render()
-
+        @welcomeMessage = @$ '.welcome-message'
         #@trackerList = new TrackerList()
-        #@$('#content').append @trackerList.$el
         #@trackerList.render()
+        #@$('#content').append @trackerList.$el
+
+        zoom = new Zoom
+        @zoomView = new ZoomView(
+            zoom,
+            @basicTrackerList.collection,
+            @moodTracker.model
+        )
+        @zoomView.render()
+        @zoomView.hide()
+
 
 
     loadTrackers: (callback) ->
@@ -111,11 +126,11 @@ module.exports = class AppView extends BaseView
         #@moodTracker.reload =>
         #@trackerList.collection.fetch
             #success: =>
-        @basicTrackerList.load =>
-            console.log 'loadTrackers done'
-            MainState.dataLoaded = true
-            #@fillComparisonCombo()
-            callback?()
+        @moodTracker.load =>
+            @basicTrackerList.load =>
+                MainState.dataLoaded = true
+                #@fillComparisonCombo()
+                callback?()
 
 
     initDatePickers: ->
@@ -160,11 +175,11 @@ module.exports = class AppView extends BaseView
 
     reloadAll: ->
         console.log 'start loading data'
-        #@moodTracker.reload =>
-            #console.log 'end loading data for mood'
+        @moodTracker.reload =>
+            console.log 'end loading data for mood'
+            @basicTrackerList.reloadAll =>
+                console.log 'end loading data'
         #@trackerList.reloadAll =>
-        @basicTrackerList.reloadAll =>
-            console.log 'end loading data'
             #if @$("#zoomtracker").is(":visible")
                 #if @currentTracker is @moodTracker
                     #@currentData = @moodTracker.data
@@ -181,6 +196,8 @@ module.exports = class AppView extends BaseView
         MainState.currentView = "basic-trackers/#{slug}"
         @basicTrackerList.hide()
         @addTrackerZone.hide()
+        @moodTracker.hide()
+        @welcomeMessage.hide()
         @displayZoomTracker slug, =>
 
 
@@ -197,14 +214,11 @@ module.exports = class AppView extends BaseView
     displayTrackers: ->
         MainState.currentView = 'main'
         @basicTrackerList.show()
+        @moodTracker.show()
         @addTrackerZone.show()
-        console.log 'step 1'
         @redrawCharts()
-        console.log 'step 2'
         @zoomView.hide()
-        console.log 'step 3'
         @loadTrackers() unless MainState.dataLoaded
-        console.log 'step 4'
 
 
     redrawCharts: =>
@@ -215,7 +229,7 @@ module.exports = class AppView extends BaseView
             @onComparisonChanged()
 
         else
-            #@moodTracker.redraw()
+            @moodTracker.redraw()
             #@trackerList.redrawAll()
             @basicTrackerList.redrawAll()
 
@@ -262,21 +276,15 @@ module.exports = class AppView extends BaseView
 
 
     ## Zoom widget
+    #
     displayMood: ->
-        @displayZoomTracker =>
-            @$("#remove-btn").hide()
-            @$("h2.zoomtitle").html @$("#moods h2").html()
-            @$("p.zoomexplaination").html @$("#moods .explaination").html()
-            @$("h2.zoomtitle").show()
-            @$("p.zoomexplaination").show()
-            @$("input.zoomtitle").hide()
-            @$("textarea.zoomexplaination").hide()
-            @$("#show-data-section").hide()
+        MainState.currentView = "mood"
+        @basicTrackerList.hide()
+        @moodTracker.hide()
+        @welcomeMessage.hide()
+        @addTrackerZone.hide()
+        @displayZoomTracker 'mood', =>
 
-            @currentData = @moodTracker.data
-            @currentTracker = @moodTracker
-
-            @printZoomGraph @currentData, 'steelblue'
 
     displayTracker: (id) ->
         @displayZoomTracker =>

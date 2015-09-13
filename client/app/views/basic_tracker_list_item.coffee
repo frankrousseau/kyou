@@ -1,6 +1,7 @@
 BaseView = require 'lib/base_view'
 request = require 'lib/request'
 graph = require 'lib/graph'
+calculus = require 'lib/calculus'
 MainState =  require '../main_state'
 
 
@@ -34,13 +35,7 @@ module.exports = class BasicTrackerItem extends BaseView
             data = MainState.data[@model.get 'slug']
             graphStyle = @model.get('metadata').style or 'bar'
 
-            data ?= [
-                x: MainState.startDate.toDate().getTime() / 1000
-                y: 0
-            ,
-                x: MainState.endDate.toDate().getTime() / 1000
-                y: 0
-            ]
+            data ?= calculus.getDefaultData()
 
             graph.draw {el, yEl, width, color, data, graphStyle}
 

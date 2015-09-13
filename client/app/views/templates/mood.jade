@@ -1,11 +1,25 @@
 .line
     h2 
         a(href="#mood") Mood
+
     p.explaination
         | The goal of this tracker is to help you
         | understand what could influence your mood by comparing it
         | to other trackers.
+
+    p
+        span Mood at 
+        input.input.tracker-input#mood-current-date
+        span :
+        span.tracker-value#mood-current-value &nbsp;
+    p#set-mood
+        span Choose value:&nbsp;
+        button.btn#good-mood-btn good
+        button.btn#neutral-mood-btn neutral
+        button.btn#bad-mood-btn bad
+
 .line
     #moods.graph-container
         #moods-y-axis.y-axis
         #moods-charts.chart
+

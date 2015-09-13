@@ -202,6 +202,15 @@ module.exports =
             res.send results
 
 
+    # Return tracker metadata matching given slug in URL.
+    getMetadata: (req, res, next) ->
+        if req.metadata?
+            res.send req.metadata
+        else
+            res.status(404).send error: 'Tracker was not found'
+
+
+
     # Update metadata for a basic tracker. If the tracker is not found it's
     # created. That way the client doesn't have to think about creation/update.
     updateMetadataBasic: (req, res, next) ->
@@ -234,7 +243,7 @@ module.exports =
                 csv.push "#{row.key},#{row.value}" for row in rows
                 csvFile = csv.join '\n'
 
-                res.setHeader 'Content-length', csvFile
+                res.setHeader 'Content-length', csvFile.length
                 res.setHeader(
                     'Content-disposition',
                     "attachment; filename=#{slug + '.csv'}"
