@@ -9,27 +9,41 @@ module.exports = class TrackerList extends ViewCollection
     collection: new TrackerCollection()
 
 
-    redrawAll: ->
-        view.redrawGraph() for id, view of @views
+    # Load tracker list. Then load data to display for each trackers.
+    load: (callback) ->
+        @collection.fetch
+            success: =>
+                @reloadAll ->
+                    console.log 'load done'
+                    callback?()
+            error: =>
+                alert 'Cannot load basic trackers'
+                callback?()
 
 
+    # Reload data for each tracker. Perform it one by one.
     reloadAll: (callback) ->
         @$(".tracker .chart").html ''
         @$(".tracker .y-axis").html ''
 
-        nbLoaded = 0
-        length = 0
+        trackers = []
+        trackers.push view for id, view of @views
 
-        for id, view of @views
-            length++
+        async.eachSeries trackers, (tracker, next) ->
+            unless tracker.model.get('metadata').hidden
+                tracker.load next
+            else
+                next()
+        , (err) ->
+            console.log 'reloadAll done'
+            callback() if callback?
 
-        for id, view of @views
-            view.afterRender =>
-                nbLoaded++
-                if nbLoaded is length
-                    callback() if callback?
+
+    redrawAll: ->
+        view.redrawGraph() for id, view of @views
 
 
     refreshCurrentValue: ->
         for id, view of @views
             view.refreshCurrentValue()
+

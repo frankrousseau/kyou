@@ -80,13 +80,14 @@ module.exports = class AppView extends BaseView
         $(window).on 'resize',  @redrawCharts
         @initDatePickers()
 
-        @basicTrackerList = new BasicTrackerList()
-        @$('#content').append @basicTrackerList.$el
-        @basicTrackerList.render()
+        @addTrackerZone = @$ '#add-tracker-zone'
+        @welcomeMessage = @$ '.welcome-message'
 
         #@rawDataTable = new RawDataTable()
         #@rawDataTable.render()
         #@$('#raw-data').append @rawDataTable.$el
+
+        # Mood
 
         moodTracker = new MoodTrackerModel
             slug: 'mood'
@@ -101,36 +102,37 @@ module.exports = class AppView extends BaseView
         @$('#mood-section').append @moodTracker.$el
         @moodTracker.render()
 
+
+        # Trackers
+
+        @trackerList = new TrackerList()
+        @trackerList.render()
+        @$('#content').append @trackerList.$el
+
+
+        # Basic trackers
+        #
+        @basicTrackerList = new BasicTrackerList()
+        @$('#content').append @basicTrackerList.$el
+        @basicTrackerList.render()
+
+
+        # Add tracker buttons
+
         @addBasicTrackerList = new AddBasicTrackerList(
             @basicTrackerList.collection)
 
-        @addTrackerZone = @$ '#add-tracker-zone'
-        @welcomeMessage = @$ '.welcome-message'
-        #@trackerList = new TrackerList()
-        #@trackerList.render()
-        #@$('#content').append @trackerList.$el
+        # Zoom widget
 
         zoom = new Zoom
         @zoomView = new ZoomView(
             zoom,
             @basicTrackerList.collection,
-            @moodTracker.model
+            @moodTracker.model,
+            @trackerList.collection
         )
         @zoomView.render()
         @zoomView.hide()
-
-
-
-    loadTrackers: (callback) ->
-        MainState.dataLoaded = false
-        #@moodTracker.reload =>
-        #@trackerList.collection.fetch
-            #success: =>
-        @moodTracker.load =>
-            @basicTrackerList.load =>
-                MainState.dataLoaded = true
-                #@fillComparisonCombo()
-                callback?()
 
 
     initDatePickers: ->
@@ -151,10 +153,6 @@ module.exports = class AppView extends BaseView
                 Backbone.Mediator.publish 'end-date:change', value
 
 
-    resetRouteHash: ->
-        window.app.router.resetHash()
-
-
     onStartDateChanged: (date) ->
         MainState.startDate = moment date
         @loadTrackers =>
@@ -169,8 +167,21 @@ module.exports = class AppView extends BaseView
         @resetRouteHash()
 
 
+    resetRouteHash: ->
+        window.app.router.resetHash()
+
+
     onTrackerRemoved: (slug) ->
         @basicTrackerList.remove slug
+
+
+    loadTrackers: (callback) ->
+        MainState.dataLoaded = false
+        @moodTracker.load =>
+            @trackerList.load =>
+                @basicTrackerList.load =>
+                    MainState.dataLoaded = true
+                    callback?()
 
 
     reloadAll: ->
@@ -195,6 +206,7 @@ module.exports = class AppView extends BaseView
     displayBasicTracker: (slug) ->
         MainState.currentView = "basic-trackers/#{slug}"
         @basicTrackerList.hide()
+        @trackerList.hide()
         @addTrackerZone.hide()
         @moodTracker.hide()
         @welcomeMessage.hide()
@@ -263,6 +275,7 @@ module.exports = class AppView extends BaseView
     onTrackerButtonClicked: ->
         name = $('#add-tracker-name').val()
         description = $('#add-tracker-description').val()
+        alert name + description
 
         if name.length > 0
             @trackerList.collection.create(
@@ -287,54 +300,16 @@ module.exports = class AppView extends BaseView
 
 
     displayTracker: (id) ->
-        @displayZoomTracker =>
-            @$("#remove-btn").show()
-            tracker = @trackerList.collection.findWhere id: id
-            unless tracker?
-                alert "Tracker does not exist"
-            else
-                @$("input.zoomtitle").val tracker.get 'name'
-                @$("textarea.zoomexplaination").val tracker.get 'description'
-                @$("h2.zoomtitle").hide()
-                @$("p.zoomexplaination").hide()
-                @$("input.zoomtitle").show()
-                @$("textarea.zoomexplaination").show()
-                @$("#show-data-section").show()
-                @$("#show-data-csv").attr 'href', "trackers/#{id}/csv"
-
-                i = 0
-                recWait = =>
-                    data = @trackerList.views[tracker.cid]?.data
-
-                    if data?
-                        @currentData = data
-                        @currentTracker = tracker
-                        @onComparisonChanged()
-                    else
-                        setTimeout recWait, 10
-                recWait()
-
-
-    #onRemoveButtonClicked: =>
-        #answer = confirm "Are you sure that you want to delete this tracker?"
-        #if answer
-            #tracker = @currentTracker
-            #view = @trackerList.views[tracker.cid]
-            #tracker.destroy
-                #success: =>
-                    #view.remove()
-                    #window.app.router.navigate '#', trigger: true
-                #error: ->
-                    #alert 'something went wrong while removing tracker.'
+        MainState.currentView = "mood"
+        @basicTrackerList.hide()
+        @trackerList.hide()
+        @moodTracker.hide()
+        @welcomeMessage.hide()
+        @addTrackerZone.hide()
+        @displayZoomTracker id
 
 
     onShowDataClicked: =>
         @rawDataTable.show()
         @rawDataTable.load @currentTracker
-
-
-    onCurrentTrackerChanged: =>
-        @currentTracker.set 'name', @$('input.zoomtitle').val()
-        @currentTracker.set 'description', @$('textarea.zoomexplaination').val()
-        @currentTracker.save()
 

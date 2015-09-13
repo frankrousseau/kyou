@@ -4,6 +4,11 @@ moment = require 'moment'
 module.exports =
 
 
+    filterDates: (rows, start, end) ->
+        console.log row for row in rows
+        rows
+
+
     normalize: (rows, start, end) ->
         data = {}
         data[start] = 0

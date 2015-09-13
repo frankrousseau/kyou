@@ -357,9 +357,6 @@ module.exports = {
     return data;
   },
   getDefaultData: function() {
-    console.log("getDefaultData");
-    console.log(MainState.endDate());
-    console.log(MainState.endDate);
     return [
       {
         x: MainState.startDate.toDate().getTime() / 1000,
@@ -984,13 +981,15 @@ module.exports = Mood = (function(superClass) {
 });
 
 require.register("models/mood_tracker", function(exports, require, module) {
-var Model, Mood, request,
+var DATE_FORMAT, DATE_URL_FORMAT, Model, Mood, ref, request,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 Model = require('lib/model');
 
 request = require('lib/request');
+
+ref = require('../lib/constants'), DATE_FORMAT = ref.DATE_FORMAT, DATE_URL_FORMAT = ref.DATE_URL_FORMAT;
 
 module.exports = Mood = (function(superClass) {
   extend(Mood, superClass);
@@ -1107,15 +1106,10 @@ module.exports = TrackerModel = (function(superClass) {
   };
 
   TrackerModel.prototype.getPath = function(startDate, endDate) {
-    var format, path, slug;
+    var format, id;
     format = DATE_URL_FORMAT;
-    slug = this.get('slug');
-    if (slug === 'mood') {
-      path = 'moods';
-    } else {
-      path = slug;
-    }
-    return path + "/" + (startDate.format(format)) + "/" + (endDate.format(format));
+    id = this.get('id');
+    return "trackers/" + id + "/amounts/" + (startDate.format(format)) + "/" + (endDate.format(format));
   };
 
   TrackerModel.prototype.setMetadata = function(field, value) {
@@ -1195,6 +1189,7 @@ module.exports = Router = (function(superClass) {
     'basic-trackers/:name': 'basicTracker',
     'basic-trackers/:name/:startDate/:endDate': 'basicTrackerDate',
     'trackers/:name': 'tracker',
+    'trackers/:name/:startDate/:endDate': 'trackerDate',
     'mood': 'mood',
     '*path': 'main'
   };
@@ -1269,11 +1264,6 @@ module.exports = Router = (function(superClass) {
     });
   };
 
-  Router.prototype.tracker = function(name) {
-    this.createMainView();
-    return window.app.mainView.displayTracker(name);
-  };
-
   Router.prototype.mood = function(name) {
     var end, start, view;
     this.createMainView();
@@ -1288,6 +1278,22 @@ module.exports = Router = (function(superClass) {
   Router.prototype.moodDate = function(name) {
     this.createMainView();
     return window.app.mainView.displayMood();
+  };
+
+  Router.prototype.tracker = function(name) {
+    var end, start, view;
+    this.createMainView();
+    view = 'mood';
+    start = MainState.startDate.format('YYYY-MM-DD');
+    end = MainState.endDate.format('YYYY-MM-DD');
+    return window.app.router.navigate("#trackers/" + name + "/" + start + "/" + end, {
+      trigger: true
+    });
+  };
+
+  Router.prototype.trackerDate = function(name) {
+    this.createMainView();
+    return window.app.mainView.displayTracker(name);
   };
 
   return Router;
@@ -1445,7 +1451,6 @@ module.exports = AppView = (function(superClass) {
   };
 
   function AppView(options) {
-    this.onCurrentTrackerChanged = bind(this.onCurrentTrackerChanged, this);
     this.onShowDataClicked = bind(this.onShowDataClicked, this);
     this.redrawCharts = bind(this.redrawCharts, this);
     this.getRenderData = bind(this.getRenderData, this);
@@ -1487,9 +1492,8 @@ module.exports = AppView = (function(superClass) {
     MainState.dataLoaded = false;
     $(window).on('resize', this.redrawCharts);
     this.initDatePickers();
-    this.basicTrackerList = new BasicTrackerList();
-    this.$('#content').append(this.basicTrackerList.$el);
-    this.basicTrackerList.render();
+    this.addTrackerZone = this.$('#add-tracker-zone');
+    this.welcomeMessage = this.$('.welcome-message');
     moodTracker = new MoodTrackerModel({
       slug: 'mood',
       name: 'Mood',
@@ -1500,25 +1504,17 @@ module.exports = AppView = (function(superClass) {
     this.moodTracker = new MoodTracker(moodTracker);
     this.$('#mood-section').append(this.moodTracker.$el);
     this.moodTracker.render();
+    this.trackerList = new TrackerList();
+    this.trackerList.render();
+    this.$('#content').append(this.trackerList.$el);
+    this.basicTrackerList = new BasicTrackerList();
+    this.$('#content').append(this.basicTrackerList.$el);
+    this.basicTrackerList.render();
     this.addBasicTrackerList = new AddBasicTrackerList(this.basicTrackerList.collection);
-    this.addTrackerZone = this.$('#add-tracker-zone');
-    this.welcomeMessage = this.$('.welcome-message');
     zoom = new Zoom;
-    this.zoomView = new ZoomView(zoom, this.basicTrackerList.collection, this.moodTracker.model);
+    this.zoomView = new ZoomView(zoom, this.basicTrackerList.collection, this.moodTracker.model, this.trackerList.collection);
     this.zoomView.render();
     return this.zoomView.hide();
-  };
-
-  AppView.prototype.loadTrackers = function(callback) {
-    MainState.dataLoaded = false;
-    return this.moodTracker.load((function(_this) {
-      return function() {
-        return _this.basicTrackerList.load(function() {
-          MainState.dataLoaded = true;
-          return typeof callback === "function" ? callback() : void 0;
-        });
-      };
-    })(this));
   };
 
   AppView.prototype.initDatePickers = function() {
@@ -1543,10 +1539,6 @@ module.exports = AppView = (function(superClass) {
     });
   };
 
-  AppView.prototype.resetRouteHash = function() {
-    return window.app.router.resetHash();
-  };
-
   AppView.prototype.onStartDateChanged = function(date) {
     MainState.startDate = moment(date);
     this.loadTrackers((function(_this) {
@@ -1567,8 +1559,26 @@ module.exports = AppView = (function(superClass) {
     return this.resetRouteHash();
   };
 
+  AppView.prototype.resetRouteHash = function() {
+    return window.app.router.resetHash();
+  };
+
   AppView.prototype.onTrackerRemoved = function(slug) {
     return this.basicTrackerList.remove(slug);
+  };
+
+  AppView.prototype.loadTrackers = function(callback) {
+    MainState.dataLoaded = false;
+    return this.moodTracker.load((function(_this) {
+      return function() {
+        return _this.trackerList.load(function() {
+          return _this.basicTrackerList.load(function() {
+            MainState.dataLoaded = true;
+            return typeof callback === "function" ? callback() : void 0;
+          });
+        });
+      };
+    })(this));
   };
 
   AppView.prototype.reloadAll = function() {
@@ -1586,6 +1596,7 @@ module.exports = AppView = (function(superClass) {
   AppView.prototype.displayBasicTracker = function(slug) {
     MainState.currentView = "basic-trackers/" + slug;
     this.basicTrackerList.hide();
+    this.trackerList.hide();
     this.addTrackerZone.hide();
     this.moodTracker.hide();
     this.welcomeMessage.hide();
@@ -1664,6 +1675,7 @@ module.exports = AppView = (function(superClass) {
     var description, name;
     name = $('#add-tracker-name').val();
     description = $('#add-tracker-description').val();
+    alert(name + description);
     if (name.length > 0) {
       return this.trackerList.collection.create({
         name: name,
@@ -1689,51 +1701,18 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.displayTracker = function(id) {
-    return this.displayZoomTracker((function(_this) {
-      return function() {
-        var i, recWait, tracker;
-        _this.$("#remove-btn").show();
-        tracker = _this.trackerList.collection.findWhere({
-          id: id
-        });
-        if (tracker == null) {
-          return alert("Tracker does not exist");
-        } else {
-          _this.$("input.zoomtitle").val(tracker.get('name'));
-          _this.$("textarea.zoomexplaination").val(tracker.get('description'));
-          _this.$("h2.zoomtitle").hide();
-          _this.$("p.zoomexplaination").hide();
-          _this.$("input.zoomtitle").show();
-          _this.$("textarea.zoomexplaination").show();
-          _this.$("#show-data-section").show();
-          _this.$("#show-data-csv").attr('href', "trackers/" + id + "/csv");
-          i = 0;
-          recWait = function() {
-            var data, ref1;
-            data = (ref1 = _this.trackerList.views[tracker.cid]) != null ? ref1.data : void 0;
-            if (data != null) {
-              _this.currentData = data;
-              _this.currentTracker = tracker;
-              return _this.onComparisonChanged();
-            } else {
-              return setTimeout(recWait, 10);
-            }
-          };
-          return recWait();
-        }
-      };
-    })(this));
+    MainState.currentView = "mood";
+    this.basicTrackerList.hide();
+    this.trackerList.hide();
+    this.moodTracker.hide();
+    this.welcomeMessage.hide();
+    this.addTrackerZone.hide();
+    return this.displayZoomTracker(id);
   };
 
   AppView.prototype.onShowDataClicked = function() {
     this.rawDataTable.show();
     return this.rawDataTable.load(this.currentTracker);
-  };
-
-  AppView.prototype.onCurrentTrackerChanged = function() {
-    this.currentTracker.set('name', this.$('input.zoomtitle').val());
-    this.currentTracker.set('description', this.$('textarea.zoomexplaination').val());
-    return this.currentTracker.save();
   };
 
   return AppView;
@@ -2240,7 +2219,7 @@ buf.push('<div id="menu"><span class="info-text">Visualize your data from:</span
 buf.push(attrs({ 'id':('datepicker-start'), 'value':("" + (startDate) + ""), "class": ('datepicker') }, {"value":true}));
 buf.push('/><span class="info-text">to:</span><input');
 buf.push(attrs({ 'id':('datepicker-end'), 'value':("" + (endDate) + ""), "class": ('datepicker') }, {"value":true}));
-buf.push('/></div><div id="content" class="pa2"><div class="welcome-message">Welcome on KYou the app that will help you to monitor yourself\nIt builds graph based on the data store in your Cozy. To start\nit\'s super simple, you just have to select the data you want\nin the list below. Every time you click on a tracker, its graph\nis displayed. \n|\nIf you want details about a graph or compare it with another graph\nsimply click on its title, it will lead you to a dedicatd UI.</div><div id="mood-section"></div><div class="trackers"></div><img src="img/spinner.svg" class="hidden"/><div id="zoom-view" class="line"></div></div><div id="add-tracker-zone" class="pa2 line"><div id="add-basic-tracker-widget"></div><h2 class="mb2">Add your tracker</h2><div id="add-basic-tracker-list" class="line"></div></div>');
+buf.push('/></div><div id="content" class="pa2"><div class="welcome-message">Welcome on KYou the app that will help you to monitor yourself\nIt builds graph based on the data store in your Cozy. To start\nit\'s super simple, you just have to select the data you want\nin the list below. Every time you click on a tracker, its graph\nis displayed. \n|\nIf you want details about a graph or compare it with another graph\nsimply click on its title, it will lead you to a dedicatd UI.</div><div id="mood-section"></div><div class="trackers"></div><img src="img/spinner.svg" class="hidden"/><div id="zoom-view" class="line"></div></div><div id="add-tracker-zone" class="pa2 line"><div id="add-basic-tracker-widget"></div><h2 class="mb2">Add a tracker</h2><div id="add-basic-tracker-list" class="line"></div></div><div class="line pa2"><div id="add-tracker-widget"><h2>Create your tracker</h2><div class="line"><input id="add-tracker-name" placeholder="name" class="input"/></div><div class="line"><textarea id="add-tracker-description" placeholder="description" class="input"></textarea></div><div class="line"><button id="add-tracker-btn" class="btn">add tracker</button></div></div></div>');
 }
 return buf.join("");
 };
@@ -2301,7 +2280,7 @@ with (locals || {}) {
 var interp;
 buf.push('<div class="line"><h2> <a');
 buf.push(attrs({ 'href':("#trackers/" + (model.id) + "") }, {"href":true}));
-buf.push('>' + escape((interp = model.name) == null ? '' : interp) + '</a></h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p></div><div class="line"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
+buf.push('>' + escape((interp = model.name) == null ? '' : interp) + '</a></h2><p class="explaination">' + escape((interp = model.description) == null ? '' : interp) + '</p><p><span>Value at </span><input class="input tracker-input tracker-current-date"/><span>:</span><span class="tracker-current-value">&nbsp;</span></p><p class="set-tracker-value"><span>Choose value:&nbsp;</span><input class="input tracker-input tracker-new-value"/><button class="btn save-tracker-value">save</button></p></div><div class="line"><div class="graph-container"><div class="y-axis"></div><div class="chart"></div></div></div>');
 }
 return buf.join("");
 };
@@ -2389,6 +2368,49 @@ module.exports = TrackerList = (function(superClass) {
 
   TrackerList.prototype.collection = new TrackerCollection();
 
+  TrackerList.prototype.load = function(callback) {
+    return this.collection.fetch({
+      success: (function(_this) {
+        return function() {
+          return _this.reloadAll(function() {
+            console.log('load done');
+            return typeof callback === "function" ? callback() : void 0;
+          });
+        };
+      })(this),
+      error: (function(_this) {
+        return function() {
+          alert('Cannot load basic trackers');
+          return typeof callback === "function" ? callback() : void 0;
+        };
+      })(this)
+    });
+  };
+
+  TrackerList.prototype.reloadAll = function(callback) {
+    var id, ref, trackers, view;
+    this.$(".tracker .chart").html('');
+    this.$(".tracker .y-axis").html('');
+    trackers = [];
+    ref = this.views;
+    for (id in ref) {
+      view = ref[id];
+      trackers.push(view);
+    }
+    return async.eachSeries(trackers, function(tracker, next) {
+      if (!tracker.model.get('metadata').hidden) {
+        return tracker.load(next);
+      } else {
+        return next();
+      }
+    }, function(err) {
+      console.log('reloadAll done');
+      if (callback != null) {
+        return callback();
+      }
+    });
+  };
+
   TrackerList.prototype.redrawAll = function() {
     var id, ref, results, view;
     ref = this.views;
@@ -2396,35 +2418,6 @@ module.exports = TrackerList = (function(superClass) {
     for (id in ref) {
       view = ref[id];
       results.push(view.redrawGraph());
-    }
-    return results;
-  };
-
-  TrackerList.prototype.reloadAll = function(callback) {
-    var id, length, nbLoaded, ref, ref1, results, view;
-    this.$(".tracker .chart").html('');
-    this.$(".tracker .y-axis").html('');
-    nbLoaded = 0;
-    length = 0;
-    ref = this.views;
-    for (id in ref) {
-      view = ref[id];
-      length++;
-    }
-    ref1 = this.views;
-    results = [];
-    for (id in ref1) {
-      view = ref1[id];
-      results.push(view.afterRender((function(_this) {
-        return function() {
-          nbLoaded++;
-          if (nbLoaded === length) {
-            if (callback != null) {
-              return callback();
-            }
-          }
-        };
-      })(this)));
     }
     return results;
   };
@@ -2447,7 +2440,7 @@ module.exports = TrackerList = (function(superClass) {
 });
 
 require.register("views/tracker_list_item", function(exports, require, module) {
-var BaseView, TrackerItem, graph, normalizer, request,
+var BaseView, DATE_FORMAT, DATE_URL_FORMAT, MainState, TrackerItem, calculus, graph, normalizer, ref, request,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -2460,10 +2453,17 @@ graph = require('lib/graph');
 
 normalizer = require('lib/normalizer');
 
+calculus = require('lib/calculus');
+
+MainState = require('../main_state');
+
+ref = require('../lib/constants'), DATE_FORMAT = ref.DATE_FORMAT, DATE_URL_FORMAT = ref.DATE_URL_FORMAT;
+
 module.exports = TrackerItem = (function(superClass) {
   extend(TrackerItem, superClass);
 
   function TrackerItem() {
+    this.loadCurrentDay = bind(this.loadCurrentDay, this);
     this.afterRender = bind(this.afterRender, this);
     return TrackerItem.__super__.constructor.apply(this, arguments);
   }
@@ -2475,31 +2475,39 @@ module.exports = TrackerItem = (function(superClass) {
   TrackerItem.prototype.events = {
     'click .up-btn': 'onUpClicked',
     'click .down-btn': 'onDownClicked',
-    'keyup .tracker-increment': 'onCurrentAmountKeyup'
+    'click .save-tracker-value': 'onSaveClicked'
   };
 
-  TrackerItem.prototype.afterRender = function(callback) {
-    var day, getData;
-    day = window.app.mainView.currentDate;
-    getData = (function(_this) {
-      return function() {
-        return _this.model.getDay(day, function(err, amount) {
-          if (err) {
-            alert("An error occured while retrieving tracker data");
-          } else if (amount == null) {
-            _this.$('.current-amount').html('Set value for current day');
-          } else {
-            _this.$('.current-amount').html(amount.get('amount'));
-          }
-          return _this.getAnalytics(callback);
-        });
+  TrackerItem.prototype.afterRender = function() {
+    this.$('.tracker-current-date').pikaday({
+      maxDate: new Date(),
+      format: DATE_FORMAT,
+      defaultDate: MainState.endDate.toDate(),
+      setDefaultDate: true,
+      onSelect: (function(_this) {
+        return function(value) {
+          return _this.loadCurrentDay();
+        };
+      })(this)
+    });
+    this.$('.tracker-new-value').numeric();
+    return this.loadCurrentDay();
+  };
+
+  TrackerItem.prototype.loadCurrentDay = function() {
+    var day;
+    day = moment(this.$('.tracker-current-date').val());
+    return this.model.getDay(day, (function(_this) {
+      return function(err, amount) {
+        if (err) {
+          return alert("An error occured while retrieving tracker data");
+        } else if (amount == null) {
+          return _this.$('.tracker-current-value').html('no value set');
+        } else {
+          return _this.$('.tracker-current-value').html(amount.get('amount'));
+        }
       };
-    })(this);
-    if (this.model.id != null) {
-      return getData();
-    } else {
-      return setTimeout(getData, 1000);
-    }
+    })(this));
   };
 
   TrackerItem.prototype.refreshCurrentValue = function() {
@@ -2517,116 +2525,48 @@ module.exports = TrackerItem = (function(superClass) {
     }
   };
 
-  TrackerItem.prototype.onUpClicked = function(event) {
-    var day;
-    day = window.app.mainView.currentDate;
-    return this.model.getDay(day, (function(_this) {
-      return function(err, amount) {
-        var label;
+  TrackerItem.prototype.onSaveClicked = function(event) {
+    var amount, day, label;
+    day = moment(this.$('.tracker-current-date').val());
+    amount = this.$('.tracker-new-value').val();
+    amount = parseInt(amount);
+    label = this.$('.tracker-current-value');
+    label.spin(true);
+    return this.model.updateDay(day, amount, (function(_this) {
+      return function(err) {
+        var distance, index;
+        label.spin(false);
         if (err) {
-          alert('An error occured while retrieving data');
-          return;
-        } else if ((amount != null) && (amount.get('amount') != null)) {
-          amount = amount.get('amount');
+          return alert('An error occured while saving tracker amount');
         } else {
-          amount = 0;
-        }
-        try {
-          amount += parseInt(_this.$('.tracker-increment').val());
-        } catch (_error) {
-          return false;
-        }
-        label = _this.$('.current-amount');
-        label.css('color', 'transparent');
-        label.spin('tiny', {
-          color: '#444'
-        });
-        return _this.model.updateDay(day, amount, function(err) {
-          var distance, index;
-          label.spin();
-          label.css('color', '#444');
-          if (err) {
-            return alert('An error occured while saving data');
-          } else {
-            label.html(amount);
-            distance = moment().diff(moment(day), 'days');
-            index = _this.data.length - (distance + 1);
-            if (index >= 0) {
-              _this.data[index].y = amount;
-              _this.dataByDay[moment(day).format('YYYYMMDD')] = amount;
-              _this.$('.chart').html(null);
-              _this.$('.y-axis').html(null);
-              return _this.redrawGraph();
-            }
+          label.html(amount);
+          distance = moment().diff(moment(day), 'days');
+          index = _this.data.length - (distance + 1);
+          if (index >= 0) {
+            _this.data[index].y = amount;
+            _this.dataByDay[moment(day).format('YYYYMMDD')] = amount;
+            _this.$('.chart').html(null);
+            _this.$('.y-axis').html(null);
+            return _this.drawCharts();
           }
-        });
+        }
       };
     })(this));
   };
 
-  TrackerItem.prototype.onDownClicked = function(event) {
-    var day;
-    day = window.app.mainView.currentDate;
-    return this.model.getDay(day, (function(_this) {
-      return function(err, amount) {
-        var label;
-        if (err) {
-          alert('An error occured while retrieving data');
-        }
-        if ((amount != null) && (amount.get('amount') != null)) {
-          amount = amount.get('amount');
-        } else {
-          amount = 0;
-        }
-        try {
-          amount -= parseInt(_this.$('.tracker-increment').val());
-          if (amount < 0) {
-            amount = 0;
-          }
-        } catch (_error) {
-          return false;
-        }
-        label = _this.$('.current-amount');
-        label.css('color', 'transparent');
-        label.spin('tiny', {
-          color: '#444'
-        });
-        day = window.app.mainView.currentDate;
-        return _this.model.updateDay(day, amount, function(err) {
-          var distance, index;
-          label.spin();
-          label.css('color', '#444');
-          if (err) {
-            return alert('An error occured while saving data');
-          } else {
-            label.html(amount);
-            distance = moment().diff(moment(day), 'days');
-            index = _this.data.length - (distance + 1);
-            if (index >= 0) {
-              _this.data[index].y = amount;
-              _this.dataByDay[moment(day).format('YYYYMMDD')] = amount;
-              _this.$('.chart').html(null);
-              _this.$('.y-axis').html(null);
-              return _this.redrawGraph();
-            }
-          }
-        });
-      };
-    })(this));
-  };
-
-  TrackerItem.prototype.getAnalytics = function(callback) {
-    var day;
-    this.$(".graph-container").spin('tiny');
-    day = window.app.mainView.currentDate.format("YYYY-MM-DD");
-    return request.get("trackers/" + (this.model.get('id')) + "/amounts/" + day, (function(_this) {
+  TrackerItem.prototype.load = function(callback) {
+    var path;
+    this.$(".graph-container").spin(true);
+    path = this.model.getPath(MainState.startDate, MainState.endDate);
+    return request.get(path, (function(_this) {
       return function(err, data) {
         var i, key, len, point;
         if (err) {
-          return alert("An error occured while retrieving data");
+          alert("An error occured while retrieving data");
         } else {
-          _this.$(".graph-container").spin();
+          _this.$(".graph-container").spin(false);
           _this.data = data;
+          MainState.data[_this.model.get('id')] = data;
           _this.dataByDay = {};
           for (i = 0, len = data.length; i < len; i++) {
             point = data[i];
@@ -2634,26 +2574,39 @@ module.exports = TrackerItem = (function(superClass) {
             _this.dataByDay[key] = point.y;
           }
           _this.drawCharts();
-          if (callback != null) {
-            return callback();
-          }
+        }
+        if (callback != null) {
+          return callback();
         }
       };
     })(this));
   };
 
-  TrackerItem.prototype.redrawGraph = function() {
-    return this.drawCharts();
+  TrackerItem.prototype.drawCharts = function() {
+    var color, data, el, graphStyle, width, yEl;
+    if (this.data != null) {
+      width = this.$(".graph-container").width() - 70;
+      el = this.$('.chart')[0];
+      yEl = this.$('.y-axis')[0];
+      color = 'black';
+      data = MainState.data[this.model.get('id')];
+      graphStyle = this.model.get('metadata').style || 'bar';
+      if (data == null) {
+        data = calculus.getDefaultData();
+      }
+      return graph.draw({
+        el: el,
+        yEl: yEl,
+        width: width,
+        color: color,
+        data: data,
+        graphStyle: graphStyle
+      });
+    }
   };
 
-  TrackerItem.prototype.drawCharts = function() {
-    var color, data, el, width, yEl;
-    width = this.$(".graph-container").width() - 70;
-    el = this.$('.chart')[0];
-    yEl = this.$('.y-axis')[0];
-    color = 'black';
-    data = normalizer.getSixMonths(this.data);
-    return graph.draw(el, yEl, width, color, data);
+  TrackerItem.prototype.redrawGraph = function() {
+    return this.drawCharts();
   };
 
   return TrackerItem;
@@ -2700,10 +2653,11 @@ module.exports = ZoomView = (function(superClass) {
     'click #back-trackers-btn': 'onBackTrackersClicked'
   };
 
-  function ZoomView(model, basicTrackers, moodTracker) {
+  function ZoomView(model, basicTrackers, moodTracker, trackers) {
     this.model = model;
     this.basicTrackers = basicTrackers;
     this.moodTracker = moodTracker;
+    this.trackers = trackers;
     this.onComparisonChanged = bind(this.onComparisonChanged, this);
     this.onGoalChanged = bind(this.onGoalChanged, this);
     this.onStyleChanged = bind(this.onStyleChanged, this);
@@ -2728,6 +2682,13 @@ module.exports = ZoomView = (function(superClass) {
       tracker = this.moodTracker;
       this.$("#export-btn").attr("href", "moods/export/mood.csv");
       this.$("#remove-section").hide();
+    } else if (slug.length === 32) {
+      tracker = this.trackers.findWhere({
+        id: slug
+      });
+      tracker.set('slug', slug);
+      this.$("#export-btn").attr("href", "trackers/export/" + slug + "/export.csv");
+      this.$("#remove-section").show();
     } else {
       tracker = this.basicTrackers.findWhere({
         slug: slug
@@ -2786,9 +2747,10 @@ module.exports = ZoomView = (function(superClass) {
   ZoomView.prototype.displayData = function(tracker) {
     var data;
     data = MainState.data[tracker.get('slug')];
+    console.log(data);
     this.showAverage(data);
     this.showEvolution(data);
-    return this.printZoomGraph(data, tracker.get('color'));
+    return this.printZoomGraph(data, this.getColor());
   };
 
   ZoomView.prototype.reload = function() {

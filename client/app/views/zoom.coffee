@@ -25,7 +25,7 @@ module.exports = class ZoomView extends BaseView
         'click #back-trackers-btn': 'onBackTrackersClicked'
 
 
-    constructor: (@model, @basicTrackers, @moodTracker) ->
+    constructor: (@model, @basicTrackers, @moodTracker, @trackers) ->
         super
 
 
@@ -48,6 +48,15 @@ module.exports = class ZoomView extends BaseView
                 "href", "moods/export/mood.csv"
             )
             @$("#remove-section").hide()
+
+        else if slug.length is 32
+            tracker = @trackers.findWhere id: slug
+            tracker.set 'slug', slug
+
+            @$("#export-btn").attr(
+                "href", "trackers/export/#{slug}/export.csv"
+            )
+            @$("#remove-section").show()
 
 
         else
@@ -116,9 +125,10 @@ module.exports = class ZoomView extends BaseView
 
     displayData: (tracker) ->
         data = MainState.data[tracker.get 'slug']
+        console.log data
         @showAverage data
         @showEvolution data
-        @printZoomGraph data, tracker.get 'color'
+        @printZoomGraph data, @getColor()
 
 
     reload: ->

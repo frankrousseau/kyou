@@ -2,6 +2,10 @@ BaseView = require 'lib/base_view'
 request = require 'lib/request'
 graph = require 'lib/graph'
 normalizer = require 'lib/normalizer'
+calculus = require 'lib/calculus'
+
+MainState = require '../main_state'
+{DATE_FORMAT, DATE_URL_FORMAT} = require '../lib/constants'
 
 
 # Item View for the albums list
@@ -13,26 +17,32 @@ module.exports = class TrackerItem extends BaseView
     events:
         'click .up-btn': 'onUpClicked'
         'click .down-btn': 'onDownClicked'
-        'keyup .tracker-increment': 'onCurrentAmountKeyup'
+        'click .save-tracker-value': 'onSaveClicked'
 
 
-    afterRender: (callback) =>
-        day = window.app.mainView.currentDate
-        getData = =>
-            @model.getDay day, (err, amount) =>
-                if err
-                    alert "An error occured while retrieving tracker data"
-                else if not amount?
-                    @$('.current-amount').html('Set value for current day')
-                else
-                    @$('.current-amount').html amount.get 'amount'
+    afterRender: =>
 
-                @getAnalytics callback
+        @$('.tracker-current-date').pikaday
+            maxDate: new Date()
+            format: DATE_FORMAT
+            defaultDate: MainState.endDate.toDate()
+            setDefaultDate: true
+            onSelect: (value) =>
+                @loadCurrentDay()
+        @$('.tracker-new-value').numeric()
 
-        if @model.id?
-            getData()
-        else
-            setTimeout getData, 1000
+        @loadCurrentDay()
+
+
+    loadCurrentDay: =>
+        day = moment @$('.tracker-current-date').val()
+        @model.getDay day, (err, amount) =>
+            if err
+                alert "An error occured while retrieving tracker data"
+            else if not amount?
+                @$('.tracker-current-value').html('no value set')
+            else
+                @$('.tracker-current-value').html amount.get 'amount'
 
 
     refreshCurrentValue: ->
@@ -46,108 +56,66 @@ module.exports = class TrackerItem extends BaseView
         @onUpClicked() if keyCode is 13
 
 
-    onUpClicked: (event) ->
-        day = window.app.mainView.currentDate
-        @model.getDay day, (err, amount) =>
+    onSaveClicked: (event) ->
+        day = moment @$('.tracker-current-date').val()
+        amount = @$('.tracker-new-value').val()
+        amount = parseInt amount
+
+        label = @$('.tracker-current-value')
+        label.spin true
+        @model.updateDay day, amount, (err) =>
+            label.spin false
+
             if err
-                alert 'An error occured while retrieving data'
-                return
-            else if amount? and amount.get('amount')?
-                amount = amount.get 'amount'
+                alert 'An error occured while saving tracker amount'
             else
-                amount = 0
+                label.html amount
+                distance = moment().diff moment(day), 'days'
+                index = @data.length - (distance + 1)
 
-            try
-                amount += parseInt @$('.tracker-increment').val()
-            catch
-                return false # cancel event
-
-            label = @$('.current-amount')
-            label.css 'color', 'transparent'
-            label.spin 'tiny', color: '#444'
-            @model.updateDay day, amount, (err) =>
-                label.spin()
-                label.css 'color', '#444'
-                if err
-                    alert 'An error occured while saving data'
-                else
-                    label.html amount
-                    distance = moment().diff moment(day), 'days'
-                    index = @data.length - (distance + 1)
-
-                    if index >= 0
-                        @data[index].y = amount
-                        @dataByDay[moment(day).format 'YYYYMMDD'] = amount
-                        @$('.chart').html null
-                        @$('.y-axis').html null
-                        @redrawGraph()
+                if index >= 0
+                    @data[index].y = amount
+                    @dataByDay[moment(day).format 'YYYYMMDD'] = amount
+                    @$('.chart').html null
+                    @$('.y-axis').html null
+                    @drawCharts()
 
 
-    onDownClicked: (event) ->
-        day = window.app.mainView.currentDate
-        @model.getDay day, (err, amount) =>
-            if err then alert 'An error occured while retrieving data'
-            if amount? and amount.get('amount')?
-                amount = amount.get 'amount'
-            else
-                amount = 0
+    load: (callback) ->
+        @$(".graph-container").spin true
 
-            try
-                amount -= parseInt @$('.tracker-increment').val()
-                amount = 0 if amount < 0
-            catch
-                return false
-
-            label = @$('.current-amount')
-            label.css 'color', 'transparent'
-            label.spin 'tiny', color: '#444'
-            day = window.app.mainView.currentDate
-            @model.updateDay day, amount, (err) =>
-                label.spin()
-                label.css 'color', '#444'
-                if err
-                    alert 'An error occured while saving data'
-                else
-                    label.html amount
-                    distance = moment().diff moment(day), 'days'
-                    index = @data.length - (distance + 1)
-
-                    if index >= 0
-                        @data[index].y = amount
-                        @dataByDay[moment(day).format 'YYYYMMDD'] = amount
-                        @$('.chart').html null
-                        @$('.y-axis').html null
-                        @redrawGraph()
-
-
-    getAnalytics: (callback) ->
-        @$(".graph-container").spin 'tiny'
-        day = window.app.mainView.currentDate.format "YYYY-MM-DD"
-        request.get "trackers/#{@model.get 'id'}/amounts/#{day}", (err, data) =>
+        path = @model.getPath MainState.startDate, MainState.endDate
+        request.get path, (err, data) =>
             if err
                 alert "An error occured while retrieving data"
             else
-                @$(".graph-container").spin()
+                @$(".graph-container").spin false
                 @data = data
+                MainState.data[@model.get 'id'] = data
+
                 @dataByDay = {}
                 for point in data
                     key = moment(point.x * 1000).format 'YYYYMMDD'
                     @dataByDay[key] = point.y
+
                 @drawCharts()
-                callback() if callback?
+            callback() if callback?
+
+
+    drawCharts: ->
+        if @data?
+            width = @$(".graph-container").width() - 70
+            el = @$('.chart')[0]
+            yEl = @$('.y-axis')[0]
+            color = 'black'
+            data = MainState.data[@model.get 'id']
+            graphStyle = @model.get('metadata').style or 'bar'
+
+            data ?= calculus.getDefaultData()
+
+            graph.draw {el, yEl, width, color, data, graphStyle}
 
 
     redrawGraph: ->
         @drawCharts()
-
-
-    drawCharts: ->
-        width = @$(".graph-container").width() - 70
-        el = @$('.chart')[0]
-        yEl = @$('.y-axis')[0]
-        color = 'black'
-
-        data = normalizer.getSixMonths @data
-        #if @$el.is 'visible'
-        graph.draw el, yEl, width, color, data
 

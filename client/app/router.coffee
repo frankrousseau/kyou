@@ -12,6 +12,7 @@ module.exports = class Router extends Backbone.Router
         'basic-trackers/:name': 'basicTracker'
         'basic-trackers/:name/:startDate/:endDate': 'basicTrackerDate'
         'trackers/:name': 'tracker'
+        'trackers/:name/:startDate/:endDate': 'trackerDate'
         'mood': 'mood'
         '*path': 'main'
 
@@ -69,10 +70,6 @@ module.exports = class Router extends Backbone.Router
         window.app.router.navigate "##{view}/#{start}/#{end}", trigger: trigger
 
 
-    tracker: (name) ->
-        @createMainView()
-        window.app.mainView.displayTracker name
-
 
     mood: (name) ->
         @createMainView()
@@ -81,8 +78,23 @@ module.exports = class Router extends Backbone.Router
         end = MainState.endDate.format 'YYYY-MM-DD'
         window.app.router.navigate "##{view}/#{start}/#{end}", trigger: true
 
+
     moodDate: (name) ->
         @createMainView()
 
         window.app.mainView.displayMood()
+
+
+    tracker: (name) ->
+        @createMainView()
+        view = 'mood'
+        start = MainState.startDate.format 'YYYY-MM-DD'
+        end = MainState.endDate.format 'YYYY-MM-DD'
+        window.app.router.navigate "#trackers/#{name}/#{start}/#{end}",
+            trigger: true
+
+
+    trackerDate: (name) ->
+        @createMainView()
+        window.app.mainView.displayTracker name
 

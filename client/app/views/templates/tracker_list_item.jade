@@ -3,7 +3,20 @@
         a(href="#trackers/#{model.id}") #{model.name}
     p.explaination #{model.description}
 
+    p
+        span Value at 
+        input.input.tracker-input.tracker-current-date
+        span :
+        span.tracker-current-value &nbsp;
+
+    p.set-tracker-value
+        span Choose value:&nbsp;
+        input.input.tracker-input.tracker-new-value
+        button.btn.save-tracker-value save
+
+
 .line
     .graph-container
         .y-axis
         .chart
+

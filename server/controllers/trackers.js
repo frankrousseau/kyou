@@ -91,7 +91,23 @@ module.exports = {
       if (err) {
         return next(err);
       } else {
-        return res.send(trackers);
+        return TrackerMetadata.allHash(function(err, metadataHash) {
+          var i, len, metadata, results, tracker;
+          if (err) {
+            console.log(err);
+          }
+          if (metadataHash == null) {
+            metadataHash = {};
+          }
+          results = [];
+          for (i = 0, len = trackers.length; i < len; i++) {
+            tracker = trackers[i];
+            metadata = metadataHash[tracker.id];
+            tracker.metadata = metadata || {};
+            results.push(tracker);
+          }
+          return res.send(results);
+        });
       }
     });
   },
@@ -174,9 +190,16 @@ module.exports = {
     });
   },
   amounts: function(req, res, next) {
-    var day, id, params;
+    var endDate, id, params, startDate;
+    endDate = req.params.endDate;
+    startDate = req.params.startDate;
+    if (endDate == null) {
+      endDate = moment().format('YYYY-MM-DD');
+    }
+    if (startDate == null) {
+      startDate = moment(req.endDate, 'YYYY-MM-DD').subtract('month', 6).format('YYYY-MM-DD');
+    }
     id = req.tracker.id;
-    day = moment(req.day);
     params = {
       startkey: [id],
       endkey: [id + "0"],
@@ -195,7 +218,8 @@ module.exports = {
             value: row['value']
           });
         }
-        data = normalizer.normalize(tmpRows, day);
+        data = normalizer.filterDates(tmpRows, startDate, endDate);
+        data = normalizer.normalize(data, startDate, endDate);
         return res.send(normalizer.toClientFormat(data));
       }
     });

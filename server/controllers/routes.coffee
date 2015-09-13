@@ -43,7 +43,7 @@ module.exports =
     'trackers/:trackerId/day/:day':
         get: trackers.day
         put: trackers.updateDayValue
-    'trackers/:trackerId/amounts/:day':
+    'trackers/:trackerId/amounts/:startDate/:endDate':
         get: trackers.amounts
 
     'dailynotes/:day':

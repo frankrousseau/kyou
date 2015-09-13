@@ -28,13 +28,9 @@ module.exports = class TrackerModel extends Backbone.Model
 
     getPath: (startDate, endDate) ->
         format = DATE_URL_FORMAT
-        slug = @get 'slug'
+        id = @get 'id'
 
-        if slug is 'mood'
-            path = 'moods'
-        else
-            path = slug
-        "#{path}/#{startDate.format format}/#{endDate.format format}"
+        "trackers/#{id}/amounts/#{startDate.format format}/#{endDate.format format}"
 
 
     setMetadata: (field, value) ->

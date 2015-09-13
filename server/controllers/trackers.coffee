@@ -77,7 +77,17 @@ module.exports =
         Tracker.request 'byName', (err, trackers) ->
             if err then next err
             else
-                res.send trackers
+                TrackerMetadata.allHash (err, metadataHash) ->
+                    console.log err if err
+                    metadataHash ?= {}
+                    results = []
+
+                    for tracker in trackers
+                        metadata = metadataHash[tracker.id]
+                        tracker.metadata = metadata or {}
+                        results.push tracker
+
+                    res.send results
 
 
     # Create a user custom tracker.
@@ -134,10 +144,15 @@ module.exports =
                     else res.send trackerAmount
 
 
-    # Return 6 month of data for given custom tracker.
     amounts: (req, res, next) ->
+        endDate = req.params.endDate
+        startDate = req.params.startDate
+        endDate ?= moment().format 'YYYY-MM-DD'
+        startDate ?= moment(req.endDate, 'YYYY-MM-DD')
+            .subtract('month', 6)
+            .format 'YYYY-MM-DD'
+
         id = req.tracker.id
-        day = moment req.day
         params = startkey: [id], endkey: [id + "0"], descending: false
         TrackerAmount.rawRequest 'nbByDay', params, (err, rows) ->
             if err then next err
@@ -146,7 +161,8 @@ module.exports =
                 for row in rows
                     tmpRows.push key: row['key'][1], value: row['value']
 
-                data = normalizer.normalize tmpRows, day
+                data = normalizer.filterDates tmpRows, startDate, endDate
+                data = normalizer.normalize data, startDate, endDate
                 res.send normalizer.toClientFormat data
 
 

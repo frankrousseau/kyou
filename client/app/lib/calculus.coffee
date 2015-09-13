@@ -30,10 +30,6 @@ module.exports =
 
 
     getDefaultData: ->
-        console.log "getDefaultData"
-        console.log MainState.endDate()
-        console.log MainState.endDate
-
         [
             x: MainState.startDate.toDate().getTime() / 1000
             y: 0

@@ -4,6 +4,14 @@ var moment;
 moment = require('moment');
 
 module.exports = {
+  filterDates: function(rows, start, end) {
+    var i, len, row;
+    for (i = 0, len = rows.length; i < len; i++) {
+      row = rows[i];
+      console.log(row);
+    }
+    return rows;
+  },
   normalize: function(rows, start, end) {
     var data, i, len, row;
     data = {};
