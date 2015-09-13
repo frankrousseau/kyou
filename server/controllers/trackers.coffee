@@ -207,8 +207,11 @@ module.exports =
         if req.metadata?
             res.send req.metadata
         else
-            res.status(404).send error: 'Tracker was not found'
-
+            data =
+                slug: req.params.slug
+            TrackerMetadata.create date, (err, metadata) ->
+                return next err if err
+                res.send metadata
 
 
     # Update metadata for a basic tracker. If the tracker is not found it's
