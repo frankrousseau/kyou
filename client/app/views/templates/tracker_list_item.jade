@@ -3,6 +3,14 @@
         a(href="#trackers/#{model.id}") #{model.name}
     p.explaination #{model.description}
 
+.line
+    .graph-container
+        .y-axis
+        .chart
+
+.line
+    p
+        strong Change values
     p
         span Value at 
         input.input.tracker-input.tracker-current-date
@@ -14,9 +22,4 @@
         input.input.tracker-input.tracker-new-value
         button.btn.save-tracker-value save
 
-
-.line
-    .graph-container
-        .y-axis
-        .chart
 

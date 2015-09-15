@@ -177,6 +177,7 @@ module.exports = class ZoomView extends BaseView
         if data?
             graphStyle ?= @$("#zoomstyle").val() or 'bar'
             goal ?= @$("#zoomgoal").val() or null
+            color ?= 'black'
 
             width = $(window).width() - 140
             el = @$('#zoom-charts')[0]
@@ -210,7 +211,11 @@ module.exports = class ZoomView extends BaseView
         request.put metadataPath, data, (err) ->
 
         tracker.setMetadata 'hidden', true
-        Backbone.Mediator.pub 'tracker:removed', slug
+
+        if slug.length is 32
+            Backbone.Mediator.pub 'tracker:removed', slug
+        else
+            Backbone.Mediator.pub 'basic-tracker:removed', slug
 
         window.app.router.navigateHome()
 

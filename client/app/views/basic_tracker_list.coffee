@@ -86,3 +86,4 @@ module.exports = class BasicTrackerList extends ViewCollection
         tracker = @collection.findWhere slug: slug
         view = @views[tracker.cid]
         return view
+

@@ -21,7 +21,6 @@ module.exports = class TrackerItem extends BaseView
 
 
     afterRender: =>
-
         @$('.tracker-current-date').pikaday
             maxDate: new Date()
             format: DATE_FORMAT
@@ -35,25 +34,17 @@ module.exports = class TrackerItem extends BaseView
 
 
     loadCurrentDay: =>
-        day = moment @$('.tracker-current-date').val()
-        @model.getDay day, (err, amount) =>
-            if err
-                alert "An error occured while retrieving tracker data"
-            else if not amount?
-                @$('.tracker-current-value').html('no value set')
-            else
-                @$('.tracker-current-value').html amount.get 'amount'
-
-
-    refreshCurrentValue: ->
-        label = @$('.current-amount')
-        day = moment window.app.mainView.currentDate
-        label.html @dataByDay[day.format 'YYYYMMDD']
-
-
-    onCurrentAmountKeyup: (event) ->
-        keyCode = event.which or event.keyCode
-        @onUpClicked() if keyCode is 13
+        if @model.get 'id'
+            day = moment @$('.tracker-current-date').val()
+            @model.getDay day, (err, amount) =>
+                if err
+                    alert "An error occured while retrieving tracker data"
+                else if not amount?
+                    @$('.tracker-current-value').html 'no value set'
+                else
+                    @$('.tracker-current-value').html amount.get 'amount'
+        else
+            setTimeout @loadCurrentDay, 500
 
 
     onSaveClicked: (event) ->
@@ -70,12 +61,17 @@ module.exports = class TrackerItem extends BaseView
                 alert 'An error occured while saving tracker amount'
             else
                 label.html amount
-                distance = moment().diff moment(day), 'days'
-                index = @data.length - (distance + 1)
 
-                if index >= 0
-                    @data[index].y = amount
-                    @dataByDay[moment(day).format 'YYYYMMDD'] = amount
+                if day >= MainState.startDate and day <= MainState.endDate
+                    i = 0
+                    while i < @data.length and moment(@data[i].x * 1000) < day
+                        i++
+
+                    if @data[i]? and moment(@data[i].x * 1000).format('YYYY-MM-DD') is moment(day).format('YYYY-MM-DD')
+                        @data[i] = {x: moment(day).toDate().getTime() / 1000, y: amount}
+                    else
+                        @data.splice i, 0, {x: moment(day).toDate().getTime() / 1000, y: amount}
+
                     @$('.chart').html null
                     @$('.y-axis').html null
                     @drawCharts()
@@ -92,11 +88,6 @@ module.exports = class TrackerItem extends BaseView
                 @$(".graph-container").spin false
                 @data = data
                 MainState.data[@model.get 'id'] = data
-
-                @dataByDay = {}
-                for point in data
-                    key = moment(point.x * 1000).format 'YYYYMMDD'
-                    @dataByDay[key] = point.y
 
                 @drawCharts()
             callback() if callback?

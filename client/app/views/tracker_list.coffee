@@ -43,7 +43,26 @@ module.exports = class TrackerList extends ViewCollection
         view.redrawGraph() for id, view of @views
 
 
+    # Hides if the metadata marks it as hidden.
+    appendView: (view) ->
+        @$collectionEl.append view.el
+        if view.model.get('metadata').hidden
+            view.$el.addClass 'hidden'
+
+
     refreshCurrentValue: ->
         for id, view of @views
             view.refreshCurrentValue()
+
+
+    remove: (id) ->
+        view = @getView id
+        view.remove()
+
+
+    getView: (id) ->
+        tracker = @collection.findWhere id: id
+        view = @views[tracker.cid]
+        return view
+
 

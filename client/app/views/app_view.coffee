@@ -39,6 +39,7 @@ module.exports = class AppView extends BaseView
         'start-date:change': 'onStartDateChanged'
         'end-date:change': 'onEndDateChanged'
         'tracker:removed': 'onTrackerRemoved'
+        'basic-tracker:removed': 'onBasicTrackerRemoved'
 
 
     constructor: (options) ->
@@ -82,6 +83,7 @@ module.exports = class AppView extends BaseView
 
         @addTrackerZone = @$ '#add-tracker-zone'
         @welcomeMessage = @$ '.welcome-message'
+        @welcomeMessage.hide()
 
         #@rawDataTable = new RawDataTable()
         #@rawDataTable.render()
@@ -172,8 +174,10 @@ module.exports = class AppView extends BaseView
 
 
     onTrackerRemoved: (slug) ->
-        @basicTrackerList.remove slug
+        @trackerList.remove slug
 
+    onBasicTrackerRemoved: (slug) ->
+        @basicTrackerList.remove slug
 
     loadTrackers: (callback) ->
         MainState.dataLoaded = false
@@ -190,26 +194,47 @@ module.exports = class AppView extends BaseView
             console.log 'end loading data for mood'
             @basicTrackerList.reloadAll =>
                 console.log 'end loading data'
-        #@trackerList.reloadAll =>
-            #if @$("#zoomtracker").is(":visible")
-                #if @currentTracker is @moodTracker
-                    #@currentData = @moodTracker.data
-                #else
-                    #tracker = @currentTracker
-                    #trackerView = @basicTrackerList.views[tracker.cid]
-                    #unless trackerView?
-                        #trackerView = @trackerList.views[tracker.cid]
-                    #@currentData = trackerView?.data
-                #@onComparisonChanged()
+
+
+    hideMain: ->
+        @basicTrackerList.hide()
+        @trackerList.hide()
+        @moodTracker.hide()
+        @welcomeMessage.hide()
+        @addTrackerZone.hide()
+
+
+    showMain: ->
+        @basicTrackerList.show()
+        @trackerList.show()
+        @moodTracker.show()
+        @welcomeMessage.hide()
+        @addTrackerZone.show()
+
+
+    displayTrackers: ->
+        MainState.currentView = 'main'
+        @showMain()
+        @redrawCharts()
+        @zoomView.hide()
+        @loadTrackers() unless MainState.dataLoaded
+
+
+    displayMood: ->
+        MainState.currentView = "mood"
+        @hideMain()
+        @displayZoomTracker 'mood', =>
+
+
+    displayTracker: (id) ->
+        MainState.currentView = "id"
+        @hideMain()
+        @displayZoomTracker id
 
 
     displayBasicTracker: (slug) ->
         MainState.currentView = "basic-trackers/#{slug}"
-        @basicTrackerList.hide()
-        @trackerList.hide()
-        @addTrackerZone.hide()
-        @moodTracker.hide()
-        @welcomeMessage.hide()
+        @hideMain()
         @displayZoomTracker slug, =>
 
 
@@ -222,17 +247,6 @@ module.exports = class AppView extends BaseView
                 @zoomView.show slug
                 callback?()
 
-
-    displayTrackers: ->
-        MainState.currentView = 'main'
-        @basicTrackerList.show()
-        @moodTracker.show()
-        @addTrackerZone.show()
-        @redrawCharts()
-        @zoomView.hide()
-        @loadTrackers() unless MainState.dataLoaded
-
-
     redrawCharts: =>
         $('.chart').html null
         $('.y-axis').html null
@@ -242,7 +256,7 @@ module.exports = class AppView extends BaseView
 
         else
             @moodTracker.redraw()
-            #@trackerList.redrawAll()
+            @trackerList.redrawAll()
             @basicTrackerList.redrawAll()
 
         true
@@ -275,39 +289,19 @@ module.exports = class AppView extends BaseView
     onTrackerButtonClicked: ->
         name = $('#add-tracker-name').val()
         description = $('#add-tracker-description').val()
-        alert name + description
 
         if name.length > 0
-            @trackerList.collection.create(
-                    name: name
-                    description: description
-                ,
-                    success: ->
-                    error: ->
-                        alert 'A server error occured while saving your tracker'
-            )
+            data =
+                name: name
+                description: description
+            @trackerList.collection.create data,
+                success: ->
+                error: ->
+                    alert 'A server error occured while saving your tracker'
 
 
     ## Zoom widget
     #
-    displayMood: ->
-        MainState.currentView = "mood"
-        @basicTrackerList.hide()
-        @moodTracker.hide()
-        @welcomeMessage.hide()
-        @addTrackerZone.hide()
-        @displayZoomTracker 'mood', =>
-
-
-    displayTracker: (id) ->
-        MainState.currentView = "mood"
-        @basicTrackerList.hide()
-        @trackerList.hide()
-        @moodTracker.hide()
-        @welcomeMessage.hide()
-        @addTrackerZone.hide()
-        @displayZoomTracker id
-
 
     onShowDataClicked: =>
         @rawDataTable.show()
