@@ -88,27 +88,28 @@ module.exports = class ZoomView extends BaseView
 
     fillComparisonCombo: ->
 
-        if @$("#zoomcomparison option").length < 1
-            combo = @$ "#zoomcomparison"
-            combo.append """
-    <option value=\"undefined\">no comparison</option>"
-    """
-            combo.append """
-    <option value=\"last-year\">previous year</option>"
-    """
-            combo.append """
-    <option value=\"previous\">previous period</option>"
-    """
-            combo.append "<option value=\"moods\">Moods</option>"
+        combo = @$ "#zoomcomparison"
+        combo.html null
+        combo.append """
+<option value=\"undefined\">no comparison</option>"
+"""
+        combo.append """
+<option value=\"last-year\">previous year</option>"
+"""
+        combo.append """
+<option value=\"previous\">previous period</option>"
+"""
+        combo.append "<option value=\"moods\">Moods</option>"
 
-            #for tracker in @trackerList.collection.models
-                #option = "<option value="
-                #option += "\"#{tracker.get 'id'}\""
-                #option += ">#{tracker.get 'name'}</option>"
-                #combo.append option
+        for tracker in @trackers.models
+            unless tracker.get('metadata').hidden
+                option = "<option value="
+                option += "\"#{tracker.get 'id'}\""
+                option += ">#{tracker.get 'name'}</option>"
+                combo.append option
 
-            for tracker in @basicTrackers.models
-
+        for tracker in @basicTrackers.models
+            unless tracker.get('metadata').hidden
                 option = "<option value="
                 option += "\"basic-#{tracker.get 'slug'}\""
                 option += ">#{tracker.get 'name'}</option>"
@@ -267,7 +268,7 @@ module.exports = class ZoomView extends BaseView
         toNormalize = false
 
         # Check if it's a comparison.
-        if val.indexOf('basic') isnt -1 or val in ['last-year', 'previous']
+        if val.indexOf('basic') isnt -1 or val in ['last-year', 'previous', 'moods'] or val.length is 32
             @$('#zoom-bar-option').hide()
             @$('#zoom-correlation-option').show()
             if graphStyle is 'bar'
@@ -364,6 +365,9 @@ module.exports = class ZoomView extends BaseView
                     callback null, data
 
         else
-            slug = slug.substring 6
+            if slug.length isnt 32 and slug isnt 'moods'
+                slug = slug.substring 6
+            else if slug is 'moods'
+                slug = 'mood'
             callback null, MainState.data[slug]
 

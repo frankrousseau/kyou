@@ -2769,24 +2769,37 @@ module.exports = ZoomView = (function(superClass) {
   };
 
   ZoomView.prototype.fillComparisonCombo = function() {
-    var combo, j, len, option, ref, results, tracker;
-    if (this.$("#zoomcomparison option").length < 1) {
-      combo = this.$("#zoomcomparison");
-      combo.append("<option value=\"undefined\">no comparison</option>\"");
-      combo.append("<option value=\"last-year\">previous year</option>\"");
-      combo.append("<option value=\"previous\">previous period</option>\"");
-      combo.append("<option value=\"moods\">Moods</option>");
-      ref = this.basicTrackers.models;
-      results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        tracker = ref[j];
+    var combo, j, k, len, len1, option, ref, ref1, results, tracker;
+    combo = this.$("#zoomcomparison");
+    combo.html(null);
+    combo.append("<option value=\"undefined\">no comparison</option>\"");
+    combo.append("<option value=\"last-year\">previous year</option>\"");
+    combo.append("<option value=\"previous\">previous period</option>\"");
+    combo.append("<option value=\"moods\">Moods</option>");
+    ref = this.trackers.models;
+    for (j = 0, len = ref.length; j < len; j++) {
+      tracker = ref[j];
+      if (!tracker.get('metadata').hidden) {
+        option = "<option value=";
+        option += "\"" + (tracker.get('id')) + "\"";
+        option += ">" + (tracker.get('name')) + "</option>";
+        combo.append(option);
+      }
+    }
+    ref1 = this.basicTrackers.models;
+    results = [];
+    for (k = 0, len1 = ref1.length; k < len1; k++) {
+      tracker = ref1[k];
+      if (!tracker.get('metadata').hidden) {
         option = "<option value=";
         option += "\"basic-" + (tracker.get('slug')) + "\"";
         option += ">" + (tracker.get('name')) + "</option>";
         results.push(combo.append(option));
+      } else {
+        results.push(void 0);
       }
-      return results;
     }
+    return results;
   };
 
   ZoomView.prototype.setEditMode = function() {
@@ -2954,7 +2967,7 @@ module.exports = ZoomView = (function(superClass) {
     tracker = this.model.get('tracker');
     data = MainState.data[tracker.get('slug')];
     toNormalize = false;
-    if (val.indexOf('basic') !== -1 || (val === 'last-year' || val === 'previous')) {
+    if (val.indexOf('basic') !== -1 || (val === 'last-year' || val === 'previous' || val === 'moods') || val.length === 32) {
       this.$('#zoom-bar-option').hide();
       this.$('#zoom-correlation-option').show();
       if (graphStyle === 'bar') {
@@ -3061,7 +3074,11 @@ module.exports = ZoomView = (function(superClass) {
         };
       })(this));
     } else {
-      slug = slug.substring(6);
+      if (slug.length !== 32 && slug !== 'moods') {
+        slug = slug.substring(6);
+      } else if (slug === 'moods') {
+        slug = 'mood';
+      }
       return callback(null, MainState.data[slug]);
     }
   };
