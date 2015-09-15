@@ -5,7 +5,7 @@ americano = require('cozydb');
 
 module.exports = {
   name: "Weight",
-  color: "#E91E63",
+  color: "#78909C",
   description: "Your weight in grams.",
   model: americano.getModel('weight', {
     date: Date
