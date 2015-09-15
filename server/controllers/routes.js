@@ -39,6 +39,9 @@ module.exports = {
   'basic-trackers/export/:slug.csv': {
     get: trackers["export"]
   },
+  'trackers/export/:trackerId/export.csv': {
+    get: trackers.rawDataCsv
+  },
   'metadata/basic-trackers/:slug': {
     get: trackers.getMetadata,
     put: trackers.updateMetadataBasic

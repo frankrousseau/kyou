@@ -10,3 +10,4 @@ module.exports = TrackerAmount = americano.getModel 'TrackerAmount',
 TrackerAmount.destroyAll = (tracker, callback) ->
     params = startkey: [tracker.id], endkey: [tracker.id + "0"]
     TrackerAmount.requestDestroy 'byDay', params, callback
+

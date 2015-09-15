@@ -158,8 +158,13 @@ module.exports =
             if err then next err
             else
                 tmpRows = []
+                start = moment startDate
+                end = moment endDate
+
                 for row in rows
-                    tmpRows.push key: row['key'][1], value: row['value']
+                    date = moment row.key[1]
+                    if date >= start and date <= end
+                        tmpRows.push key: row.key[1], value: row.value
 
                 data = normalizer.filterDates tmpRows, startDate, endDate
                 data = normalizer.normalize data, startDate, endDate
@@ -259,6 +264,7 @@ module.exports =
                 return next err if err
 
                 csv = []
+                csv.push 'date,amount'
                 csv.push "#{row.key},#{row.value}" for row in rows
                 csvFile = csv.join '\n'
 

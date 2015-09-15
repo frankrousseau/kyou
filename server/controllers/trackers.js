@@ -206,17 +206,22 @@ module.exports = {
       descending: false
     };
     return TrackerAmount.rawRequest('nbByDay', params, function(err, rows) {
-      var data, i, len, row, tmpRows;
+      var data, date, end, i, len, row, start, tmpRows;
       if (err) {
         return next(err);
       } else {
         tmpRows = [];
+        start = moment(startDate);
+        end = moment(endDate);
         for (i = 0, len = rows.length; i < len; i++) {
           row = rows[i];
-          tmpRows.push({
-            key: row['key'][1],
-            value: row['value']
-          });
+          date = moment(row.key[1]);
+          if (date >= start && date <= end) {
+            tmpRows.push({
+              key: row.key[1],
+              value: row.value
+            });
+          }
         }
         data = normalizer.filterDates(tmpRows, startDate, endDate);
         data = normalizer.normalize(data, startDate, endDate);
@@ -335,6 +340,7 @@ module.exports = {
           return next(err);
         }
         csv = [];
+        csv.push('date,amount');
         for (i = 0, len = rows.length; i < len; i++) {
           row = rows[i];
           csv.push(row.key + "," + row.value);
