@@ -2,6 +2,7 @@ BaseView = require 'lib/base_view'
 request = require 'lib/request'
 graph = require 'lib/graph'
 normalizer = require 'lib/normalizer'
+calculus = require 'lib/calculus'
 
 MainState = require '../main_state'
 Mood = require '../models/mood'

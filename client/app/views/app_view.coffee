@@ -189,11 +189,9 @@ module.exports = class AppView extends BaseView
 
 
     reloadAll: ->
-        console.log 'start loading data'
         @moodTracker.reload =>
-            console.log 'end loading data for mood'
             @basicTrackerList.reloadAll =>
-                console.log 'end loading data'
+                @trackerList.reloadAll =>
 
 
     hideMain: ->

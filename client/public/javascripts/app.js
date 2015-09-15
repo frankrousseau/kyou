@@ -1588,12 +1588,10 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.reloadAll = function() {
-    console.log('start loading data');
     return this.moodTracker.reload((function(_this) {
       return function() {
-        console.log('end loading data for mood');
         return _this.basicTrackerList.reloadAll(function() {
-          return console.log('end loading data');
+          return _this.trackerList.reloadAll(function() {});
         });
       };
     })(this));
@@ -1937,7 +1935,7 @@ module.exports = BasicTrackerItem = (function(superClass) {
 });
 
 require.register("views/mood_tracker", function(exports, require, module) {
-var BaseView, DATE_FORMAT, DATE_URL_FORMAT, MainState, Mood, MoodTracker, Moods, graph, normalizer, ref, request,
+var BaseView, DATE_FORMAT, DATE_URL_FORMAT, MainState, Mood, MoodTracker, Moods, calculus, graph, normalizer, ref, request,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -1949,6 +1947,8 @@ request = require('lib/request');
 graph = require('lib/graph');
 
 normalizer = require('lib/normalizer');
+
+calculus = require('lib/calculus');
 
 MainState = require('../main_state');
 

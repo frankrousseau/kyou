@@ -70,7 +70,6 @@ module.exports = class Router extends Backbone.Router
         window.app.router.navigate "##{view}/#{start}/#{end}", trigger: trigger
 
 
-
     mood: (name) ->
         @createMainView()
         view = 'mood'

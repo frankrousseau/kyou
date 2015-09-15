@@ -13,7 +13,7 @@ module.exports = {
     return rows;
   },
   normalize: function(rows, start, end) {
-    var data, i, len, row;
+    var data, date, dateString, endDate, i, len, normalizedRows, row;
     data = {};
     data[start] = 0;
     for (i = 0, len = rows.length; i < len; i++) {
@@ -23,7 +23,20 @@ module.exports = {
     if (data[end] == null) {
       data[end] = 0;
     }
-    return data;
+    date = moment(start);
+    normalizedRows = {};
+    endDate = moment(end);
+    while (date <= endDate) {
+      date = date.add('days', 1);
+      dateString = date.format("YYYY-MM-DD");
+      if (data[dateString] != null) {
+        normalizedRows[dateString] = data[dateString];
+      } else {
+        normalizedRows[dateString] = 0;
+      }
+    }
+    console.log(normalizedRows);
+    return normalizedRows;
   },
   toClientFormat: function(data) {
     var date, dateEpoch, results, value;
