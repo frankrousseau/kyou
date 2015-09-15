@@ -54,7 +54,27 @@ module.exports = class MoodTracker extends BaseView
                 alert "An error occured while saving data"
             else
                 @$('#mood-current-value').html status
-                @loadAnalytics()
+                if status is 'good'
+                    val = 3
+                else if status is 'neutral'
+                    val = 2
+                else
+                    val = 1
+
+                if day >= MainState.startDate and day <= MainState.endDate
+                    i = 0
+                    while i < @data.length and moment(@data[i].x * 1000) < day
+                        i++
+
+                    if @data[i]? and moment(@data[i].x * 1000).format('YYYY-MM-DD') is moment(day).format('YYYY-MM-DD')
+                        @data[i] = {x: moment(day).toDate().getTime() / 1000, y: val}
+                    else
+                        @data.splice i, 0, {x: moment(day).toDate().getTime() / 1000, y: val}
+
+                    @$('.chart').html null
+                    @$('.y-axis').html null
+                    console.log @data
+                    @redraw()
 
 
     load: (callback) =>

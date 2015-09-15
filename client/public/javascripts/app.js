@@ -2014,12 +2014,40 @@ module.exports = MoodTracker = (function(superClass) {
     this.$('#mood-current-value').spin(true);
     return Mood.updateDay(day, status, (function(_this) {
       return function(err, mood) {
+        var i, val;
         _this.$('#mood-current-value').spin(false);
         if (err) {
           return alert("An error occured while saving data");
         } else {
           _this.$('#mood-current-value').html(status);
-          return _this.loadAnalytics();
+          if (status === 'good') {
+            val = 3;
+          } else if (status === 'neutral') {
+            val = 2;
+          } else {
+            val = 1;
+          }
+          if (day >= MainState.startDate && day <= MainState.endDate) {
+            i = 0;
+            while (i < _this.data.length && moment(_this.data[i].x * 1000) < day) {
+              i++;
+            }
+            if ((_this.data[i] != null) && moment(_this.data[i].x * 1000).format('YYYY-MM-DD') === moment(day).format('YYYY-MM-DD')) {
+              _this.data[i] = {
+                x: moment(day).toDate().getTime() / 1000,
+                y: val
+              };
+            } else {
+              _this.data.splice(i, 0, {
+                x: moment(day).toDate().getTime() / 1000,
+                y: val
+              });
+            }
+            _this.$('.chart').html(null);
+            _this.$('.y-axis').html(null);
+            console.log(_this.data);
+            return _this.redraw();
+          }
         }
       };
     })(this));
