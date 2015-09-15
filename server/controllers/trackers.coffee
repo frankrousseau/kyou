@@ -230,7 +230,7 @@ module.exports =
         else
             data =
                 slug: req.params.slug
-            TrackerMetadata.create date, (err, metadata) ->
+            TrackerMetadata.create data, (err, metadata) ->
                 return next err if err
                 res.send metadata
 

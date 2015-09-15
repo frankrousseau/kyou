@@ -295,7 +295,7 @@ module.exports = {
       data = {
         slug: req.params.slug
       };
-      return TrackerMetadata.create(date, function(err, metadata) {
+      return TrackerMetadata.create(data, function(err, metadata) {
         if (err) {
           return next(err);
         }
