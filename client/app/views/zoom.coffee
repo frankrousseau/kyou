@@ -51,6 +51,7 @@ module.exports = class ZoomView extends BaseView
 
         else if slug.length is 32
             tracker = @trackers.findWhere id: slug
+            console.log tracker
             tracker.set 'slug', slug
 
             @$("#export-btn").attr(
@@ -65,7 +66,7 @@ module.exports = class ZoomView extends BaseView
             @$("#export-btn").attr(
                 "href", "basic-trackers/export/#{slug}.csv"
             )
-            @$("#remove-section").show()
+            @$("#remove-section").hide()
 
         unless tracker?
             alert "Tracker does not exist"
@@ -126,7 +127,6 @@ module.exports = class ZoomView extends BaseView
 
     displayData: (tracker) ->
         data = MainState.data[tracker.get 'slug']
-        console.log data
         @showAverage data
         @showEvolution data
         @printZoomGraph data, @getColor()
@@ -204,21 +204,16 @@ module.exports = class ZoomView extends BaseView
 
 
     onRemoveClicked: =>
-        tracker = @getTracker()
-        slug = tracker.get 'slug'
-        data =
-            hidden: true
-        metadataPath = @getMetadataPath()
-        request.put metadataPath, data, (err) ->
+        answer = confirm "Are you sure that you want to delete this tracker?"
+        if answer
+            tracker = @getTracker()
+            id = tracker.get 'id'
+            tracker.destroy
+                success: =>
+                    window.app.router.navigateHome()
 
-        tracker.setMetadata 'hidden', true
-
-        if slug.length is 32
-            Backbone.Mediator.pub 'tracker:removed', slug
-        else
-            Backbone.Mediator.pub 'basic-tracker:removed', slug
-
-        window.app.router.navigateHome()
+                error: ->
+                    alert 'something went wrong while removing tracker.'
 
 
     getMetadataPath: ->

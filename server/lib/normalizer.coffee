@@ -5,7 +5,6 @@ module.exports =
 
 
     filterDates: (rows, start, end) ->
-        console.log row for row in rows
         rows
 
 

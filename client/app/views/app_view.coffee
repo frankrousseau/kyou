@@ -11,6 +11,7 @@ ZoomView = require './zoom'
 MoodTracker = require './mood_tracker'
 TrackerList = require './tracker_list'
 BasicTrackerList = require './basic_tracker_list'
+AddTrackerView = require './add_tracker'
 AddBasicTrackerList = require './add_basic_tracker_list'
 
 RawDataTable = require './raw_data_table'
@@ -31,15 +32,14 @@ module.exports = class AppView extends BaseView
         'click .date-previous': 'onPreviousClicked'
         'click .date-next': 'onNextClicked'
         'click .reload': 'onReloadClicked'
-        'click #add-tracker-btn': 'onTrackerButtonClicked'
         'click #show-data-btn': 'onShowDataClicked'
 
 
     subscriptions:
         'start-date:change': 'onStartDateChanged'
         'end-date:change': 'onEndDateChanged'
-        'tracker:removed': 'onTrackerRemoved'
-        'basic-tracker:removed': 'onBasicTrackerRemoved'
+        'basic-tracker:add': 'onTrackerAdded'
+        'tracker:add': 'onTrackerAdded'
 
 
     constructor: (options) ->
@@ -81,7 +81,7 @@ module.exports = class AppView extends BaseView
         $(window).on 'resize',  @redrawCharts
         @initDatePickers()
 
-        @addTrackerZone = @$ '#add-tracker-zone'
+        @addTrackerButton = @$ '#add-tracker-button'
         @welcomeMessage = @$ '.welcome-message'
         @welcomeMessage.hide()
 
@@ -120,10 +120,7 @@ module.exports = class AppView extends BaseView
 
 
         # Add tracker buttons
-
-        @addBasicTrackerList = new AddBasicTrackerList(
-            @basicTrackerList.collection)
-
+        #
         # Zoom widget
 
         zoom = new Zoom
@@ -135,6 +132,15 @@ module.exports = class AppView extends BaseView
         )
         @zoomView.render()
         @zoomView.hide()
+
+        @addTrackerView = new AddTrackerView(
+            zoom,
+            @basicTrackerList.collection,
+            @moodTracker.model,
+            @trackerList.collection
+        )
+        @addTrackerView.render()
+        @addTrackerView.hide()
 
 
     initDatePickers: ->
@@ -173,18 +179,14 @@ module.exports = class AppView extends BaseView
         window.app.router.resetHash()
 
 
-    onTrackerRemoved: (slug) ->
-        @trackerList.remove slug
-
-    onBasicTrackerRemoved: (slug) ->
-        @basicTrackerList.remove slug
-
     loadTrackers: (callback) ->
         MainState.dataLoaded = false
         @moodTracker.load =>
             @trackerList.load =>
                 @basicTrackerList.load =>
                     MainState.dataLoaded = true
+                    if @trackerList.isEmpty() and @basicTrackerList.isEmpty()
+                        @welcomeMessage.show()
                     callback?()
 
 
@@ -199,7 +201,8 @@ module.exports = class AppView extends BaseView
         @trackerList.hide()
         @moodTracker.hide()
         @welcomeMessage.hide()
-        @addTrackerZone.hide()
+        @addTrackerView.hide()
+        @addTrackerButton.hide()
 
 
     showMain: ->
@@ -207,7 +210,13 @@ module.exports = class AppView extends BaseView
         @trackerList.show()
         @moodTracker.show()
         @welcomeMessage.hide()
-        @addTrackerZone.show()
+        @addTrackerView.hide()
+        @addTrackerButton.show()
+
+
+    displayAddTracker: ->
+        @hideMain()
+        @addTrackerView.show()
 
 
     displayTrackers: ->
@@ -259,6 +268,8 @@ module.exports = class AppView extends BaseView
 
         true
 
+    onTrackerAdded: ->
+        @welcomeMessage.hide()
 
     ## Note Widget
 
@@ -280,22 +291,6 @@ module.exports = class AppView extends BaseView
 
         @notes = new DailyNotes
         @notes.fetch()
-
-
-    ## Tracker creation widget
-
-    onTrackerButtonClicked: ->
-        name = $('#add-tracker-name').val()
-        description = $('#add-tracker-description').val()
-
-        if name.length > 0
-            data =
-                name: name
-                description: description
-            @trackerList.collection.create data,
-                success: ->
-                error: ->
-                    alert 'A server error occured while saving your tracker'
 
 
     ## Zoom widget

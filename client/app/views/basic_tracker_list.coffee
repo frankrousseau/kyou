@@ -13,6 +13,7 @@ module.exports = class BasicTrackerList extends ViewCollection
 
     subscriptions:
         'basic-tracker:add': 'onAddBasicTracker'
+        'basic-tracker:removed': 'onBasicTrackerRemoved'
 
     constructor: ->
         super
@@ -73,8 +74,13 @@ module.exports = class BasicTrackerList extends ViewCollection
         data =
             hidden: false
         request.put "metadata/basic-trackers/#{slug}", data, (err) ->
-            $('#add-tracker-zone').scrollBottom()
 
+
+    onBasicTrackerRemoved: (slug) ->
+        @remove slug
+        data =
+            hidden: true
+        request.put "metadata/basic-trackers/#{slug}", data, (err) ->
 
 
     remove: (slug) ->
@@ -86,4 +92,13 @@ module.exports = class BasicTrackerList extends ViewCollection
         tracker = @collection.findWhere slug: slug
         view = @views[tracker.cid]
         return view
+
+
+    isEmpty: ->
+        isEmpty = true
+        for tracker in @collection.models
+            isHidden = tracker.get('metadata').hidden
+            isEmpty = false if isHidden is false
+
+        return isEmpty
 

@@ -21,5 +21,4 @@ module.exports = class AddBasicTrackerList extends ViewCollection
 
     appendView: (view) ->
         @$collectionEl.append view.el
-        view.$el.addClass 'hidden' unless view.model.get('metadata').hidden
 

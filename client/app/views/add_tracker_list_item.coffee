@@ -2,10 +2,10 @@ BaseView = require 'lib/base_view'
 
 
 # Add button for a basic tracker.
-module.exports = class AddBasicTrackerItem extends BaseView
+module.exports = class AddTrackerItem extends BaseView
     tagName: 'button'
     className: 'btn'
-    template: require 'views/templates/add_basic_tracker_list_item'
+    template: require 'views/templates/add_tracker_list_item'
 
 
     events:
@@ -22,9 +22,9 @@ module.exports = class AddBasicTrackerItem extends BaseView
         if @selected
             @selected = false
             @$el.removeClass 'selected'
-            Backbone.Mediator.pub 'basic-tracker:removed', @model.get 'slug'
+            Backbone.Mediator.pub 'tracker:removed', @model.get 'id'
         else
             @selected = true
             @$el.addClass 'selected'
-            Backbone.Mediator.pub 'basic-tracker:add', @model.get 'slug'
+            Backbone.Mediator.pub 'tracker:add', @model.get 'id'
 

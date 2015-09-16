@@ -14,6 +14,7 @@ module.exports = class Router extends Backbone.Router
         'trackers/:name': 'tracker'
         'trackers/:name/:startDate/:endDate': 'trackerDate'
         'mood': 'mood'
+        'add-tracker': 'addTracker'
         '*path': 'main'
 
 
@@ -96,4 +97,9 @@ module.exports = class Router extends Backbone.Router
     trackerDate: (name) ->
         @createMainView()
         window.app.mainView.displayTracker name
+
+
+    addTracker: (name) ->
+        @createMainView()
+        window.app.mainView.displayAddTracker()
 

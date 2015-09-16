@@ -1992,7 +1992,6 @@ cursor not-allowed {
   position: fixed;
   width: 100%;
   height: 50px;
-  padding: 10px 10px 0 10px;
   background-color: #39424e;
   color: #fff;
   z-index: 100;
@@ -2001,7 +2000,7 @@ cursor not-allowed {
   margin-bottom: 0;
 }
 #menu .info-text {
-  margin: 2px 15px 0 15px;
+  margin: 0px 15px 0 15px;
   padding-top: 2px;
 }
 #menu .datepicker {
@@ -2015,6 +2014,43 @@ cursor not-allowed {
   cursor: pointer;
   padding: 0;
   margin: 0;
+}
+#menu .menu-date {
+  height: 100%;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-box;
+  display: -webkit-flex;
+  display: box;
+  display: flex;
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  -o-box-align: center;
+  -ms-box-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+#menu .datepicker {
+  padding-top: 3px;
+}
+#menu a {
+  height: 100%;
+  width: 45px;
+  padding: 10px;
+}
+#menu a:hover {
+  -webkit-transition: background-color 0.2s ease;
+  -moz-transition: background-color 0.2s ease;
+  -o-transition: background-color 0.2s ease;
+  -ms-transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease;
+  background-color: rgba(255,255,255,0.2);
+}
+#menu img {
+  width: 24px;
+}
+#menu img:first-child {
+  width: 30px;
 }
 #content {
   padding-top: 80px;
@@ -2206,8 +2242,7 @@ cursor not-allowed {
   border-bottom: 1px solid #eee;
   padding: 0 0 10px 0;
 }
-button.btn,
-button.add-basic-tracker-btn {
+button.btn {
   background: #fff;
   -webkit-border-radius: 2px;
   border-radius: 2px;
@@ -2215,16 +2250,19 @@ button.add-basic-tracker-btn {
   color: #2ec565;
   margin-right: 10px;
   padding: 10px;
-}
-button.btn:hover,
-button.add-basic-tracker-btn:hover {
-  background: #2ec565;
-  color: #fff;
   -webkit-transition: all 0.2s;
   -moz-transition: all 0.2s;
   -o-transition: all 0.2s;
   -ms-transition: all 0.2s;
   transition: all 0.2s;
+}
+button.btn:hover {
+  background: #2ec565;
+  color: #fff;
+}
+button.btn.selected {
+  background: #2ec565;
+  color: #fff;
 }
 button.btn-danger {
   background: #fff;
@@ -2315,8 +2353,26 @@ button.btn.save-tracker-value {
 }
 input.input.tracker-input {
   padding: 5px;
-  width: 270px;
+  width: 290px;
   margin-right: 10px;
+}
+.welcome-message {
+  padding-top: 4em;
+  padding-bottom: 6em;
+  border-bottom: 1px solid #ddd;
+}
+.welcome-message p,
+.welcome-message ul {
+  margin: auto;
+  max-width: 720px;
+  margin-bottom: 1em;
+}
+.welcome-message p li,
+.welcome-message ul li {
+  margin-bottom: 0.5em;
+}
+.welcome-message p:first-child {
+  text-align: center;
 }
 
 .chromeframe { margin: 0.2em 0; background: #ccc; color: #000; padding: 0.2em 0; }

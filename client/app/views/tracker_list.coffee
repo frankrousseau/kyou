@@ -1,12 +1,18 @@
 normalizer = require 'lib/normalizer'
 ViewCollection = require 'lib/view_collection'
 TrackerCollection = require 'collections/trackers'
+request = require 'lib/request'
+
 
 module.exports = class TrackerList extends ViewCollection
     id: 'tracker-list'
     itemView: require 'views/tracker_list_item'
     template: require 'views/templates/tracker_list'
     collection: new TrackerCollection()
+
+    subscriptions:
+        'tracker:add': 'onAddTracker'
+        'tracker:removed': 'onTrackerRemoved'
 
 
     # Load tracker list. Then load data to display for each trackers.
@@ -65,4 +71,31 @@ module.exports = class TrackerList extends ViewCollection
         view = @views[tracker.cid]
         return view
 
+
+    # When a tracker is added, add it to the list and loads its data.
+    # Then, it saves the hidden status change so it remembers it for further
+    # loading.
+    onAddTracker: (id) ->
+        view = @getView id
+        view.$el.removeClass 'hidden'
+        view.load()
+        data =
+            hidden: false
+        request.put "metadata/basic-trackers/#{id}", data, (err) ->
+
+
+    onTrackerRemoved: (id) ->
+        @remove id
+        data =
+            hidden: true
+        request.put "metadata/basic-trackers/#{id}", data, (err) ->
+
+
+    isEmpty: ->
+        isEmpty = true
+        for tracker in @collection.models
+            isHidden = tracker.get('metadata').hidden
+            isEmpty = false if isHidden is false
+
+        return isEmpty
 
