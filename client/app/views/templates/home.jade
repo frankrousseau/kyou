@@ -1,44 +1,67 @@
 #menu
-    span.info-text Visualize your data from:
-    input.datepicker#datepicker-start(value="#{startDate}")
-    span.info-text to:
-    input.datepicker#datepicker-end(value="#{endDate}")
+    a#home-btn.left(href="#") 
+        img(src="icons/home.png", title="Kyou Home")
+    .menu-date.left
+        span.info-text Visualize your data from:
+        input.datepicker#datepicker-start(value="#{startDate}")
+        span.info-text to:
+        input.datepicker#datepicker-end(value="#{endDate}")
+    a#config-btn.right(href="#add-tracker", title="Select your trackers")
+        img(src="icons/config.png")
     
 #content.pa2
 
+    .w100.welcome-message
+        p
+            img(src="icons/main_icon.png", title="Kyou Home")
+        p
+            | Welcome to KYou the app that allows you to quantify yourself !
+        p
+            | Through the webtools you use and your connected objects you create a huge amount of personal data. Unfortunately, you
+            | can't take advantage of it to its full potential. It's a pity because you could
+            | be learning a lot on yourself. 
 
-    .welcome-message
-        | Welcome on KYou the app that will help you to monitor yourself
-        | It builds graph based on the data store in your Cozy. To start
-        | it's super simple, you just have to select the data you want
-        | in the list below. Every time you click on a tracker, its graph
-        | is displayed. 
-        |
-        | If you want details about a graph or compare it with another graph
-        | simply click on its title, it will lead you to a dedicatd UI.
+        p 
+            | KYou, by building analytics directly from you Cozy data, provides you with the first taste of an empirical knowledge of yourself. Empowered with this new knowledge, you will learn more about you and improve yourself.
+        p 
+           | Here are the main concepts you will help you using KYou:
+        ul
+            li
+                strong
+                    | Basic Tracking: 
+                span
+                    | They are trackers built from the data stored into you Cozy. For instance, you can watch your daily amounts of emails or your daily amounts of steps.
+            li
+                strong
+                    | Custom Tracking:
+                span
+                    | You can add custom trackers. They are useful when you 
+                    | want to track something that could not be built from Cozy data.
+                    | They require you enter your data manually.
+            li
+                strong
+                    | Comparisons: 
+                span
+                    | you can compare trackers with each other. Click on
+                    | a name of a trackers and you will access to the comparision
+                    | tool. More information about the current graph will be
+                    | displayed too.
+        p
+            | Know you KYou better, let's start with tracking your mood. KYou can't guess your mood, so you
+            | have to enter it manually every day. Once you saved your mood
+            | for several days, start comparing it to your other data. You
+            | will find interesting relations. To add other trackers to compare click
+            | on the button at the bottom of this page or on the button at 
+            | the top right corner.
 
     #mood-section
-
-    .trackers
 
     img.hidden(src='img/spinner.svg')
 
     .line#zoom-view
 
+.line.txt-center#add-tracker-button
+    a.btn(href="#add-tracker") Add a tracker
+
 
 .pa2.line#add-tracker-zone
-    #add-basic-tracker-widget
-    h2.mb2 Add a tracker
-    .line#add-basic-tracker-list
-        
-
-    #add-tracker-widget
-        h2 Create your tracker
-        .mt2
-            div
-                input#add-tracker-name.input(placeholder="name")
-            div
-                textarea#add-tracker-description.input(placeholder="description")
-            div
-                button#add-tracker-btn.btn add tracker
-
