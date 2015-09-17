@@ -1833,6 +1833,8 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.redrawCharts = function() {
+    $('.chart').html(null);
+    $('.y-axis').html(null);
     this.zoomView.onComparisonChanged();
     this.moodTracker.redraw();
     this.trackerList.redrawAll();
