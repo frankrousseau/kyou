@@ -288,31 +288,33 @@ module.exports = class ZoomView extends BaseView
         graphStyle = @$("#zoomstyle").val()
 
         tracker = @model.get 'tracker'
-        data = MainState.data[tracker.get 'slug']
-        toNormalize = false
 
-        # Check if it's a comparison.
-        if val.indexOf('basic') isnt -1 or val in ['last-year', 'previous', 'moods'] or val.length is 32
-            @$('#zoom-bar-option').hide()
-            @$('#zoom-correlation-option').show()
-            if graphStyle is 'bar'
-                graphStyle = 'line'
-                @$("#zoomstyle").val 'line'
+        if tracker?
+            data = MainState.data[tracker.get 'slug']
+            toNormalize = false
 
-            @getComparisonData val, (err, comparisonData) =>
-                toNormalize = not (val in ['last-year', 'previous'])
-                @displayGraph {
-                   timeUnit, data, comparisonData, graphStyle, toNormalize
-                }
+            # Check if it's a comparison.
+            if val.indexOf('basic') isnt -1 or val in ['last-year', 'previous', 'moods'] or val.length is 32
+                @$('#zoom-bar-option').hide()
+                @$('#zoom-correlation-option').show()
+                if graphStyle is 'bar'
+                    graphStyle = 'line'
+                    @$("#zoomstyle").val 'line'
 
-        else
-            @$('#zoom-correlation-option').hide()
-            @$('#zoom-bar-option').show()
-            if graphStyle is 'correlation'
-                graphStyle = 'bar'
-                @$("#zoomstyle").val 'line'
-            comparisonData = null
-            @displayGraph {timeUnit, data, graphStyle, toNormalize}
+                @getComparisonData val, (err, comparisonData) =>
+                    toNormalize = not (val in ['last-year', 'previous'])
+                    @displayGraph {
+                       timeUnit, data, comparisonData, graphStyle, toNormalize
+                    }
+
+            else
+                @$('#zoom-correlation-option').hide()
+                @$('#zoom-bar-option').show()
+                if graphStyle is 'correlation'
+                    graphStyle = 'bar'
+                    @$("#zoomstyle").val 'line'
+                comparisonData = null
+                @displayGraph {timeUnit, data, graphStyle, toNormalize}
 
 
     displayGraph: (options) ->
