@@ -260,6 +260,8 @@ module.exports = class AppView extends BaseView
                 callback?()
 
     redrawCharts: =>
+        $('.chart').html(null);
+        $('.y-axis').html(null);
         @zoomView.onComparisonChanged()
 
         @moodTracker.redraw()
