@@ -218,6 +218,7 @@ module.exports = class AppView extends BaseView
         @hideMain()
         @zoomView.hide()
         @addTrackerView.show()
+        $(document).scrollTop 0
 
 
     displayTrackers: ->
@@ -259,21 +260,17 @@ module.exports = class AppView extends BaseView
                 callback?()
 
     redrawCharts: =>
-        $('.chart').html null
-        $('.y-axis').html null
+        @zoomView.onComparisonChanged()
 
-        if @$("#zoomtracker").is(":visible")
-            @onComparisonChanged()
-
-        else
-            @moodTracker.redraw()
-            @trackerList.redrawAll()
-            @basicTrackerList.redrawAll()
+        @moodTracker.redraw()
+        @trackerList.redrawAll()
+        @basicTrackerList.redrawAll()
 
         true
 
     onTrackerAdded: ->
         @welcomeMessage.hide()
+
 
     ## Note Widget
 

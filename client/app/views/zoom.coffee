@@ -153,6 +153,27 @@ module.exports = class ZoomView extends BaseView
     showEvolution: (data) ->
         evolution = 0
         if data
+
+            length = data.length
+            middle = 7
+
+            newTrend = 0
+            i = middle
+            while i > 0
+                newTrend += data[length - i - 1].y
+                i--
+
+            oldTrend = 0
+            i = middle
+            while i > 0
+                oldTrend += data[length - middle - i - 1].y
+                i--
+
+            if oldTrend isnt 0
+                evolution =  (newTrend / oldTrend) * 100 - 100
+            else
+                evolution = 0
+            ###
             if not data.length in [0, 1]
                 length = data.length
                 if data.length < 14
@@ -176,6 +197,7 @@ module.exports = class ZoomView extends BaseView
                     evolution =  (newTrend / oldTrend) * 100 - 100
                 else
                     evolution = 0
+            ###
 
         evolution = Math.round(evolution * 100) / 100
         @$("#evolution-value").html evolution + " %"

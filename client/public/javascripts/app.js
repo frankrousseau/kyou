@@ -1,59 +1,42 @@
-(function() {
+(function(/*! Brunch !*/) {
   'use strict';
 
-  var globals = typeof window === 'undefined' ? global : window;
+  var globals = typeof window !== 'undefined' ? window : global;
   if (typeof globals.require === 'function') return;
 
   var modules = {};
   var cache = {};
-  var has = ({}).hasOwnProperty;
 
-  var aliases = {};
-
-  var endsWith = function(str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+  var has = function(object, name) {
+    return ({}).hasOwnProperty.call(object, name);
   };
 
-  var unalias = function(alias, loaderPath) {
-    var start = 0;
-    if (loaderPath) {
-      if (loaderPath.indexOf('components/' === 0)) {
-        start = 'components/'.length;
-      }
-      if (loaderPath.indexOf('/', start) > 0) {
-        loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
+  var expand = function(root, name) {
+    var results = [], parts, part;
+    if (/^\.\.?(\/|$)/.test(name)) {
+      parts = [root, name].join('/').split('/');
+    } else {
+      parts = name.split('/');
+    }
+    for (var i = 0, length = parts.length; i < length; i++) {
+      part = parts[i];
+      if (part === '..') {
+        results.pop();
+      } else if (part !== '.' && part !== '') {
+        results.push(part);
       }
     }
-    var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
-    if (result) {
-      return 'components/' + result.substring(0, result.length - '.js'.length);
-    }
-    return alias;
+    return results.join('/');
   };
 
-  var expand = (function() {
-    var reg = /^\.\.?(\/|$)/;
-    return function(root, name) {
-      var results = [], parts, part;
-      parts = (reg.test(name) ? root + '/' + name : name).split('/');
-      for (var i = 0, length = parts.length; i < length; i++) {
-        part = parts[i];
-        if (part === '..') {
-          results.pop();
-        } else if (part !== '.' && part !== '') {
-          results.push(part);
-        }
-      }
-      return results.join('/');
-    };
-  })();
   var dirname = function(path) {
     return path.split('/').slice(0, -1).join('/');
   };
 
   var localRequire = function(path) {
     return function(name) {
-      var absolute = expand(dirname(path), name);
+      var dir = dirname(path);
+      var absolute = expand(dir, name);
       return globals.require(absolute, path);
     };
   };
@@ -68,26 +51,21 @@
   var require = function(name, loaderPath) {
     var path = expand(name, '.');
     if (loaderPath == null) loaderPath = '/';
-    path = unalias(name, loaderPath);
 
-    if (has.call(cache, path)) return cache[path].exports;
-    if (has.call(modules, path)) return initModule(path, modules[path]);
+    if (has(cache, path)) return cache[path].exports;
+    if (has(modules, path)) return initModule(path, modules[path]);
 
     var dirIndex = expand(path, './index');
-    if (has.call(cache, dirIndex)) return cache[dirIndex].exports;
-    if (has.call(modules, dirIndex)) return initModule(dirIndex, modules[dirIndex]);
+    if (has(cache, dirIndex)) return cache[dirIndex].exports;
+    if (has(modules, dirIndex)) return initModule(dirIndex, modules[dirIndex]);
 
     throw new Error('Cannot find module "' + name + '" from '+ '"' + loaderPath + '"');
   };
 
-  require.alias = function(from, to) {
-    aliases[to] = from;
-  };
-
-  require.register = require.define = function(bundle, fn) {
+  var define = function(bundle, fn) {
     if (typeof bundle === 'object') {
       for (var key in bundle) {
-        if (has.call(bundle, key)) {
+        if (has(bundle, key)) {
           modules[key] = bundle[key];
         }
       }
@@ -96,18 +74,21 @@
     }
   };
 
-  require.list = function() {
+  var list = function() {
     var result = [];
     for (var item in modules) {
-      if (has.call(modules, item)) {
+      if (has(modules, item)) {
         result.push(item);
       }
     }
     return result;
   };
 
-  require.brunch = true;
   globals.require = require;
+  globals.require.define = define;
+  globals.require.register = define;
+  globals.require.list = list;
+  globals.require.brunch = true;
 })();
 require.register("application", function(exports, require, module) {
 module.exports = {
@@ -1798,7 +1779,8 @@ module.exports = AppView = (function(superClass) {
   AppView.prototype.displayAddTracker = function() {
     this.hideMain();
     this.zoomView.hide();
-    return this.addTrackerView.show();
+    this.addTrackerView.show();
+    return $(document).scrollTop(0);
   };
 
   AppView.prototype.displayTrackers = function() {
@@ -1851,15 +1833,10 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.redrawCharts = function() {
-    $('.chart').html(null);
-    $('.y-axis').html(null);
-    if (this.$("#zoomtracker").is(":visible")) {
-      this.onComparisonChanged();
-    } else {
-      this.moodTracker.redraw();
-      this.trackerList.redrawAll();
-      this.basicTrackerList.redrawAll();
-    }
+    this.zoomView.onComparisonChanged();
+    this.moodTracker.redraw();
+    this.trackerList.redrawAll();
+    this.basicTrackerList.redrawAll();
     return true;
   };
 
@@ -3117,34 +3094,54 @@ module.exports = ZoomView = (function(superClass) {
   };
 
   ZoomView.prototype.showEvolution = function(data) {
-    var evolution, i, length, middle, newTrend, oldTrend, ref;
+    var evolution, i, length, middle, newTrend, oldTrend;
     evolution = 0;
     if (data) {
-      if ((ref = !data.length) === 0 || ref === 1) {
-        length = data.length;
-        if (data.length < 14) {
-          middle = Math.round(length / 2);
-        } else {
-          middle = 7;
-        }
-        newTrend = 0;
-        i = middle;
-        while (i > 0) {
-          newTrend += data[length - i - 1].y;
-          i--;
-        }
-        oldTrend = 0;
-        i = middle;
-        while (i > 0) {
-          oldTrend += data[length - middle - i].y;
-          i--;
-        }
-        if (oldTrend !== 0) {
-          evolution = (newTrend / oldTrend) * 100 - 100;
-        } else {
-          evolution = 0;
-        }
+      length = data.length;
+      middle = 7;
+      newTrend = 0;
+      i = middle;
+      while (i > 0) {
+        newTrend += data[length - i - 1].y;
+        i--;
       }
+      oldTrend = 0;
+      i = middle;
+      while (i > 0) {
+        oldTrend += data[length - middle - i - 1].y;
+        i--;
+      }
+      if (oldTrend !== 0) {
+        evolution = (newTrend / oldTrend) * 100 - 100;
+      } else {
+        evolution = 0;
+      }
+
+      /*
+      if not data.length in [0, 1]
+          length = data.length
+          if data.length < 14
+              middle = Math.round(length / 2)
+          else
+              middle = 7
+      
+          newTrend = 0
+          i = middle
+          while i > 0
+              newTrend += data[length - i - 1].y
+              i--
+      
+          oldTrend = 0
+          i = middle
+          while i > 0
+              oldTrend += data[length - middle - i].y
+              i--
+      
+          if oldTrend isnt 0
+              evolution =  (newTrend / oldTrend) * 100 - 100
+          else
+              evolution = 0
+       */
     }
     evolution = Math.round(evolution * 100) / 100;
     return this.$("#evolution-value").html(evolution + " %");
