@@ -2,30 +2,39 @@ fs = require 'fs'
 path = require 'path'
 
 moment = require 'moment'
-slugify = require 'cozy-slug'
 log = require('printit')
     prefix: 'init tracker'
     date: true
 
 normalizer = require '../lib/normalizer'
-getTrackers = require('../lib/trackers').getTrackers
+trackers = require('../lib/trackers')()
 
 
 module.exports = (app) ->
 
+
     # Express Controller to be run when given tracker is requested through the
     # REST API.
-    # It returns 6 months that ends at day given in params
     getController = (tracker) ->
         (req, res, next) ->
+
+            endDate = req.params.endDate
+            startDate = req.params.startDate
+            endDate ?= moment().format 'YYYY-MM-DD'
+            startDate ?= moment(req.endDate, 'YYYY-MM-DD')
+                .subtract('month', 6)
+                .format 'YYYY-MM-DD'
+
             options = group: true
-            options.startKey = req.day if req.day?
+            options.startkey = startDate
+            options.endkey = endDate
 
             tracker.model.rawRequest tracker.requestName, options, (err, rows) ->
                 if err then next err
                 else
-                    data = normalizer.normalize rows, req.day
+                    data = normalizer.normalize rows, startDate, endDate
                     res.send normalizer.toClientFormat data
+
 
     # For all trackers located in tracker directory, add a route to get
     # its data and created data system request.
@@ -34,13 +43,14 @@ module.exports = (app) ->
             tracker = trackers.pop()
 
             log.info "configure tracker #{tracker.name}"
-            slug = slugify tracker.name
+            slug = tracker.slug
             path = "/basic-trackers/#{slug}"
             tracker.requestName ?= 'nbByDay'
-            app.get "#{path}/:day", getController tracker
+            app.get "#{path}/:startDate/:endDate", getController tracker
             log.info 'Tracker controller added.'
 
-            tracker.model.defineRequest tracker.requestName, tracker.request, (err) ->
+            name = tracker.requestName
+            tracker.model.defineRequest name, tracker.request, (err) ->
                 if err
                     log.error 'Tracker request creation failed.'
                     recConfig()
@@ -48,4 +58,5 @@ module.exports = (app) ->
                     log.info 'Tracker request creation succeeded.'
                     recConfig trackers
 
-    recConfig getTrackers().reverse()
+    recConfig trackers.reverse()
+

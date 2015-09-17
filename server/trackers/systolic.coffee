@@ -1,8 +1,8 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 module.exports =
     name: "Blood Pressure - systolic"
-    color: "#2FAD5B"
+    color: "#FFEB3B"
     description: """
 Your systolic blood pressure."""
     model: americano.getModel 'BloodPressure', date: Date

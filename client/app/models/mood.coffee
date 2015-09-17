@@ -1,8 +1,10 @@
 Model = require 'lib/model'
 request = require 'lib/request'
 
+
 module.exports = class Mood extends Model
     urlRoot: 'moods/'
+
 
     @getDay: (day, callback) ->
         request.get "moods/mood/#{day.format 'YYYY-MM-DD'}", (err, mood) ->
@@ -13,6 +15,8 @@ module.exports = class Mood extends Model
                 else
                     callback null, null
 
+
     @updateDay: (day, status, callback) ->
         path = "moods/mood/#{day.format 'YYYY-MM-DD'}"
         request.put path, status: status, callback
+

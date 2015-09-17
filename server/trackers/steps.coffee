@@ -1,11 +1,10 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 module.exports =
     name: "Steps"
-    color: "#D35400"
+    color: "#795548"
     description: """
-Number of steps you walked every day. Data should be imported from Jawbone
-Konnector."""
+Number of steps you walked."""
     model: americano.getModel 'steps', date: Date
     request:
         map: (doc) ->

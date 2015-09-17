@@ -17,7 +17,7 @@ config =
         americano.logger 'short'
     ]
     plugins: [
-        'americano-cozy'
+        'cozydb'
     ]
 
 module.exports = config

@@ -1,4 +1,4 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 date_helpers = require '../lib/date'
 TrackerAmount = require './trackeramount'

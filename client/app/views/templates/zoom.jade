@@ -1,0 +1,88 @@
+.line.graph-section
+    h2.zoomtitle No tracker selected
+    p.zoomexplaination.explaination
+    p.zoom-editable
+        input.zoomtitle No tracker selected
+    p.zoom-editable
+        textarea.zoomexplaination.explaination
+
+#zoomgraph.graph-container
+    #zoom-y-axis.y-axis
+    #zoom-charts.chart
+    #timeline.rickshaw_annotation_timeline
+.line.txt-center.pt2
+    a#back-trackers-btn(href="#") go back to tracker list
+
+.line
+    .mod.w50.left
+        h3 Options
+        p.zoom-option
+            span scale
+            span
+                select#zoomtimeunit
+                    option(value="day") day
+                    option(value="week") week
+                    option(value="month") month
+
+        p.zoom-option
+            span display
+            span
+                select#zoomstyle
+                    option#zoom-bar-option(value="bar") bars
+                    option(value="line") lines
+                    option(value="scatterplot") points
+                    option#zoom-correlation-option(value="correlation") correlate (points)
+            
+        p.zoom-option
+            span compare with
+            span
+                select#zoomcomparison
+                br
+
+        p.zoom-option
+            span goal
+            span
+                input#zoomgoal(value="0")
+
+        p
+            span.smaller.em Note: Compared tracker is displayed in red.
+
+    .mod.w50.left
+
+        h3 Information
+        p.zoom-option
+            span average&nbsp;
+            span#average-value
+        p.zoom-option
+            span recent evolution&nbsp;
+            span#evolution-value
+
+        h3 Manage
+        p.zoom-option
+            span export
+            span
+                a(href="")#export-btn.btn.smaller all data in a .csv file
+        p.zoom-option#import-section
+            span import
+            span.import-widget
+                input#import-input.input(type="file", accept=".csv")
+                button#import-button.btn.smaller import data
+        p#remove-section.zoom-option
+            span remove
+            span
+                button#remove-btn.btn-danger.smaller 
+                    | remove tracker and delete all data
+        p#import-info.smaller.em
+            | Note: Expected format for import is a two-column CSV file where
+            | first column contains dates and second column contains amounts.
+
+
+.line
+    p.pa2
+
+    p#show-data-section
+        button#show-data-btn show data
+        | or 
+        a#show-data-csv(target="_blank")  download csv file
+    #raw-data
+

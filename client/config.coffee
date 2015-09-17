@@ -19,6 +19,9 @@ exports.config =
                     'vendor/scripts/jquery-1.9.1.js'
                     'vendor/scripts/underscore-1.4.4.js'
                     'vendor/scripts/backbone-1.0.0.js'
+                    'vendor/scripts/moment.js'
+                    'vendor/scripts/pikaday.js'
+                    'vendor/scripts/pikaday.jquery.js'
                 ]
 
         stylesheets:

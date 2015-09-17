@@ -1,4 +1,4 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 module.exports =
     mood:
@@ -11,6 +11,10 @@ module.exports =
             emit doc.date.substring(0,10), status
         byDay: (doc) ->
             emit doc.date.substring(0,10), doc
+
+    trackermetadata:
+        all: americano.defaultRequests.all
+        bySlug: (doc) -> emit doc.slug, doc
 
     tracker:
         all: americano.defaultRequests.all

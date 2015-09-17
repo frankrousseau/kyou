@@ -1,5 +1,6 @@
 request = require 'lib/request'
 
+
 module.exports = class TrackerModel extends Backbone.Model
 
     constructor: (data) ->
@@ -7,3 +8,4 @@ module.exports = class TrackerModel extends Backbone.Model
 
         date = @get 'date'
         @set 'displayDate', moment(date).format 'YYYY MM DD'
+

@@ -1,8 +1,8 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 module.exports =
     name: "Commits"
-    color: "#408000"
+    color: "#4CAF50"
     description: """
 This tracker counts your amount of commits on a daily basis.
 """

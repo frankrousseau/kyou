@@ -1,8 +1,10 @@
 Model = require 'lib/model'
 request = require 'lib/request'
 
+
 module.exports = class DailyNote extends Model
     urlRoot: 'dailynotes/'
+
 
     @getDay: (day, callback) ->
         request.get "dailynotes/#{day.format 'YYYY-MM-DD'}", (err, dailynote) ->
@@ -13,6 +15,8 @@ module.exports = class DailyNote extends Model
                 else
                     callback null, null
 
+
     @updateDay: (day, text, callback) ->
         path = "dailynotes/#{day.format 'YYYY-MM-DD'}"
         request.put path, text: text, callback
+

@@ -1,4 +1,4 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 date_helpers = require '../lib/date'
 
 module.exports = TrackerAmount = americano.getModel 'TrackerAmount',
@@ -10,3 +10,4 @@ module.exports = TrackerAmount = americano.getModel 'TrackerAmount',
 TrackerAmount.destroyAll = (tracker, callback) ->
     params = startkey: [tracker.id], endkey: [tracker.id + "0"]
     TrackerAmount.requestDestroy 'byDay', params, callback
+

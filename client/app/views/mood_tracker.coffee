@@ -2,13 +2,17 @@ BaseView = require 'lib/base_view'
 request = require 'lib/request'
 graph = require 'lib/graph'
 normalizer = require 'lib/normalizer'
+calculus = require 'lib/calculus'
 
+MainState = require '../main_state'
 Mood = require '../models/mood'
 Moods = require '../collections/moods'
+{DATE_FORMAT, DATE_URL_FORMAT} = require '../lib/constants'
+
 
 # Item View for the albums list
-module.exports = class TrackerItem extends BaseView
-    id: 'moods'
+module.exports = class MoodTracker extends BaseView
+    id: 'moods-tracker'
     className: 'line'
     template: require './templates/mood'
 
@@ -21,54 +25,132 @@ module.exports = class TrackerItem extends BaseView
     onNeutralMoodClicked: -> @updateMood 'neutral'
     onBadMoodClicked: -> @updateMood 'bad'
 
+    constructor: (@model) ->
+        super
+
+    # After template rendering, it loads data and draw graph.
+    afterRender: ->
+        super
+
+        @$('#mood-current-date').pikaday
+            maxDate: new Date()
+            format: DATE_FORMAT
+            defaultDate: MainState.endDate.toDate()
+            setDefaultDate: true
+            onSelect: (value) =>
+                @loadCurrentDay()
+
+
+    # Update mood status.
     updateMood: (status) ->
-        @$('#current-mood').html '&nbsp;'
-        @$('#current-mood').spin 'tiny'
-        day = window.app.mainView.currentDate
+        day = moment @$('#mood-current-date').val()
+
+        @$('#mood-current-value').html '&nbsp;'
+        @$('#mood-current-value').spin true
+
         Mood.updateDay day, status, (err, mood) =>
-            @$('#current-mood').spin()
+            @$('#mood-current-value').spin false
+
             if err
                 alert "An error occured while saving data"
             else
-                @$('#current-mood').html status
-                graph.clear @$('#moods-charts'), @$('#moods-y-axis')
-                @loadAnalytics()
+                @$('#mood-current-value').html status
+                if status is 'good'
+                    val = 3
+                else if status is 'neutral'
+                    val = 2
+                else
+                    val = 1
 
+                if day >= MainState.startDate and day <= MainState.endDate
+                    i = 0
+                    while i < @data.length and moment(@data[i].x * 1000) < day
+                        i++
+
+                    if @data[i]? and moment(@data[i].x * 1000).format('YYYY-MM-DD') is moment(day).format('YYYY-MM-DD')
+                        @data[i] = {x: moment(day).toDate().getTime() / 1000, y: val}
+                    else
+                        @data.splice i, 0, {x: moment(day).toDate().getTime() / 1000, y: val}
+
+                    @$('.chart').html null
+                    @$('.y-axis').html null
+                    console.log @data
+                    @redraw()
+
+
+    load: (callback) =>
+        @model.loadMetadata =>
+            @reload callback
+
+
+    # Load current day value, display it then loads analytics data.
     reload: (callback) ->
-        day = window.app.mainView.currentDate
+        day = moment @$('#mood-current-date').val()
+
+        @loadCurrentDay =>
+            @loadAnalytics =>
+                @redraw()
+                callback?()
+
+
+    loadCurrentDay: (callback) =>
+        day = moment @$('#mood-current-date').val()
+
+        @$('#mood-current-value').html '&nbsp;'
+        @$('#mood-current-value').spin true
         Mood.getDay day, (err, mood) =>
+            @$('#mood-current-value').spin false
+
             if err
                 alert "An error occured while retrieving mood data"
-            else if not mood?
-                @$('#current-mood').html 'Set your mood for current day'
+            else if not mood? or not mood.get('status')
+                @$('#mood-current-value').html 'no mood set'
             else
-                @$('#current-mood').html mood.get 'status'
-            @loadAnalytics()
-            callback() if callback?
+                @$('#mood-current-value').html mood.get 'status'
+            callback?()
 
 
-    loadAnalytics: ->
-        day = window.app.mainView.currentDate
-        path = "moods/#{day.format 'YYYY-MM-DD'}"
 
-        @$("#moods-charts").html ''
-        @$("#moods-y-axis").html ''
-        @$("#moods").spin 'tiny'
+    # Load analytics data and redraw current graph.
+    loadAnalytics: (callback) ->
+        start = MainState.startDate.format 'YYYY-MM-DD'
+        end = MainState.endDate.format 'YYYY-MM-DD'
+        path = "moods/#{start}/#{end}"
 
+        @showLoading()
         request.get path, (err, data) =>
-            @$("#moods").spin()
+            @hideLoading()
+
             if err
                 alert "An error occured while retrieving moods data"
             else
-                @data = data
-                @redraw()
+                MainState.data['mood'] = @data = data
 
+                if not @data? or @data.length is 0
+                    @data = calculus.getDefaultData()
+
+                callback?()
+
+
+    # Clean and draw grap based on data field.
     redraw: ->
-        @$("#moods-charts").html ''
-        @$("#moods-y-axis").html ''
-        width = @$("#moods").width() - 70
-        el = @$("#moods-charts")[0]
-        yEl = @$("#moods-y-axis")[0]
+        if @data?
+            @$("#moods-charts").html ''
+            @$("#moods-y-axis").html ''
+            width = @$("#moods").width() - 70
+            el = @$("#moods-charts")[0]
+            yEl = @$("#moods-y-axis")[0]
+            data = @data
+            color = '#039BE5'
+            graphStyle = @model.get('metadata').style or 'bar'
 
-        data = normalizer.getSixMonths @data
-        graph.draw el, yEl, width, 'steelblue', data
+            graph.draw {el, yEl, width, color, data, graphStyle}
+
+
+    showLoading: ->
+        @$("#moods").spin true
+
+
+    hideLoading: ->
+        @$("#moods").spin false
+

@@ -22,3 +22,10 @@ module.exports = class BaseView extends Backbone.View
         @$el.removeData().unbind()
         @remove()
         Backbone.View::remove.call @
+
+    show: ->
+        @$el.show()
+
+    hide: ->
+        @$el.hide()
+

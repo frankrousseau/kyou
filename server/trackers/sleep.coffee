@@ -1,8 +1,8 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 module.exports =
     name: "Sleep Duration"
-    color: "#3A539B"
+    color: "#2196F3"
     description: """
 Number of minutes you sleep every day. Data should be imported from Jawbone
 Konnector."""

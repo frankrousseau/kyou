@@ -1,8 +1,8 @@
-americano = require 'americano-cozy'
+americano = require 'cozydb'
 
 module.exports =
     name: "Events"
-    color: "#9B58B5"
+    color: "#1565C0"
     description: """
 Number of emails stored in your Cozy for each day.
 """
