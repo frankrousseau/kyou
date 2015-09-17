@@ -3247,41 +3247,43 @@ module.exports = ZoomView = (function(superClass) {
     timeUnit = this.$("#zoomtimeunit").val();
     graphStyle = this.$("#zoomstyle").val();
     tracker = this.model.get('tracker');
-    data = MainState.data[tracker.get('slug')];
-    toNormalize = false;
-    if (val.indexOf('basic') !== -1 || (val === 'last-year' || val === 'previous' || val === 'moods') || val.length === 32) {
-      this.$('#zoom-bar-option').hide();
-      this.$('#zoom-correlation-option').show();
-      if (graphStyle === 'bar') {
-        graphStyle = 'line';
-        this.$("#zoomstyle").val('line');
+    if (tracker != null) {
+      data = MainState.data[tracker.get('slug')];
+      toNormalize = false;
+      if (val.indexOf('basic') !== -1 || (val === 'last-year' || val === 'previous' || val === 'moods') || val.length === 32) {
+        this.$('#zoom-bar-option').hide();
+        this.$('#zoom-correlation-option').show();
+        if (graphStyle === 'bar') {
+          graphStyle = 'line';
+          this.$("#zoomstyle").val('line');
+        }
+        return this.getComparisonData(val, (function(_this) {
+          return function(err, comparisonData) {
+            toNormalize = !(val === 'last-year' || val === 'previous');
+            return _this.displayGraph({
+              timeUnit: timeUnit,
+              data: data,
+              comparisonData: comparisonData,
+              graphStyle: graphStyle,
+              toNormalize: toNormalize
+            });
+          };
+        })(this));
+      } else {
+        this.$('#zoom-correlation-option').hide();
+        this.$('#zoom-bar-option').show();
+        if (graphStyle === 'correlation') {
+          graphStyle = 'bar';
+          this.$("#zoomstyle").val('line');
+        }
+        comparisonData = null;
+        return this.displayGraph({
+          timeUnit: timeUnit,
+          data: data,
+          graphStyle: graphStyle,
+          toNormalize: toNormalize
+        });
       }
-      return this.getComparisonData(val, (function(_this) {
-        return function(err, comparisonData) {
-          toNormalize = !(val === 'last-year' || val === 'previous');
-          return _this.displayGraph({
-            timeUnit: timeUnit,
-            data: data,
-            comparisonData: comparisonData,
-            graphStyle: graphStyle,
-            toNormalize: toNormalize
-          });
-        };
-      })(this));
-    } else {
-      this.$('#zoom-correlation-option').hide();
-      this.$('#zoom-bar-option').show();
-      if (graphStyle === 'correlation') {
-        graphStyle = 'bar';
-        this.$("#zoomstyle").val('line');
-      }
-      comparisonData = null;
-      return this.displayGraph({
-        timeUnit: timeUnit,
-        data: data,
-        graphStyle: graphStyle,
-        toNormalize: toNormalize
-      });
     }
   };
 
