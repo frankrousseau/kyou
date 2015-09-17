@@ -23,6 +23,8 @@ module.exports = class ZoomView extends BaseView
         'keyup #zoomgoal': 'onGoalChanged'
         'click #remove-btn': 'onRemoveClicked'
         'click #back-trackers-btn': 'onBackTrackersClicked'
+        'change #import-input': 'onImportFileChanged'
+        'click #import-button': 'onImportClicked'
 
 
     constructor: (@model, @basicTrackers, @moodTracker, @trackers) ->
@@ -48,6 +50,8 @@ module.exports = class ZoomView extends BaseView
                 "href", "moods/export/mood.csv"
             )
             @$("#remove-section").hide()
+            @$("#import-section").hide()
+            @$("#import-info").hide()
 
         else if slug.length is 32
             tracker = @trackers.findWhere id: slug
@@ -58,7 +62,8 @@ module.exports = class ZoomView extends BaseView
                 "href", "trackers/export/#{slug}/export.csv"
             )
             @$("#remove-section").show()
-
+            @$("#import-section").show()
+            @$("#import-info").show()
 
         else
             tracker = @basicTrackers.findWhere slug: slug
@@ -67,6 +72,8 @@ module.exports = class ZoomView extends BaseView
                 "href", "basic-trackers/export/#{slug}.csv"
             )
             @$("#remove-section").hide()
+            @$("#import-section").hide()
+            @$("#import-info").hide()
 
         unless tracker?
             alert "Tracker does not exist"
@@ -365,4 +372,31 @@ module.exports = class ZoomView extends BaseView
             else if slug is 'moods'
                 slug = 'mood'
             callback null, MainState.data[slug]
+
+
+    onImportFileChanged: (event) ->
+        file = event.target.files[0]
+        @reader = new FileReader()
+        @reader.readAsText file
+
+
+    onImportClicked: ->
+        tracker = @getTracker()
+        data = csv: @reader.result
+        request.post "trackers/#{tracker.get 'id'}/csv", data, (err) =>
+            console.log err
+            if err
+                alert 'An error occured during the import.'
+            else
+                alert 'Your import was successfully completed.'
+
+                window.app.mainView.trackerList.reloadAll =>
+                    @reload()
+
+    reload: ->
+        tracker = @model.get 'tracker'
+        if tracker?
+            data = MainState.data[tracker.get 'slug']
+            @printZoomGraph data, tracker.get 'color'
+
 

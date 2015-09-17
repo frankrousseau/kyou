@@ -165,8 +165,9 @@ module.exports = {
       if (err) {
         return next(err);
       } else if (trackerAmount != null) {
-        trackerAmount.amount = req.body.amount;
-        return trackerAmount.save(function(err) {
+        return trackerAmount.updateAttributes({
+          amount: req.body.amount
+        }, function(err) {
           if (err) {
             return next(err);
           } else {
@@ -356,5 +357,69 @@ module.exports = {
         error: 'Tracker was not found'
       });
     }
+  },
+  "import": function(req, res, next) {
+    var amounts, data, date, err, i, len, line, ref, row, tracker, value;
+    data = req.body.csv;
+    tracker = req.tracker;
+    amounts = [];
+    ref = data.split('\n');
+    for (i = 0, len = ref.length; i < len; i++) {
+      line = ref[i];
+      if (line.length > 0) {
+        try {
+          row = line.split(',');
+          date = moment(row[0].trim());
+          value = parseInt(row[1].trim());
+          amounts.push({
+            date: date,
+            value: value
+          });
+        } catch (_error) {
+          err = _error;
+          console.log("error occured with: " + line);
+        }
+      }
+    }
+    console.log("go");
+    return async.eachSeries(amounts, function(amountData, done) {
+      var amount;
+      date = amountData.date;
+      amount = amountData.value;
+      return tracker.getAmount(date, function(err, trackerAmount) {
+        if (err) {
+          return done(err);
+        } else if (trackerAmount != null) {
+          return trackerAmount.updateAttributes({
+            amount: amount
+          }, function(err) {
+            if (err) {
+              return done(err);
+            }
+            return done();
+          });
+        } else {
+          data = {
+            amount: amount,
+            date: date,
+            tracker: tracker.id
+          };
+          return TrackerAmount.create(data, function(err, trackerAmount) {
+            if (err) {
+              return done(err);
+            }
+            return done();
+          });
+        }
+      });
+    }, function(err) {
+      console.log('Import is complete.');
+      if (err) {
+        return next(err);
+      }
+      return res.send({
+        success: true
+      });
+    });
   }
 };

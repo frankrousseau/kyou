@@ -62,11 +62,19 @@
             span export
             span
                 a(href="")#export-btn.btn.smaller all data in a .csv file
+        p.zoom-option#import-section
+            span import
+            span.import-widget
+                input#import-input.input(type="file", accept=".csv")
+                button#import-button.btn.smaller import data
         p#remove-section.zoom-option
             span remove
             span
                 button#remove-btn.btn-danger.smaller 
                     | remove tracker and delete all data
+        p#import-info.smaller.em
+            | Note: Expected format for import is a two-column CSV file where
+            | first column contains dates and second column contains amounts.
 
 
 .line

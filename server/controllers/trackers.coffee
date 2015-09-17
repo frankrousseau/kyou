@@ -130,8 +130,7 @@ module.exports =
         req.tracker.getAmount req.day, (err, trackerAmount) ->
             if err then next err
             else if trackerAmount?
-                trackerAmount.amount = req.body.amount
-                trackerAmount.save (err) ->
+                trackerAmount.updateAttributes amount: req.body.amount, (err) ->
                     if err then next err
                     else res.send trackerAmount
             else
@@ -278,4 +277,43 @@ module.exports =
 
         else
             res.status(404).send error: 'Tracker was not found'
+
+
+    import: (req, res, next) ->
+        data = req.body.csv
+        tracker = req.tracker
+
+        amounts = []
+        for line in data.split '\n' when line.length > 0
+            try
+                row = line.split ','
+                date = moment row[0].trim()
+                value = parseInt row[1].trim()
+                amounts.push {date, value}
+            catch err
+                console.log "error occured with: #{line}"
+
+        console.log "go"
+        async.eachSeries amounts, (amountData, done) ->
+            date = amountData.date
+            amount = amountData.value
+            tracker.getAmount date, (err, trackerAmount) ->
+                if err
+                    done err
+                else if trackerAmount?
+                    trackerAmount.updateAttributes amount: amount, (err) ->
+                        return done err if err
+                        done()
+                else
+                    data =
+                        amount: amount
+                        date: date
+                        tracker: tracker.id
+                    TrackerAmount.create data, (err, trackerAmount) ->
+                        return done err if err
+                        done()
+        , (err) ->
+            console.log 'Import is complete.'
+            return next err if err
+            res.send success: true
 

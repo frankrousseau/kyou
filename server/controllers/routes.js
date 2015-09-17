@@ -55,7 +55,8 @@ module.exports = {
     del: trackers.destroy
   },
   'trackers/:trackerId/csv': {
-    get: trackers.rawDataCsv
+    get: trackers.rawDataCsv,
+    post: trackers["import"]
   },
   'trackers/:trackerId/raw-data': {
     get: trackers.rawData

@@ -1797,6 +1797,7 @@ module.exports = AppView = (function(superClass) {
 
   AppView.prototype.displayAddTracker = function() {
     this.hideMain();
+    this.zoomView.hide();
     return this.addTrackerView.show();
   };
 
@@ -1806,8 +1807,9 @@ module.exports = AppView = (function(superClass) {
     this.redrawCharts();
     this.zoomView.hide();
     if (!MainState.dataLoaded) {
-      return this.loadTrackers();
+      this.loadTrackers();
     }
+    return $(document).scrollTop(0);
   };
 
   AppView.prototype.displayMood = function() {
@@ -1835,11 +1837,13 @@ module.exports = AppView = (function(superClass) {
   AppView.prototype.displayZoomTracker = function(slug, callback) {
     if (MainState.dataLoaded) {
       this.zoomView.show(slug);
+      $(document).scrollTop(0);
       return typeof callback === "function" ? callback() : void 0;
     } else {
       return this.loadTrackers((function(_this) {
         return function() {
           _this.zoomView.show(slug);
+          $(document).scrollTop(0);
           return typeof callback === "function" ? callback() : void 0;
         };
       })(this));
@@ -2561,7 +2565,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a id="back-trackers-btn" href="#">go back to tracker list</a></div><div class="line"><div class="mod w50 left"><h3>Options</h3><p class="zoom-option"><span>scale</span><span><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></span></p><p class="zoom-option"><span>display</span><span><select id="zoomstyle"><option id="zoom-bar-option" value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option id="zoom-correlation-option" value="correlation">correlate (points)</option></select></span></p><p class="zoom-option"><span>compare with</span><span><select id="zoomcomparison"></select><br/></span></p><p class="zoom-option"><span>goal</span><span><input id="zoomgoal" value="0"/></span></p><p><span class="smaller em">Note: Compared tracker is displayed in red.</span></p></div><div class="mod w50 left"><h3>Information</h3><p class="zoom-option"><span>average&nbsp;</span><span id="average-value"></span></p><p class="zoom-option"><span>recent evolution&nbsp;</span><span id="evolution-value"></span></p><h3>Manage</h3><p class="zoom-option"><span>export</span><span><a href="" id="export-btn" class="btn smaller">all data in a .csv file</a></span></p><p id="remove-section" class="zoom-option"><span>remove</span><span><button id="remove-btn" class="btn-danger smaller"> \nremove tracker and delete all data</button></span></p></div></div><div class="line"><p class="pa2"></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div>');
+buf.push('<div class="line graph-section"><h2 class="zoomtitle">No tracker selected</h2><p class="zoomexplaination explaination"></p><p class="zoom-editable"><input class="zoomtitle"/></p><p class="zoom-editable"><textarea class="zoomexplaination explaination"></textarea></p></div><div id="zoomgraph" class="graph-container"><div id="zoom-y-axis" class="y-axis"></div><div id="zoom-charts" class="chart"></div><div id="timeline" class="rickshaw_annotation_timeline"></div></div><div class="line txt-center pt2"><a id="back-trackers-btn" href="#">go back to tracker list</a></div><div class="line"><div class="mod w50 left"><h3>Options</h3><p class="zoom-option"><span>scale</span><span><select id="zoomtimeunit"><option value="day">day</option><option value="week">week</option><option value="month">month</option></select></span></p><p class="zoom-option"><span>display</span><span><select id="zoomstyle"><option id="zoom-bar-option" value="bar">bars</option><option value="line">lines</option><option value="scatterplot">points</option><option id="zoom-correlation-option" value="correlation">correlate (points)</option></select></span></p><p class="zoom-option"><span>compare with</span><span><select id="zoomcomparison"></select><br/></span></p><p class="zoom-option"><span>goal</span><span><input id="zoomgoal" value="0"/></span></p><p><span class="smaller em">Note: Compared tracker is displayed in red.</span></p></div><div class="mod w50 left"><h3>Information</h3><p class="zoom-option"><span>average&nbsp;</span><span id="average-value"></span></p><p class="zoom-option"><span>recent evolution&nbsp;</span><span id="evolution-value"></span></p><h3>Manage</h3><p class="zoom-option"><span>export</span><span><a href="" id="export-btn" class="btn smaller">all data in a .csv file</a></span></p><p id="import-section" class="zoom-option"><span>import</span><span class="import-widget"><input id="import-input" type="file" accept=".csv" class="input"/><button id="import-button" class="btn smaller">import data</button></span></p><p id="remove-section" class="zoom-option"><span>remove</span><span><button id="remove-btn" class="btn-danger smaller"> \nremove tracker and delete all data</button></span></p><p id="import-info" class="smaller em">Note: Expected format for import is a two-column CSV file where\nfirst column contains dates and second column contains amounts.</p></div></div><div class="line"><p class="pa2"></p><p id="show-data-section"><button id="show-data-btn">show data</button>or <a id="show-data-csv" target="_blank"> download csv file</a></p><div id="raw-data"></div></div>');
 }
 return buf.join("");
 };
@@ -2975,7 +2979,9 @@ module.exports = ZoomView = (function(superClass) {
     'change #zoomcomparison': 'onComparisonChanged',
     'keyup #zoomgoal': 'onGoalChanged',
     'click #remove-btn': 'onRemoveClicked',
-    'click #back-trackers-btn': 'onBackTrackersClicked'
+    'click #back-trackers-btn': 'onBackTrackersClicked',
+    'change #import-input': 'onImportFileChanged',
+    'click #import-button': 'onImportClicked'
   };
 
   function ZoomView(model, basicTrackers, moodTracker, trackers) {
@@ -3007,6 +3013,8 @@ module.exports = ZoomView = (function(superClass) {
       tracker = this.moodTracker;
       this.$("#export-btn").attr("href", "moods/export/mood.csv");
       this.$("#remove-section").hide();
+      this.$("#import-section").hide();
+      this.$("#import-info").hide();
     } else if (slug.length === 32) {
       tracker = this.trackers.findWhere({
         id: slug
@@ -3015,12 +3023,16 @@ module.exports = ZoomView = (function(superClass) {
       tracker.set('slug', slug);
       this.$("#export-btn").attr("href", "trackers/export/" + slug + "/export.csv");
       this.$("#remove-section").show();
+      this.$("#import-section").show();
+      this.$("#import-info").show();
     } else {
       tracker = this.basicTrackers.findWhere({
         slug: slug
       });
       this.$("#export-btn").attr("href", "basic-trackers/export/" + slug + ".csv");
       this.$("#remove-section").hide();
+      this.$("#import-section").hide();
+      this.$("#import-info").hide();
     }
     if (tracker == null) {
       alert("Tracker does not exist");
@@ -3353,6 +3365,43 @@ module.exports = ZoomView = (function(superClass) {
         slug = 'mood';
       }
       return callback(null, MainState.data[slug]);
+    }
+  };
+
+  ZoomView.prototype.onImportFileChanged = function(event) {
+    var file;
+    file = event.target.files[0];
+    this.reader = new FileReader();
+    return this.reader.readAsText(file);
+  };
+
+  ZoomView.prototype.onImportClicked = function() {
+    var data, tracker;
+    tracker = this.getTracker();
+    data = {
+      csv: this.reader.result
+    };
+    return request.post("trackers/" + (tracker.get('id')) + "/csv", data, (function(_this) {
+      return function(err) {
+        console.log(err);
+        if (err) {
+          return alert('An error occured during the import.');
+        } else {
+          alert('Your import was successfully completed.');
+          return window.app.mainView.trackerList.reloadAll(function() {
+            return _this.reload();
+          });
+        }
+      };
+    })(this));
+  };
+
+  ZoomView.prototype.reload = function() {
+    var data, tracker;
+    tracker = this.model.get('tracker');
+    if (tracker != null) {
+      data = MainState.data[tracker.get('slug')];
+      return this.printZoomGraph(data, tracker.get('color'));
     }
   };
 

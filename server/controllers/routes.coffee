@@ -38,6 +38,7 @@ module.exports =
         del: trackers.destroy
     'trackers/:trackerId/csv':
         get: trackers.rawDataCsv
+        post: trackers.import
     'trackers/:trackerId/raw-data':
         get: trackers.rawData
     'trackers/:trackerId/raw-data/:trackerAmountId':

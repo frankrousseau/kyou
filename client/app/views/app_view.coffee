@@ -216,6 +216,7 @@ module.exports = class AppView extends BaseView
 
     displayAddTracker: ->
         @hideMain()
+        @zoomView.hide()
         @addTrackerView.show()
 
 
@@ -225,6 +226,7 @@ module.exports = class AppView extends BaseView
         @redrawCharts()
         @zoomView.hide()
         @loadTrackers() unless MainState.dataLoaded
+        $(document).scrollTop 0
 
 
     displayMood: ->
@@ -248,10 +250,12 @@ module.exports = class AppView extends BaseView
     displayZoomTracker: (slug, callback) ->
         if MainState.dataLoaded
             @zoomView.show slug
+            $(document).scrollTop 0
             callback?()
         else
             @loadTrackers =>
                 @zoomView.show slug
+                $(document).scrollTop 0
                 callback?()
 
     redrawCharts: =>
