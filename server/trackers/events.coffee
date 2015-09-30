@@ -4,7 +4,7 @@ module.exports =
     name: "Events"
     color: "#1565C0"
     description: """
-Number of emails stored in your Cozy for each day.
+Number of events registered in your Calendar for each day.
 """
     model: americano.getModel 'Event', date: Date
     request:
