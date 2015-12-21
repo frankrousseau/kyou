@@ -10,6 +10,9 @@ module.exports = class BasicTrackerItem extends BaseView
     className: 'tracker line'
     template: require 'views/templates/basic_tracker_list_item'
 
+    subscriptions:
+        'data:created': 'onDataChanged'
+        'data:removed': 'onDataChanged'
 
     load: (callback) ->
         @$(".graph-container").spin true
@@ -26,16 +29,33 @@ module.exports = class BasicTrackerItem extends BaseView
                 callback() if callback?
 
 
+    onDataChanged: (event) ->
+        slug = @model.get('slug') or ''
+        if (event.doctype is 'sleep' and slug is 'sleep-duration') \
+        or (event.doctype is 'steps' and slug is 'steps')
+            console.log slug
+
+            if not @timeout?
+                console.log 'reload'
+                @timeout = setTimeout =>
+                    @timeout = null
+                    @load()
+                , 1000
+
+
     drawCharts: ->
+
         if @data?
             width = @$(".graph-container").width() - 70
             el = @$('.chart')[0]
             yEl = @$('.y-axis')[0]
             color = @model.get 'color'
             data = MainState.data[@model.get 'slug']
-            graphStyle = @model.get('metadata').style or 'bar'
+            metadata = @model.get('metadata') or {}
+            graphStyle = metadata.style or 'bar'
 
             data ?= calculus.getDefaultData()
 
+            graph.clear(el, yEl)
             graph.draw {el, yEl, width, color, data, graphStyle}
 
