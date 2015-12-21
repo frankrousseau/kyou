@@ -40,7 +40,7 @@ module.exports = class BasicTrackerItem extends BaseView
                 @timeout = setTimeout =>
                     @timeout = null
                     @load()
-                , 1000
+                , 2000
 
 
     drawCharts: ->

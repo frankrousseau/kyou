@@ -2164,7 +2164,7 @@ module.exports = BasicTrackerItem = (function(superClass) {
             _this.timeout = null;
             return _this.load();
           };
-        })(this), 1000);
+        })(this), 2000);
       }
     }
   };
