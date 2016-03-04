@@ -50,7 +50,7 @@ module.exports = class TrackerItem extends BaseView
     onSaveClicked: (event) ->
         day = moment @$('.tracker-current-date').val()
         amount = @$('.tracker-new-value').val()
-        amount = parseInt amount
+        amount = parseFloat amount
 
         label = @$('.tracker-current-value')
         label.spin true

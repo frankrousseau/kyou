@@ -2921,7 +2921,7 @@ module.exports = TrackerItem = (function(superClass) {
     var amount, day, label;
     day = moment(this.$('.tracker-current-date').val());
     amount = this.$('.tracker-new-value').val();
-    amount = parseInt(amount);
+    amount = parseFloat(amount);
     label = this.$('.tracker-current-value');
     label.spin(true);
     return this.model.updateDay(day, amount, (function(_this) {
