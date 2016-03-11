@@ -2,6 +2,7 @@ request = require 'lib/request'
 
 {DATE_FORMAT, DATE_URL_FORMAT} = require '../lib/constants'
 
+
 module.exports = class TrackerModel extends Backbone.Model
     rootUrl: "trackers"
 
@@ -18,11 +19,10 @@ module.exports = class TrackerModel extends Backbone.Model
         path = "trackers/#{id}/day/#{day.format 'YYYY-MM-DD'}"
         request.get path, (err, tracker) ->
             if err then callback err
+            else if tracker.amount?
+                callback null, new TrackerModel tracker
             else
-                if tracker.amount?
-                    callback null, new TrackerModel tracker
-                else
-                    callback null, null
+                callback null, null
 
 
     updateDay: (day, amount, callback) ->
@@ -36,7 +36,9 @@ module.exports = class TrackerModel extends Backbone.Model
         format = DATE_URL_FORMAT
         id = @get 'id'
 
-        "trackers/#{id}/amounts/#{startDate.format format}/#{endDate.format format}"
+        start = startDate.format format
+        end = endDate.format format
+        "trackers/#{id}/amounts/#{start}/#{end}"
 
 
     setMetadata: (field, value) ->

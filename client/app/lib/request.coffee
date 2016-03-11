@@ -15,22 +15,27 @@ exports.request = (type, url, data, callback) ->
             else if callback?
                 callback new Error "Server error occured"
 
+
 # Sends a get request with data as body
 # Expected callbacks: success and error
 exports.get = (url, callback) ->
     exports.request "GET", url, null, callback
+
 
 # Sends a post request with data as body
 # Expected callbacks: success and error
 exports.post = (url, data, callback) ->
     exports.request "POST", url, data, callback
 
+
 # Sends a put request with data as body
 # Expected callbacks: success and error
 exports.put = (url, data, callback) ->
     exports.request "PUT", url, data, callback
 
+
 # Sends a delete request with data as body
 # Expected callbacks: success and error
 exports.del = (url, callback) ->
     exports.request "DELETE", url, null, callback
+

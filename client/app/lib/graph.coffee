@@ -2,11 +2,26 @@ module.exports =
 
 
     # Draw a graph following the Risckshaw lib conventions.
+    #
+    # Options required:
+    #
+    # * el: DOM element to draw the graph
+    # * yEl: DOM element for ordinates
+    # * width: width of the graph
+    # * color: color of the displayed bars/lines/points
+    # * data: the data to build the graph with
+    # * graphStyle: bars, lines or points.
+    # * comparisonData: second graph to draw (useful to compare two sets of
+    # data).
+    # * time: ?
+    # * goal: add a horizontal line to show the user's goal.
+    #
     draw: (opts) ->
         {
             el, yEl, width, color, data, graphStyle, comparisonData, time, goal
         } = opts
 
+        # Default graph style is bar.
         graphStyle = "bar" unless graphStyle?
 
         # Build graph options depending of if there is something to compare.
@@ -27,6 +42,8 @@ module.exports =
                 renderer: graphStyle
             ]
 
+        # Add the goal for every where there is data.
+        # TODO: simplify it to only have two points.
         if goal?
             goal = parseInt goal
             goalData = []
@@ -65,51 +82,37 @@ module.exports =
         # Render Graph
         graph.render()
 
+        # Add fancy stuff
         hoverDetail = new Rickshaw.Graph.HoverDetail
             graph: graph,
             xFormatter: (x) ->
                 moment(x * 1000).format 'MM/DD/YY'
             formatter: (series, x, y) ->
-        # Add fancy stuff
                 Math.floor y
 
         graph
 
 
-    # Graph cleaning based on given elements.
+    # Graph cleaning based on DOM elements given for grap and ordinate axis.
     clear: (el, yEl) ->
         $(el).html null
         $(yEl).html null
 
 
     getWeekData: (data) ->
-        graphData = {}
-
-        for entry in data
-            date = moment new Date(entry.x * 1000)
-            date = date.day 1
-            epoch = date.unix()
-
-            if graphData[epoch]?
-                graphData[epoch] += entry.y
-            else
-                graphData[epoch] = entry.y
-
-        graphDataArray = []
-        for epoch, value of graphData
-            graphDataArray.push
-                x: parseInt(epoch)
-                y: value
-
-        return graphDataArray
+        @getAggregateData data, 'day'
 
 
     getMonthData: (data) ->
+        @getAggregateData data, 'date'
+
+
+    getAggregateData: (data, timeFunc) ->
         graphData = {}
 
         for entry in data
             date = moment new Date(entry.x * 1000)
-            date = date.date 1
+            date = date[timeFunc] 1
             epoch = date.unix()
 
             if graphData[epoch]?
@@ -124,13 +127,16 @@ module.exports =
                 y: value
 
         graphDataArray = _.sortBy graphDataArray, (entry) -> entry.x
+        console.log graphDataArray
 
         return graphDataArray
 
 
+    # Ensure that the two sets of compared data are on the same scale for the
+    # ordinate axis.
     normalizeComparisonData: (data, comparisonData) ->
 
-        # Get max
+        # Get max.
         maxData = 0
         for entry in data
             maxData = entry.y if entry.y > maxData
@@ -146,36 +152,28 @@ module.exports =
             factor = 1
 
         # Add an entry if there is no match (required by rickshaw)
-        dataHash = {}
-        comparisonDataHash = {}
-        for entry in data
-            dataHash[entry.x] = entry
+        dataDict = {}
+        comparisonDataDict = {}
 
-        for entry in comparisonData
-            comparisonDataHash[entry.x] = entry
         for entry in data
-
-            comparisonDataHash[entry.x] ?=
+            dataDict[entry.x] = entry
+            comparisonDataDict[entry.x] ?=
                 x: entry.x
                 y: 0
 
         for entry in comparisonData
-            dataHash[entry.x] ?=
+            comparisonDataDict[entry.x] = entry
+            dataDict[entry.x] ?=
                 x: entry.x
                 y: 0
-
 
         # Build results
         newData = []
         newComparisonData = []
-
-        for x, entry of dataHash
-            if entry?
-                newData.push entry
-
+        newData.push entry for x, entry of dataDict when entry?
 
         # normalize
-        for x, entry of comparisonDataHash
+        for x, entry of comparisonDataDict
             newComparisonData.push
                 x: entry.x
                 y: entry.y * factor
@@ -186,17 +184,22 @@ module.exports =
         }
 
 
+
+    # The aim is to find correlation through a point graph.
+    # So the compared data are displayed depending on the initial data.
+    # So we can see easily if there is a linear or cubic or whatever
+    # correlation between the two sets of data.
     mixData: (data, comparisonData) ->
 
-        dataHash = {}
+        dataDict = {}
         for entry in data
-            dataHash[entry.x] = entry.y
+            dataDict[entry.x] = entry.y
 
         newData = []
         for entry in comparisonData
             newData.push
                 x: entry.y
-                y: dataHash[entry.x]
+                y: dataDict[entry.x]
 
         newData = _.sortBy newData, (entry) -> entry.x
 

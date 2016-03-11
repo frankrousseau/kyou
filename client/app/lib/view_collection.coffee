@@ -21,13 +21,16 @@ module.exports = class ViewCollection extends BaseView
     itemViewOptions: ->
     collectionEl: null
 
+
     # add 'empty' class to view when there is no subview
     onChange: ->
         @$el.toggleClass 'empty', _.size(@views) is 0
 
+
     # can be overriden if we want to place the subviews somewhere else
     appendView: (view) ->
         @$collectionEl.append view.el
+
 
     # bind listeners to the collection
     initialize: ->
@@ -43,6 +46,7 @@ module.exports = class ViewCollection extends BaseView
         view.$el.detach() for id, view of @views
         super
 
+
     # after render, we reattach the views
     afterRender: ->
         console.log @colllectionEl
@@ -55,10 +59,12 @@ module.exports = class ViewCollection extends BaseView
         @onReset @collection
         @onChange @views
 
+
     # destroy all sub views before remove
     remove: ->
         @onReset []
         super
+
 
     # event listener for reset
     onReset: (newcollection) ->

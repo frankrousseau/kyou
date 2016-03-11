@@ -1,6 +1,7 @@
 AppView = require 'views/app_view'
 MainState = require './main_state'
 
+{DATE_URL_FORMAT} = require 'lib/constants'
 
 module.exports = class Router extends Backbone.Router
 
@@ -8,12 +9,12 @@ module.exports = class Router extends Backbone.Router
     routes:
         '': 'main'
         'main/:startDate/:endDate': 'mainDate'
+        'mood': 'mood'
         'mood/:startDate/:endDate': 'moodDate'
         'basic-trackers/:name': 'basicTracker'
         'basic-trackers/:name/:startDate/:endDate': 'basicTrackerDate'
         'trackers/:name': 'tracker'
         'trackers/:name/:startDate/:endDate': 'trackerDate'
-        'mood': 'mood'
         'add-tracker': 'addTracker'
         '*path': 'main'
 
@@ -37,6 +38,19 @@ module.exports = class Router extends Backbone.Router
         window.app.mainView.displayTrackers()
 
 
+    mood: (name) ->
+        @createMainView()
+        view = 'mood'
+        start = MainState.startDate.format DATE_URL_FORMAT
+        end = MainState.endDate.format DATE_URL_FORMAT
+        window.app.router.navigate "##{view}/#{start}/#{end}", trigger: true
+
+
+    moodDate: (startDate, endDate) ->
+        @createMainView startDate, endDate
+        window.app.mainView.displayMood()
+
+
     basicTracker: (name) ->
         @createMainView()
         window.app.mainView.displayBasicTracker name
@@ -45,6 +59,25 @@ module.exports = class Router extends Backbone.Router
     basicTrackerDate: (name, startDate, endDate) ->
         @createMainView startDate, endDate
         window.app.mainView.displayBasicTracker name
+
+
+    tracker: (name) ->
+        @createMainView()
+        view = 'mood'
+        start = MainState.startDate.format DATE_URL_FORMAT
+        end = MainState.endDate.format DATE_URL_FORMAT
+        window.app.router.navigate "#trackers/#{name}/#{start}/#{end}",
+            trigger: true
+
+
+    trackerDate: (name) ->
+        @createMainView()
+        window.app.mainView.displayTracker name
+
+
+    addTracker: (name) ->
+        @createMainView()
+        window.app.mainView.displayAddTracker()
 
 
     navigateZoom: ->
@@ -66,40 +99,7 @@ module.exports = class Router extends Backbone.Router
             view = 'main'
         else
             view = MainState.currentView
-        start = MainState.startDate.format 'YYYY-MM-DD'
-        end = MainState.endDate.format 'YYYY-MM-DD'
+        start = MainState.startDate.format DATE_URL_FORMAT
+        end = MainState.endDate.format DATE_URL_FORMAT
         window.app.router.navigate "##{view}/#{start}/#{end}", trigger: trigger
-
-
-    mood: (name) ->
-        @createMainView()
-        view = 'mood'
-        start = MainState.startDate.format 'YYYY-MM-DD'
-        end = MainState.endDate.format 'YYYY-MM-DD'
-        window.app.router.navigate "##{view}/#{start}/#{end}", trigger: true
-
-
-    moodDate: (name) ->
-        @createMainView()
-
-        window.app.mainView.displayMood()
-
-
-    tracker: (name) ->
-        @createMainView()
-        view = 'mood'
-        start = MainState.startDate.format 'YYYY-MM-DD'
-        end = MainState.endDate.format 'YYYY-MM-DD'
-        window.app.router.navigate "#trackers/#{name}/#{start}/#{end}",
-            trigger: true
-
-
-    trackerDate: (name) ->
-        @createMainView()
-        window.app.mainView.displayTracker name
-
-
-    addTracker: (name) ->
-        @createMainView()
-        window.app.mainView.displayAddTracker()
 
