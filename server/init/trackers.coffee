@@ -39,7 +39,7 @@ module.exports = (app) ->
     # For all trackers located in tracker directory, add a route to get
     # its data and created data system request.
     recConfig = (trackers) ->
-        if trackers.length > 0
+        if trackers?.length > 0
             tracker = trackers.pop()
 
             log.info "configure tracker #{tracker.name}"

@@ -397,9 +397,9 @@ module.exports = EventListener = (function(superClass) {
   }
 
   EventListener.prototype.models = {
-    'sleep': Backbone.Model,
-    'steps': Backbone.Model,
-    'weight': Backbone.Model
+    sleep: Backbone.Model,
+    steps: Backbone.Model,
+    weight: Backbone.Model
   };
 
   EventListener.prototype.events = ['sleep.create', 'steps.create', 'weight.create', 'sleep.delete', 'steps.delete', 'weight.delete'];
@@ -500,7 +500,7 @@ module.exports = {
         return moment(x * 1000).format('MM/DD/YY');
       },
       formatter: function(series, x, y) {
-        return Math.floor(y);
+        return (moment(x * 1000).format('MM/DD/YY')) + ": " + y;
       }
     });
     return graph;
@@ -510,36 +510,18 @@ module.exports = {
     return $(yEl).html(null);
   },
   getWeekData: function(data) {
-    var date, entry, epoch, graphData, graphDataArray, i, len, value;
-    graphData = {};
-    for (i = 0, len = data.length; i < len; i++) {
-      entry = data[i];
-      date = moment(new Date(entry.x * 1000));
-      date = date.day(1);
-      epoch = date.unix();
-      if (graphData[epoch] != null) {
-        graphData[epoch] += entry.y;
-      } else {
-        graphData[epoch] = entry.y;
-      }
-    }
-    graphDataArray = [];
-    for (epoch in graphData) {
-      value = graphData[epoch];
-      graphDataArray.push({
-        x: parseInt(epoch),
-        y: value
-      });
-    }
-    return graphDataArray;
+    return this.getAggregateData(data, 'day');
   },
   getMonthData: function(data) {
+    return this.getAggregateData(data, 'date');
+  },
+  getAggregateData: function(data, timeFunc) {
     var date, entry, epoch, graphData, graphDataArray, i, len, value;
     graphData = {};
     for (i = 0, len = data.length; i < len; i++) {
       entry = data[i];
       date = moment(new Date(entry.x * 1000));
-      date = date.date(1);
+      date = date[timeFunc](1);
       epoch = date.unix();
       if (graphData[epoch] != null) {
         graphData[epoch] += entry.y;
@@ -558,10 +540,11 @@ module.exports = {
     graphDataArray = _.sortBy(graphDataArray, function(entry) {
       return entry.x;
     });
+    console.log(graphDataArray);
     return graphDataArray;
   },
   normalizeComparisonData: function(data, comparisonData) {
-    var comparisonDataHash, dataHash, entry, factor, i, j, k, l, len, len1, len2, len3, len4, len5, m, maxComparisonData, maxData, n, name, name1, newComparisonData, newData, x;
+    var comparisonDataDict, dataDict, entry, factor, i, j, k, l, len, len1, len2, len3, maxComparisonData, maxData, name, name1, newComparisonData, newData, x;
     maxData = 0;
     for (i = 0, len = data.length; i < len; i++) {
       entry = data[i];
@@ -581,29 +564,23 @@ module.exports = {
     } else {
       factor = 1;
     }
-    dataHash = {};
-    comparisonDataHash = {};
+    dataDict = {};
+    comparisonDataDict = {};
     for (k = 0, len2 = data.length; k < len2; k++) {
       entry = data[k];
-      dataHash[entry.x] = entry;
-    }
-    for (l = 0, len3 = comparisonData.length; l < len3; l++) {
-      entry = comparisonData[l];
-      comparisonDataHash[entry.x] = entry;
-    }
-    for (m = 0, len4 = data.length; m < len4; m++) {
-      entry = data[m];
-      if (comparisonDataHash[name = entry.x] == null) {
-        comparisonDataHash[name] = {
+      dataDict[entry.x] = entry;
+      if (comparisonDataDict[name = entry.x] == null) {
+        comparisonDataDict[name] = {
           x: entry.x,
           y: 0
         };
       }
     }
-    for (n = 0, len5 = comparisonData.length; n < len5; n++) {
-      entry = comparisonData[n];
-      if (dataHash[name1 = entry.x] == null) {
-        dataHash[name1] = {
+    for (l = 0, len3 = comparisonData.length; l < len3; l++) {
+      entry = comparisonData[l];
+      comparisonDataDict[entry.x] = entry;
+      if (dataDict[name1 = entry.x] == null) {
+        dataDict[name1] = {
           x: entry.x,
           y: 0
         };
@@ -611,14 +588,14 @@ module.exports = {
     }
     newData = [];
     newComparisonData = [];
-    for (x in dataHash) {
-      entry = dataHash[x];
+    for (x in dataDict) {
+      entry = dataDict[x];
       if (entry != null) {
         newData.push(entry);
       }
     }
-    for (x in comparisonDataHash) {
-      entry = comparisonDataHash[x];
+    for (x in comparisonDataDict) {
+      entry = comparisonDataDict[x];
       newComparisonData.push({
         x: entry.x,
         y: entry.y * factor
@@ -630,18 +607,18 @@ module.exports = {
     };
   },
   mixData: function(data, comparisonData) {
-    var dataHash, entry, i, j, len, len1, newData;
-    dataHash = {};
+    var dataDict, entry, i, j, len, len1, newData;
+    dataDict = {};
     for (i = 0, len = data.length; i < len; i++) {
       entry = data[i];
-      dataHash[entry.x] = entry.y;
+      dataDict[entry.x] = entry.y;
     }
     newData = [];
     for (j = 0, len1 = comparisonData.length; j < len1; j++) {
       entry = comparisonData[j];
       newData.push({
         x: entry.y,
-        y: dataHash[entry.x]
+        y: dataDict[entry.x]
       });
     }
     newData = _.sortBy(newData, function(entry) {
@@ -690,31 +667,6 @@ module.exports = Model = (function(superClass) {
   return Model;
 
 })(Backbone.Model);
-
-});
-
-require.register("lib/normalizer", function(exports, require, module) {
-module.exports = {
-  getSixMonths: function(data, endDate) {
-    var beginDate, currentDate, i, len, point, result;
-    if (endDate == null) {
-      endDate = window.app.mainView.currentDate;
-    }
-    result = [];
-    endDate = moment(endDate);
-    endDate.add(1, 'days');
-    beginDate = moment(endDate);
-    beginDate = beginDate.subtract(6, 'months');
-    for (i = 0, len = data.length; i < len; i++) {
-      point = data[i];
-      currentDate = moment(point.x * 1000);
-      if ((currentDate != null) && (currentDate >= beginDate) && (currentDate <= endDate)) {
-        result.push(point);
-      }
-    }
-    return result;
-  }
-};
 
 });
 
@@ -934,13 +886,15 @@ module.exports = TrackerModel = (function(superClass) {
 });
 
 require.register("models/dailynote", function(exports, require, module) {
-var DailyNote, Model, request,
+var DATE_URL_FORMAT, DailyNote, Model, request,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 Model = require('lib/model');
 
 request = require('lib/request');
+
+DATE_URL_FORMAT = require('lib/constants').DATE_URL_FORMAT;
 
 module.exports = DailyNote = (function(superClass) {
   extend(DailyNote, superClass);
@@ -952,22 +906,22 @@ module.exports = DailyNote = (function(superClass) {
   DailyNote.prototype.urlRoot = 'dailynotes/';
 
   DailyNote.getDay = function(day, callback) {
-    return request.get("dailynotes/" + (day.format('YYYY-MM-DD')), function(err, dailynote) {
+    var path;
+    path = "dailynotes/" + (day.format(DATE_URL_FORMAT));
+    return request.get(path, function(err, dailynote) {
       if (err) {
         return callback(err);
+      } else if (dailynote.text != null) {
+        return callback(null, new DailyNote(dailynote));
       } else {
-        if (dailynote.text != null) {
-          return callback(null, new DailyNote(dailynote));
-        } else {
-          return callback(null, null);
-        }
+        return callback(null, null);
       }
     });
   };
 
   DailyNote.updateDay = function(day, text, callback) {
     var path;
-    path = "dailynotes/" + (day.format('YYYY-MM-DD'));
+    path = "dailynotes/" + (day.format(DATE_URL_FORMAT));
     return request.put(path, {
       text: text
     }, callback);
@@ -980,13 +934,15 @@ module.exports = DailyNote = (function(superClass) {
 });
 
 require.register("models/mood", function(exports, require, module) {
-var Model, Mood, request,
+var DATE_URL_FORMAT, Model, Mood, request,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 Model = require('lib/model');
 
 request = require('lib/request');
+
+DATE_URL_FORMAT = require('lib/constants').DATE_URL_FORMAT;
 
 module.exports = Mood = (function(superClass) {
   extend(Mood, superClass);
@@ -998,22 +954,20 @@ module.exports = Mood = (function(superClass) {
   Mood.prototype.urlRoot = 'moods/';
 
   Mood.getDay = function(day, callback) {
-    return request.get("moods/mood/" + (day.format('YYYY-MM-DD')), function(err, mood) {
+    return request.get("moods/mood/" + (day.format(DATE_URL_FORMAT)), function(err, mood) {
       if (err) {
         return callback(err);
+      } else if (mood.status != null) {
+        return callback(null, new Mood(mood));
       } else {
-        if (mood.status != null) {
-          return callback(null, new Mood(mood));
-        } else {
-          return callback(null, null);
-        }
+        return callback(null, null);
       }
     });
   };
 
   Mood.updateDay = function(day, status, callback) {
     var path;
-    path = "moods/mood/" + (day.format('YYYY-MM-DD'));
+    path = "moods/mood/" + (day.format(DATE_URL_FORMAT));
     return request.put(path, {
       status: status
     }, callback);
@@ -1131,12 +1085,10 @@ module.exports = TrackerModel = (function(superClass) {
     return request.get(path, function(err, tracker) {
       if (err) {
         return callback(err);
+      } else if (tracker.amount != null) {
+        return callback(null, new TrackerModel(tracker));
       } else {
-        if (tracker.amount != null) {
-          return callback(null, new TrackerModel(tracker));
-        } else {
-          return callback(null, null);
-        }
+        return callback(null, null);
       }
     });
   };
@@ -1154,10 +1106,12 @@ module.exports = TrackerModel = (function(superClass) {
   };
 
   TrackerModel.prototype.getPath = function(startDate, endDate) {
-    var format, id;
+    var end, format, id, start;
     format = DATE_URL_FORMAT;
     id = this.get('id');
-    return "trackers/" + id + "/amounts/" + (startDate.format(format)) + "/" + (endDate.format(format));
+    start = startDate.format(format);
+    end = endDate.format(format);
+    return "trackers/" + id + "/amounts/" + start + "/" + end;
   };
 
   TrackerModel.prototype.setMetadata = function(field, value) {
@@ -1215,13 +1169,15 @@ module.exports = TrackerModel = (function(superClass) {
 });
 
 require.register("router", function(exports, require, module) {
-var AppView, MainState, Router,
+var AppView, DATE_URL_FORMAT, MainState, Router,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 AppView = require('views/app_view');
 
 MainState = require('./main_state');
+
+DATE_URL_FORMAT = require('lib/constants').DATE_URL_FORMAT;
 
 module.exports = Router = (function(superClass) {
   extend(Router, superClass);
@@ -1233,12 +1189,12 @@ module.exports = Router = (function(superClass) {
   Router.prototype.routes = {
     '': 'main',
     'main/:startDate/:endDate': 'mainDate',
+    'mood': 'mood',
     'mood/:startDate/:endDate': 'moodDate',
     'basic-trackers/:name': 'basicTracker',
     'basic-trackers/:name/:startDate/:endDate': 'basicTrackerDate',
     'trackers/:name': 'tracker',
     'trackers/:name/:startDate/:endDate': 'trackerDate',
-    'mood': 'mood',
     'add-tracker': 'addTracker',
     '*path': 'main'
   };
@@ -1267,6 +1223,22 @@ module.exports = Router = (function(superClass) {
     return window.app.mainView.displayTrackers();
   };
 
+  Router.prototype.mood = function(name) {
+    var end, start, view;
+    this.createMainView();
+    view = 'mood';
+    start = MainState.startDate.format(DATE_URL_FORMAT);
+    end = MainState.endDate.format(DATE_URL_FORMAT);
+    return window.app.router.navigate("#" + view + "/" + start + "/" + end, {
+      trigger: true
+    });
+  };
+
+  Router.prototype.moodDate = function(startDate, endDate) {
+    this.createMainView(startDate, endDate);
+    return window.app.mainView.displayMood();
+  };
+
   Router.prototype.basicTracker = function(name) {
     this.createMainView();
     return window.app.mainView.displayBasicTracker(name);
@@ -1275,6 +1247,27 @@ module.exports = Router = (function(superClass) {
   Router.prototype.basicTrackerDate = function(name, startDate, endDate) {
     this.createMainView(startDate, endDate);
     return window.app.mainView.displayBasicTracker(name);
+  };
+
+  Router.prototype.tracker = function(name) {
+    var end, start, view;
+    this.createMainView();
+    view = 'mood';
+    start = MainState.startDate.format(DATE_URL_FORMAT);
+    end = MainState.endDate.format(DATE_URL_FORMAT);
+    return window.app.router.navigate("#trackers/" + name + "/" + start + "/" + end, {
+      trigger: true
+    });
+  };
+
+  Router.prototype.trackerDate = function(name) {
+    this.createMainView();
+    return window.app.mainView.displayTracker(name);
+  };
+
+  Router.prototype.addTracker = function(name) {
+    this.createMainView();
+    return window.app.mainView.displayAddTracker();
   };
 
   Router.prototype.navigateZoom = function() {
@@ -1306,48 +1299,11 @@ module.exports = Router = (function(superClass) {
     } else {
       view = MainState.currentView;
     }
-    start = MainState.startDate.format('YYYY-MM-DD');
-    end = MainState.endDate.format('YYYY-MM-DD');
+    start = MainState.startDate.format(DATE_URL_FORMAT);
+    end = MainState.endDate.format(DATE_URL_FORMAT);
     return window.app.router.navigate("#" + view + "/" + start + "/" + end, {
       trigger: trigger
     });
-  };
-
-  Router.prototype.mood = function(name) {
-    var end, start, view;
-    this.createMainView();
-    view = 'mood';
-    start = MainState.startDate.format('YYYY-MM-DD');
-    end = MainState.endDate.format('YYYY-MM-DD');
-    return window.app.router.navigate("#" + view + "/" + start + "/" + end, {
-      trigger: true
-    });
-  };
-
-  Router.prototype.moodDate = function(name) {
-    this.createMainView();
-    return window.app.mainView.displayMood();
-  };
-
-  Router.prototype.tracker = function(name) {
-    var end, start, view;
-    this.createMainView();
-    view = 'mood';
-    start = MainState.startDate.format('YYYY-MM-DD');
-    end = MainState.endDate.format('YYYY-MM-DD');
-    return window.app.router.navigate("#trackers/" + name + "/" + start + "/" + end, {
-      trigger: true
-    });
-  };
-
-  Router.prototype.trackerDate = function(name) {
-    this.createMainView();
-    return window.app.mainView.displayTracker(name);
-  };
-
-  Router.prototype.addTracker = function(name) {
-    this.createMainView();
-    return window.app.mainView.displayAddTracker();
   };
 
   return Router;
@@ -1867,7 +1823,7 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.displayTracker = function(id) {
-    MainState.currentView = "id";
+    MainState.currentView = id;
     this.hideMain();
     return this.displayZoomTracker(id);
   };
@@ -2081,17 +2037,11 @@ module.exports = BasicTrackerList = (function(superClass) {
   };
 
   BasicTrackerList.prototype.isEmpty = function() {
-    var i, isEmpty, isHidden, len, ref, tracker;
-    isEmpty = true;
-    ref = this.collection.models;
-    for (i = 0, len = ref.length; i < len; i++) {
-      tracker = ref[i];
-      isHidden = tracker.get('metadata').hidden;
-      if (isHidden === false) {
-        isEmpty = false;
-      }
-    }
-    return isEmpty;
+    var result;
+    result = this.collection.models.find(function(tracker) {
+      return !tracker.get('metadata').hidden;
+    });
+    return !(result != null);
   };
 
   return BasicTrackerList;
@@ -2201,7 +2151,7 @@ module.exports = BasicTrackerItem = (function(superClass) {
 });
 
 require.register("views/mood_tracker", function(exports, require, module) {
-var BaseView, DATE_FORMAT, DATE_URL_FORMAT, MainState, Mood, MoodTracker, Moods, calculus, graph, normalizer, ref, request,
+var BaseView, DATE_FORMAT, DATE_URL_FORMAT, MainState, Mood, MoodTracker, Moods, calculus, graph, ref, request,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -2211,8 +2161,6 @@ BaseView = require('lib/base_view');
 request = require('lib/request');
 
 graph = require('lib/graph');
-
-normalizer = require('lib/normalizer');
 
 calculus = require('lib/calculus');
 
@@ -2465,7 +2413,8 @@ module.exports = RawDataTable = (function(superClass) {
 });
 
 require.register("views/templates/add_basic_tracker_list", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2476,7 +2425,8 @@ return buf.join("");
 });
 
 require.register("views/templates/add_basic_tracker_list_item", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2489,7 +2439,8 @@ return buf.join("");
 });
 
 require.register("views/templates/add_tracker", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2501,7 +2452,8 @@ return buf.join("");
 });
 
 require.register("views/templates/add_tracker_list", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2512,7 +2464,8 @@ return buf.join("");
 });
 
 require.register("views/templates/add_tracker_list_item", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2525,7 +2478,8 @@ return buf.join("");
 });
 
 require.register("views/templates/basic_tracker_list", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2536,7 +2490,8 @@ return buf.join("");
 });
 
 require.register("views/templates/basic_tracker_list_item", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2550,7 +2505,8 @@ return buf.join("");
 });
 
 require.register("views/templates/home", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2566,7 +2522,8 @@ return buf.join("");
 });
 
 require.register("views/templates/mood", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2578,7 +2535,8 @@ return buf.join("");
 });
 
 require.register("views/templates/tracker_amount_item", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2590,7 +2548,8 @@ return buf.join("");
 });
 
 require.register("views/templates/tracker_amount_list", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2602,7 +2561,8 @@ return buf.join("");
 });
 
 require.register("views/templates/tracker_list", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2613,7 +2573,8 @@ return buf.join("");
 });
 
 require.register("views/templates/tracker_list_item", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2627,7 +2588,8 @@ return buf.join("");
 });
 
 require.register("views/templates/zoom", function(exports, require, module) {
-module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+module.exports = function anonymous(locals, attrs, escape, rethrow, merge
+/**/) {
 attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
 var buf = [];
 with (locals || {}) {
@@ -2683,11 +2645,9 @@ module.exports = TrackerAmountItem = (function(superClass) {
 });
 
 require.register("views/tracker_list", function(exports, require, module) {
-var TrackerCollection, TrackerList, ViewCollection, normalizer, request,
+var TrackerCollection, TrackerList, ViewCollection, request,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
-
-normalizer = require('lib/normalizer');
 
 ViewCollection = require('lib/view_collection');
 
@@ -2823,17 +2783,11 @@ module.exports = TrackerList = (function(superClass) {
   };
 
   TrackerList.prototype.isEmpty = function() {
-    var i, isEmpty, isHidden, len, ref, tracker;
-    isEmpty = true;
-    ref = this.collection.models;
-    for (i = 0, len = ref.length; i < len; i++) {
-      tracker = ref[i];
-      isHidden = tracker.get('metadata').hidden;
-      if (isHidden === false) {
-        isEmpty = false;
-      }
-    }
-    return isEmpty;
+    var result;
+    result = this.collection.models.find(function(tracker) {
+      return !tracker.get('metadata').hidden;
+    });
+    return !(result != null);
   };
 
   return TrackerList;
@@ -2843,7 +2797,7 @@ module.exports = TrackerList = (function(superClass) {
 });
 
 require.register("views/tracker_list_item", function(exports, require, module) {
-var BaseView, DATE_FORMAT, DATE_URL_FORMAT, MainState, TrackerItem, calculus, graph, normalizer, ref, request,
+var BaseView, DATE_FORMAT, DATE_URL_FORMAT, MainState, TrackerItem, calculus, graph, ref, request,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -2853,8 +2807,6 @@ BaseView = require('lib/base_view');
 request = require('lib/request');
 
 graph = require('lib/graph');
-
-normalizer = require('lib/normalizer');
 
 calculus = require('lib/calculus');
 
@@ -3074,7 +3026,7 @@ module.exports = ZoomView = (function(superClass) {
   };
 
   ZoomView.prototype.show = function(slug) {
-    var tracker;
+    var ref, tracker;
     ZoomView.__super__.show.apply(this, arguments);
     if (slug === 'mood') {
       tracker = this.moodTracker;
@@ -3082,11 +3034,10 @@ module.exports = ZoomView = (function(superClass) {
       this.$("#remove-section").hide();
       this.$("#import-section").hide();
       this.$("#import-info").hide();
-    } else if (slug.length === 32) {
+    } else if ((ref = slug.length) === 32 || ref === 36) {
       tracker = this.trackers.findWhere({
         id: slug
       });
-      console.log(tracker);
       tracker.set('slug', slug);
       this.$("#export-btn").attr("href", "trackers/export/" + slug + "/export.csv");
       this.$("#remove-section").show();
