@@ -88,7 +88,7 @@ module.exports =
             xFormatter: (x) ->
                 moment(x * 1000).format 'MM/DD/YY'
             formatter: (series, x, y) ->
-                Math.floor y
+                "#{moment(x * 1000).format 'MM/DD/YY'}: #{y}"
 
         graph
 
