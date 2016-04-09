@@ -237,7 +237,7 @@ module.exports = class AppView extends BaseView
 
 
     displayTracker: (id) ->
-        MainState.currentView = "id"
+        MainState.currentView = id
         @hideMain()
         @displayZoomTracker id
 
