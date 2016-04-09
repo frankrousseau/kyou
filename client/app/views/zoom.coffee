@@ -53,9 +53,8 @@ module.exports = class ZoomView extends BaseView
             @$("#import-section").hide()
             @$("#import-info").hide()
 
-        else if slug.length is 32
+        else if slug.length in [32, 36]
             tracker = @trackers.findWhere id: slug
-            console.log tracker
             tracker.set 'slug', slug
 
             @$("#export-btn").attr(

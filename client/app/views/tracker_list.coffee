@@ -91,10 +91,8 @@ module.exports = class TrackerList extends ViewCollection
 
 
     isEmpty: ->
-        isEmpty = true
-        for tracker in @collection.models
-            isHidden = tracker.get('metadata').hidden
-            isEmpty = false if isHidden is false
+        result = @collection.models.find (tracker) ->
+            not tracker.get('metadata').hidden
 
-        return isEmpty
+        return not(result?)
 
