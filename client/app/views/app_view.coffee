@@ -1,4 +1,4 @@
-graphHelper = require '../lib/graph'
+graphHelpers = require '../lib/graph'
 BaseView = require '../lib/base_view'
 
 Tracker = require '../models/tracker'
@@ -18,7 +18,7 @@ RawDataTable = require './raw_data_table'
 
 MainState = require '../main_state'
 
-{DATE_FORMAT, DATE_URL_FORMAT} = require '../lib/constants'
+{DATE_FORMAT, SHORT_DATE_FORMAT, DATE_URL_FORMAT} = require '../lib/constants'
 
 
 module.exports = class AppView extends BaseView
@@ -28,7 +28,6 @@ module.exports = class AppView extends BaseView
 
     events:
         'change #datepicker': 'onDatePickerChanged'
-        'blur #dailynote': 'onDailyNoteChanged'
         'click .date-previous': 'onPreviousClicked'
         'click .date-next': 'onNextClicked'
         'click .reload': 'onReloadClicked'
@@ -67,10 +66,16 @@ module.exports = class AppView extends BaseView
 
 
     getRenderData: =>
-        return {
-            startDate: MainState.startDate.format DATE_FORMAT
-            endDate: MainState.endDate.format DATE_FORMAT
-        }
+        if not graphHelpers.isSmallScreen()
+            data =
+                startDate: MainState.startDate.format SHORT_DATE_FORMAT
+                endDate: MainState.endDate.format SHORT_DATE_FORMAT
+        else
+            data =
+                startDate: MainState.startDate.format SHORT_DATE_FORMAT
+                endDate: MainState.endDate.format SHORT_DATE_FORMAT
+        console.log data
+        data
 
 
     afterRender: ->
@@ -106,14 +111,12 @@ module.exports = class AppView extends BaseView
 
 
         # Trackers
-
         @trackerList = new TrackerList()
         @trackerList.render()
         @$('#content').append @trackerList.$el
 
 
         # Basic trackers
-        #
         @basicTrackerList = new BasicTrackerList()
         @$('#content').append @basicTrackerList.$el
         @basicTrackerList.render()
@@ -145,9 +148,14 @@ module.exports = class AppView extends BaseView
 
     initDatePickers: ->
         now = new Date()
+        if not graphHelpers.isSmallScreen()
+            format = DATE_FORMAT
+        else
+            format = SHORT_DATE_FORMAT
+
         $('#datepicker-start').pikaday
             maxDate: now
-            format: DATE_FORMAT
+            format: format
             defaultDate: MainState.startDate.toDate()
             setDefaultDate: true
             onSelect: (value) ->
@@ -156,7 +164,7 @@ module.exports = class AppView extends BaseView
         $('#datepicker-end').pikaday
             maxDate: now
             defaultDate: MainState.endDate.toDate()
-            format: DATE_FORMAT
+            format: format
             onSelect: (value) ->
                 Backbone.Mediator.publish 'end-date:change', value
 
@@ -215,9 +223,10 @@ module.exports = class AppView extends BaseView
 
 
     displayAddTracker: ->
-        @hideMain()
         @zoomView.hide()
+        @hideMain()
         @addTrackerView.show()
+        @trackerList.hide()
         $(document).scrollTop 0
 
 
@@ -260,8 +269,8 @@ module.exports = class AppView extends BaseView
                 callback?()
 
     redrawCharts: =>
-        $('.chart').html(null);
-        $('.y-axis').html(null);
+        $('.chart').html(null)
+        $('.y-axis').html(null)
         @zoomView.onComparisonChanged()
 
         @moodTracker.redraw()
@@ -272,34 +281,4 @@ module.exports = class AppView extends BaseView
 
     onTrackerAdded: ->
         @welcomeMessage.hide()
-
-
-    ## Note Widget
-
-    onDailyNoteChanged: (event) ->
-        text = @$("#dailynote").val()
-        DailyNote.updateDay @currentDate, text, (err, mood) =>
-            if err
-                alert "An error occured while saving note of the day"
-
-
-    loadNote: ->
-        DailyNote.getDay @currentDate, (err, dailynote) =>
-            if err
-                alert "An error occured while retrieving daily note data"
-            else if not dailynote?
-                @$('#dailynote').val null
-            else
-                @$('#dailynote').val dailynote.get 'text'
-
-        @notes = new DailyNotes
-        @notes.fetch()
-
-
-    ## Zoom widget
-    #
-
-    onShowDataClicked: =>
-        @rawDataTable.show()
-        @rawDataTable.load @currentTracker
 
