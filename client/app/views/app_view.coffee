@@ -149,7 +149,7 @@ module.exports = class AppView extends BaseView
     initDatePickers: ->
         now = new Date()
         if not graphHelpers.isSmallScreen()
-            format = DATE_FORMAT
+            format = SHORT_DATE_FORMAT
         else
             format = SHORT_DATE_FORMAT
 
