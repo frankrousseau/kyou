@@ -1948,35 +1948,6 @@ cursor not-allowed {
   -ms-transition: color 0.2s linear, border-color 0.2s linear;
   transition: color 0.2s linear, border-color 0.2s linear;
 }
-@media (max-width: 480px) {
-  body {
-    text-rendering: optimizeSpeed;
-  }
-}
-@media (max-width: 600px) {
-  .graph-container {
-    left: -20px;
-  }
-  .application #menu {
-    position: static;
-  }
-  .application #menu .right {
-    display: none;
-  }
-}
-@media (max-width: 767px) {
-  .w33,
-  .w66 {
-    width: 100%;
-  }
-  body {
-    text-rendering: optimizeSpeed;
-  }
-}
-@media (min-width: 768px) and (max-width: 979px) {
-}
-@media (min-width: 1200px) {
-}
 #content {
   padding: 0 30px;
 }
@@ -2192,13 +2163,14 @@ cursor not-allowed {
 }
 .graph-container {
   margin-top: 10px;
-  min-height: 300px;
+  min-height: 140px;
   position: relative;
-  width: 98%;
+  width: 100%;
 }
 .chart {
   position: relative;
   left: 40px;
+  width: 95%;
 }
 .y-axis {
   position: absolute;
@@ -2396,6 +2368,44 @@ input.input.tracker-input {
 #zoom-view #import-button {
   padding: 4px;
   margin-top: 2px;
+}
+@media (max-width: 480px) {
+  body {
+    text-rendering: optimizeSpeed;
+  }
+}
+@media (max-width: 600px) {
+  .graph-container {
+    left: -20px;
+  }
+  .application #menu {
+    position: static;
+  }
+  .application #menu .right {
+    display: none;
+  }
+}
+@media (max-width: 950px) {
+  #menu .datepicker {
+    width: 100px;
+  }
+  #menu .info-text {
+    padding: 0;
+    margin: 0 5px 0 8px;
+  }
+}
+@media (max-width: 767px) {
+  .w33,
+  .w66 {
+    width: 100%;
+  }
+  body {
+    text-rendering: optimizeSpeed;
+  }
+}
+@media (min-width: 768px) and (max-width: 979px) {
+}
+@media (min-width: 1200px) {
 }
 
 .chromeframe { margin: 0.2em 0; background: #ccc; color: #000; padding: 0.2em 0; }

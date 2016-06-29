@@ -379,6 +379,7 @@ module.exports = {
 require.register("lib/constants", function(exports, require, module) {
 module.exports = {
   DATE_FORMAT: 'dddd, DD MMMM, YYYY',
+  SHORT_DATE_FORMAT: 'MM/DD/YYYY',
   DATE_URL_FORMAT: 'YYYY-MM-DD'
 };
 
@@ -425,7 +426,9 @@ module.exports = EventListener = (function(superClass) {
 });
 
 require.register("lib/graph", function(exports, require, module) {
-module.exports = {
+var graphUtils;
+
+module.exports = graphUtils = {
   draw: function(opts) {
     var color, comparisonData, data, el, goal, goalData, graph, graphStyle, hoverDetail, i, len, point, series, time, width, x_axis, yEl, y_axis;
     el = opts.el, yEl = opts.yEl, width = opts.width, color = opts.color, data = opts.data, graphStyle = opts.graphStyle, comparisonData = opts.comparisonData, time = opts.time, goal = opts.goal;
@@ -469,6 +472,11 @@ module.exports = {
         data: goalData
       });
     }
+    if (!graphUtils.isSmallScreen()) {
+      width -= 130;
+    } else {
+      width -= 20;
+    }
     graph = new Rickshaw.Graph({
       element: el,
       width: width,
@@ -494,15 +502,17 @@ module.exports = {
       element: yEl
     });
     graph.render();
-    hoverDetail = new Rickshaw.Graph.HoverDetail({
-      graph: graph,
-      xFormatter: function(x) {
-        return moment(x * 1000).format('MM/DD/YY');
-      },
-      formatter: function(series, x, y) {
-        return (moment(x * 1000).format('MM/DD/YY')) + ": " + y;
-      }
-    });
+    if (!graphUtils.isSmallScreen()) {
+      hoverDetail = new Rickshaw.Graph.HoverDetail({
+        graph: graph,
+        xFormatter: function(x) {
+          return moment(x * 1000).format('MM/DD/YY');
+        },
+        formatter: function(series, x, y) {
+          return (moment(x * 1000).format('MM/DD/YY')) + ": " + y;
+        }
+      });
+    }
     return graph;
   },
   clear: function(el, yEl) {
@@ -540,7 +550,6 @@ module.exports = {
     graphDataArray = _.sortBy(graphDataArray, function(entry) {
       return entry.x;
     });
-    console.log(graphDataArray);
     return graphDataArray;
   },
   normalizeComparisonData: function(data, comparisonData) {
@@ -625,6 +634,9 @@ module.exports = {
       return entry.x;
     });
     return newData;
+  },
+  isSmallScreen: function() {
+    return $(window).width() < 700;
   }
 };
 
@@ -1575,12 +1587,12 @@ module.exports = AddTrackerItem = (function(superClass) {
 });
 
 require.register("views/app_view", function(exports, require, module) {
-var AddBasicTrackerList, AddTrackerView, AppView, BaseView, BasicTrackerList, DATE_FORMAT, DATE_URL_FORMAT, DailyNote, DailyNotes, MainState, MoodTracker, MoodTrackerModel, RawDataTable, Tracker, TrackerList, Zoom, ZoomView, graphHelper, ref,
+var AddBasicTrackerList, AddTrackerView, AppView, BaseView, BasicTrackerList, DATE_FORMAT, DATE_URL_FORMAT, DailyNote, DailyNotes, MainState, MoodTracker, MoodTrackerModel, RawDataTable, SHORT_DATE_FORMAT, Tracker, TrackerList, Zoom, ZoomView, graphHelpers, ref,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-graphHelper = require('../lib/graph');
+graphHelpers = require('../lib/graph');
 
 BaseView = require('../lib/base_view');
 
@@ -1610,7 +1622,7 @@ RawDataTable = require('./raw_data_table');
 
 MainState = require('../main_state');
 
-ref = require('../lib/constants'), DATE_FORMAT = ref.DATE_FORMAT, DATE_URL_FORMAT = ref.DATE_URL_FORMAT;
+ref = require('../lib/constants'), DATE_FORMAT = ref.DATE_FORMAT, SHORT_DATE_FORMAT = ref.SHORT_DATE_FORMAT, DATE_URL_FORMAT = ref.DATE_URL_FORMAT;
 
 module.exports = AppView = (function(superClass) {
   extend(AppView, superClass);
@@ -1621,7 +1633,6 @@ module.exports = AppView = (function(superClass) {
 
   AppView.prototype.events = {
     'change #datepicker': 'onDatePickerChanged',
-    'blur #dailynote': 'onDailyNoteChanged',
     'click .date-previous': 'onPreviousClicked',
     'click .date-next': 'onNextClicked',
     'click .reload': 'onReloadClicked',
@@ -1636,7 +1647,6 @@ module.exports = AppView = (function(superClass) {
   };
 
   function AppView(options) {
-    this.onShowDataClicked = bind(this.onShowDataClicked, this);
     this.redrawCharts = bind(this.redrawCharts, this);
     this.getRenderData = bind(this.getRenderData, this);
     var endDate, startDate;
@@ -1664,10 +1674,20 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.getRenderData = function() {
-    return {
-      startDate: MainState.startDate.format(DATE_FORMAT),
-      endDate: MainState.endDate.format(DATE_FORMAT)
-    };
+    var data;
+    if (!graphHelpers.isSmallScreen()) {
+      data = {
+        startDate: MainState.startDate.format(SHORT_DATE_FORMAT),
+        endDate: MainState.endDate.format(SHORT_DATE_FORMAT)
+      };
+    } else {
+      data = {
+        startDate: MainState.startDate.format(SHORT_DATE_FORMAT),
+        endDate: MainState.endDate.format(SHORT_DATE_FORMAT)
+      };
+    }
+    console.log(data);
+    return data;
   };
 
   AppView.prototype.afterRender = function() {
@@ -1706,11 +1726,16 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.initDatePickers = function() {
-    var now;
+    var format, now;
     now = new Date();
+    if (!graphHelpers.isSmallScreen()) {
+      format = DATE_FORMAT;
+    } else {
+      format = SHORT_DATE_FORMAT;
+    }
     $('#datepicker-start').pikaday({
       maxDate: now,
-      format: DATE_FORMAT,
+      format: format,
       defaultDate: MainState.startDate.toDate(),
       setDefaultDate: true,
       onSelect: function(value) {
@@ -1720,7 +1745,7 @@ module.exports = AppView = (function(superClass) {
     return $('#datepicker-end').pikaday({
       maxDate: now,
       defaultDate: MainState.endDate.toDate(),
-      format: DATE_FORMAT,
+      format: format,
       onSelect: function(value) {
         return Backbone.Mediator.publish('end-date:change', value);
       }
@@ -1797,9 +1822,10 @@ module.exports = AppView = (function(superClass) {
   };
 
   AppView.prototype.displayAddTracker = function() {
-    this.hideMain();
     this.zoomView.hide();
+    this.hideMain();
     this.addTrackerView.show();
+    this.trackerList.hide();
     return $(document).scrollTop(0);
   };
 
@@ -1864,39 +1890,6 @@ module.exports = AppView = (function(superClass) {
 
   AppView.prototype.onTrackerAdded = function() {
     return this.welcomeMessage.hide();
-  };
-
-  AppView.prototype.onDailyNoteChanged = function(event) {
-    var text;
-    text = this.$("#dailynote").val();
-    return DailyNote.updateDay(this.currentDate, text, (function(_this) {
-      return function(err, mood) {
-        if (err) {
-          return alert("An error occured while saving note of the day");
-        }
-      };
-    })(this));
-  };
-
-  AppView.prototype.loadNote = function() {
-    DailyNote.getDay(this.currentDate, (function(_this) {
-      return function(err, dailynote) {
-        if (err) {
-          return alert("An error occured while retrieving daily note data");
-        } else if (dailynote == null) {
-          return _this.$('#dailynote').val(null);
-        } else {
-          return _this.$('#dailynote').val(dailynote.get('text'));
-        }
-      };
-    })(this));
-    this.notes = new DailyNotes;
-    return this.notes.fetch();
-  };
-
-  AppView.prototype.onShowDataClicked = function() {
-    this.rawDataTable.show();
-    return this.rawDataTable.load(this.currentTracker);
   };
 
   return AppView;
@@ -1965,7 +1958,9 @@ module.exports = BasicTrackerList = (function(superClass) {
     results = [];
     for (id in ref) {
       view = ref[id];
-      results.push(view.drawCharts());
+      if (view.$el.is(':visible')) {
+        results.push(view.drawCharts());
+      }
     }
     return results;
   };
@@ -2002,10 +1997,8 @@ module.exports = BasicTrackerList = (function(superClass) {
   };
 
   BasicTrackerList.prototype.onAddBasicTracker = function(slug) {
-    var data, view;
-    view = this.getView(slug);
-    view.$el.removeClass('hidden');
-    view.load();
+    var data;
+    this.show(slug);
     data = {
       hidden: false
     };
@@ -2014,11 +2007,40 @@ module.exports = BasicTrackerList = (function(superClass) {
 
   BasicTrackerList.prototype.onBasicTrackerRemoved = function(slug) {
     var data;
-    this.remove(slug);
+    this.hide(slug);
     data = {
       hidden: true
     };
     return request.put("metadata/basic-trackers/" + slug, data, function(err) {});
+  };
+
+  BasicTrackerList.prototype.hide = function(slug) {
+    var view;
+    if (slug != null) {
+      view = this.getView(slug);
+      if (view != null) {
+        view.$el.addClass('hidden');
+        return view.hide();
+      }
+    } else {
+      return this.$el.hide();
+    }
+  };
+
+  BasicTrackerList.prototype.show = function(slug) {
+    var view;
+    if (slug != null) {
+      view = this.getView(slug);
+      if (view != null) {
+        view.$el.removeClass('hidden');
+        view.show();
+        if (view.data == null) {
+          return view.load();
+        }
+      }
+    } else {
+      return this.$el.show();
+    }
   };
 
   BasicTrackerList.prototype.remove = function(slug) {
@@ -2108,7 +2130,6 @@ module.exports = BasicTrackerItem = (function(superClass) {
     if ((event.doctype === 'sleep' && slug === 'sleep-duration') || (event.doctype === 'steps' && slug === 'steps')) {
       console.log(slug);
       if (this.timeout == null) {
-        console.log('reload');
         return this.timeout = setTimeout((function(_this) {
           return function() {
             _this.timeout = null;
@@ -2122,7 +2143,7 @@ module.exports = BasicTrackerItem = (function(superClass) {
   BasicTrackerItem.prototype.drawCharts = function() {
     var color, data, el, graphStyle, metadata, width, yEl;
     if (this.data != null) {
-      width = this.$(".graph-container").width() - 70;
+      width = this.$(".graph-container").width();
       el = this.$('.chart')[0];
       yEl = this.$('.y-axis')[0];
       color = this.model.get('color');
@@ -2335,7 +2356,7 @@ module.exports = MoodTracker = (function(superClass) {
     if (this.data != null) {
       this.$("#moods-charts").html('');
       this.$("#moods-y-axis").html('');
-      width = this.$("#moods").width() - 70;
+      width = this.$("#moods").width();
       el = this.$("#moods-charts")[0];
       yEl = this.$("#moods-y-axis")[0];
       data = this.data;
@@ -2511,7 +2532,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div id="menu"><a id="home-btn" href="#" class="left"> <img src="icons/home.png" title="Kyou Home"/></a><div class="menu-date left"><span class="info-text">Visualize your data from:</span><input');
+buf.push('<div id="menu"><a id="home-btn" href="#" class="left"> <img src="icons/home.png" title="Kyou Home"/></a><div class="menu-date left"><span class="info-text">from:</span><input');
 buf.push(attrs({ 'id':('datepicker-start'), 'value':("" + (startDate) + ""), "class": ('datepicker') }, {"value":true}));
 buf.push('/><span class="info-text">to:</span><input');
 buf.push(attrs({ 'id':('datepicker-end'), 'value':("" + (endDate) + ""), "class": ('datepicker') }, {"value":true}));
@@ -2528,7 +2549,7 @@ attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow |
 var buf = [];
 with (locals || {}) {
 var interp;
-buf.push('<div class="line"><h2> <a href="#mood">Mood</a></h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p></div><div class="line"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div><div class="line"><p><strong>Change values</strong></p><p><span>Mood at </span><input id="mood-current-date" class="input tracker-input"/><span>:</span><span id="mood-current-value" class="tracker-value">&nbsp;</span></p><p id="set-mood"><span>Choose value:&nbsp;</span><button id="good-mood-btn" class="btn">good</button><button id="neutral-mood-btn" class="btn">neutral</button><button id="bad-mood-btn" class="btn">bad</button></p></div>');
+buf.push('<div class="line"><h2> <a href="#mood">Mood</a></h2><p class="explaination">The goal of this tracker is to help you\nunderstand what could influence your mood by comparing it\nto other trackers.</p></div><div class="line"><div id="moods" class="graph-container"><div id="moods-y-axis" class="y-axis"></div><div id="moods-charts" class="chart"></div></div></div><div class="line"><p><strong>Change values</strong></p><p><span>Mood at </span><input id="mood-current-date" class="input tracker-input"/><span>:</span><span id="mood-current-value" class="tracker-value">&nbsp;</span></p><p id="set-mood"><span>Choose value:&nbsp;</span><br/><button id="good-mood-btn" class="btn">good</button><button id="neutral-mood-btn" class="btn">neutral</button><button id="bad-mood-btn" class="btn">bad</button></p></div>');
 }
 return buf.join("");
 };
@@ -2724,7 +2745,9 @@ module.exports = TrackerList = (function(superClass) {
     results = [];
     for (id in ref) {
       view = ref[id];
-      results.push(view.redrawGraph());
+      if (view.$el.is(':visible')) {
+        results.push(view.redrawGraph());
+      }
     }
     return results;
   };
@@ -2750,7 +2773,38 @@ module.exports = TrackerList = (function(superClass) {
   TrackerList.prototype.remove = function(id) {
     var view;
     view = this.getView(id);
-    return view.remove();
+    if (view != null) {
+      return view.remove();
+    }
+  };
+
+  TrackerList.prototype.hide = function(id) {
+    var view;
+    if (id != null) {
+      view = this.getView(id);
+      if (view != null) {
+        view.$el.addClass('hidden');
+        return view.hide();
+      }
+    } else {
+      return this.$el.hide();
+    }
+  };
+
+  TrackerList.prototype.show = function(id) {
+    var view;
+    if (id != null) {
+      view = this.getView(id);
+      if (view != null) {
+        view.$el.removeClass('hidden');
+        view.$el.show();
+        if (view.data == null) {
+          return view.load();
+        }
+      }
+    } else {
+      return this.$el.show();
+    }
   };
 
   TrackerList.prototype.getView = function(id) {
@@ -2758,15 +2812,17 @@ module.exports = TrackerList = (function(superClass) {
     tracker = this.collection.findWhere({
       id: id
     });
-    view = this.views[tracker.cid];
+    if (tracker != null) {
+      view = this.views[tracker.cid];
+    } else {
+      view = null;
+    }
     return view;
   };
 
   TrackerList.prototype.onAddTracker = function(id) {
-    var data, view;
-    view = this.getView(id);
-    view.$el.removeClass('hidden');
-    view.load();
+    var data;
+    this.show(id);
     data = {
       hidden: false
     };
@@ -2775,7 +2831,7 @@ module.exports = TrackerList = (function(superClass) {
 
   TrackerList.prototype.onTrackerRemoved = function(id) {
     var data;
-    this.remove(id);
+    this.hide(id);
     data = {
       hidden: true
     };
@@ -2846,7 +2902,9 @@ module.exports = TrackerItem = (function(superClass) {
       })(this)
     });
     this.$('.tracker-new-value').numeric();
-    return this.loadCurrentDay();
+    if (this.$el.is(':visible')) {
+      return this.loadCurrentDay();
+    }
   };
 
   TrackerItem.prototype.loadCurrentDay = function() {
@@ -2933,7 +2991,7 @@ module.exports = TrackerItem = (function(superClass) {
   TrackerItem.prototype.drawCharts = function() {
     var color, data, el, graphStyle, width, yEl;
     if (this.data != null) {
-      width = this.$(".graph-container").width() - 70;
+      width = this.$(".graph-container").width();
       el = this.$('.chart')[0];
       yEl = this.$('.y-axis')[0];
       color = 'black';
