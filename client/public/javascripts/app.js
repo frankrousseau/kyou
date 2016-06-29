@@ -1729,7 +1729,7 @@ module.exports = AppView = (function(superClass) {
     var format, now;
     now = new Date();
     if (!graphHelpers.isSmallScreen()) {
-      format = DATE_FORMAT;
+      format = SHORT_DATE_FORMAT;
     } else {
       format = SHORT_DATE_FORMAT;
     }
