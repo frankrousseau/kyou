@@ -1,5 +1,4 @@
-module.exports =
-
+module.exports = graphUtils =
 
     # Draw a graph following the Risckshaw lib conventions.
     #
@@ -58,6 +57,11 @@ module.exports =
 
 
         # Build rickshaw object
+        unless graphUtils.isSmallScreen()
+            width -= 130
+        else
+            width -= 20
+
         graph = new Rickshaw.Graph(
             element: el
             width: width
@@ -83,12 +87,13 @@ module.exports =
         graph.render()
 
         # Add fancy stuff
-        hoverDetail = new Rickshaw.Graph.HoverDetail
-            graph: graph,
-            xFormatter: (x) ->
-                moment(x * 1000).format 'MM/DD/YY'
-            formatter: (series, x, y) ->
-                "#{moment(x * 1000).format 'MM/DD/YY'}: #{y}"
+        unless graphUtils.isSmallScreen()
+            hoverDetail = new Rickshaw.Graph.HoverDetail
+                graph: graph,
+                xFormatter: (x) ->
+                    moment(x * 1000).format 'MM/DD/YY'
+                formatter: (series, x, y) ->
+                    "#{moment(x * 1000).format 'MM/DD/YY'}: #{y}"
 
         graph
 
@@ -127,7 +132,6 @@ module.exports =
                 y: value
 
         graphDataArray = _.sortBy graphDataArray, (entry) -> entry.x
-        console.log graphDataArray
 
         return graphDataArray
 
@@ -204,4 +208,8 @@ module.exports =
         newData = _.sortBy newData, (entry) -> entry.x
 
         newData
+
+
+    isSmallScreen: ->
+        return $(window).width() < 700
 
