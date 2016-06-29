@@ -94,7 +94,7 @@ module.exports = class TrackerItem extends BaseView
 
     drawCharts: ->
         if @data?
-            width = @$(".graph-container").width() - 70
+            width = @$(".graph-container").width()
             el = @$('.chart')[0]
             yEl = @$('.y-axis')[0]
             color = 'black'

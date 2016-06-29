@@ -46,7 +46,8 @@ module.exports = class BasicTrackerItem extends BaseView
     drawCharts: ->
 
         if @data?
-            width = @$(".graph-container").width() - 70
+            width = @$(".graph-container").width()
+
             el = @$('.chart')[0]
             yEl = @$('.y-axis')[0]
             color = @model.get 'color'

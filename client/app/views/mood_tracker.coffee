@@ -136,7 +136,7 @@ module.exports = class MoodTracker extends BaseView
         if @data?
             @$("#moods-charts").html ''
             @$("#moods-y-axis").html ''
-            width = @$("#moods").width() - 70
+            width = @$("#moods").width()
             el = @$("#moods-charts")[0]
             yEl = @$("#moods-y-axis")[0]
             data = @data
