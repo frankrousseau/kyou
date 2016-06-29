@@ -5,7 +5,8 @@ RealtimeAdapter = require 'cozy-realtime-adapter'
 process.env.TZ = 'UTC'
 
 port = process.env.PORT || 9260
-americano.start name: 'kyou', port: port, (err, app, server) ->
+host = process.env.HOST || '127.0.0.1'
+americano.start name: 'kyou', port: port, host: host, (err, app, server) ->
 
     realtime = RealtimeAdapter server, [
         'sleep.create'
