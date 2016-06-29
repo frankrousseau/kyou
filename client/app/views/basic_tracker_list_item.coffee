@@ -36,7 +36,6 @@ module.exports = class BasicTrackerItem extends BaseView
             console.log slug
 
             if not @timeout?
-                console.log 'reload'
                 @timeout = setTimeout =>
                     @timeout = null
                     @load()

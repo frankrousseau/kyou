@@ -36,7 +36,7 @@ module.exports = class BasicTrackerList extends ViewCollection
 
     # Redraw all charts (useful for resizing or data change).
     redrawAll: ->
-        view.drawCharts() for id, view of @views
+        view.drawCharts() for id, view of @views when view.$el.is(':visible')
 
 
     # Reload data for each tracker. Perform it one by one.
@@ -68,19 +68,38 @@ module.exports = class BasicTrackerList extends ViewCollection
     # Then, it saves the hidden status change so it remembers it for further
     # loading.
     onAddBasicTracker: (slug) ->
-        view = @getView slug
-        view.$el.removeClass 'hidden'
-        view.load()
+        @show slug
         data =
             hidden: false
         request.put "metadata/basic-trackers/#{slug}", data, (err) ->
 
 
     onBasicTrackerRemoved: (slug) ->
-        @remove slug
+        @hide slug
         data =
             hidden: true
         request.put "metadata/basic-trackers/#{slug}", data, (err) ->
+
+
+    hide: (slug) ->
+        if slug?
+            view = @getView slug
+            if view?
+                view.$el.addClass 'hidden'
+                view.hide()
+        else
+            @$el.hide()
+
+
+    show: (slug) ->
+        if slug?
+            view = @getView slug
+            if view?
+                view.$el.removeClass 'hidden'
+                view.show()
+                view.load() unless view.data?
+        else
+            @$el.show()
 
 
     remove: (slug) ->

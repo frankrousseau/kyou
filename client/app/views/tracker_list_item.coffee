@@ -29,7 +29,7 @@ module.exports = class TrackerItem extends BaseView
                 @loadCurrentDay()
         @$('.tracker-new-value').numeric()
 
-        @loadCurrentDay()
+        @loadCurrentDay() if @$el.is(':visible')
 
 
     loadCurrentDay: =>

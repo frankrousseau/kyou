@@ -45,7 +45,7 @@ module.exports = class TrackerList extends ViewCollection
 
 
     redrawAll: ->
-        view.redrawGraph() for id, view of @views
+        view.redrawGraph() for id, view of @views when view.$el.is(':visible')
 
 
     # Hides if the metadata marks it as hidden.
@@ -62,12 +62,36 @@ module.exports = class TrackerList extends ViewCollection
 
     remove: (id) ->
         view = @getView id
-        view.remove()
+        view.remove() if view?
+
+
+    hide: (id) ->
+        if id?
+            view = @getView id
+            if view?
+                view.$el.addClass 'hidden'
+                view.hide()
+        else
+            @$el.hide()
+
+
+    show: (id) ->
+        if id?
+            view = @getView id
+            if view?
+                view.$el.removeClass 'hidden'
+                view.$el.show()
+                view.load() unless view.data?
+        else
+            @$el.show()
 
 
     getView: (id) ->
         tracker = @collection.findWhere id: id
-        view = @views[tracker.cid]
+        if tracker?
+            view = @views[tracker.cid]
+        else
+            view = null
         return view
 
 
@@ -75,16 +99,17 @@ module.exports = class TrackerList extends ViewCollection
     # Then, it saves the hidden status change so it remembers it for further
     # loading.
     onAddTracker: (id) ->
-        view = @getView id
-        view.$el.removeClass 'hidden'
-        view.load()
+        @show id
         data =
             hidden: false
         request.put "metadata/basic-trackers/#{id}", data, (err) ->
 
 
+    # When a tracker is removed, remove it from the list and loads its data.
+    # Then, it saves the hidden status change so it remembers it for further
+    # loading.
     onTrackerRemoved: (id) ->
-        @remove id
+        @hide id
         data =
             hidden: true
         request.put "metadata/basic-trackers/#{id}", data, (err) ->
